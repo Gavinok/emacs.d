@@ -5,13 +5,6 @@
 	("org" . "https://orgmode.org/elpa/")
 	("elpa" . "https://elpa.gnu.org/packages/")))
 
-;; spelling
-;; M-X ispell
-;;  will spell check the buffer
-;; M-X ispell-word
-;;  Checks the current word for a misspelling
-;; M-X flyspell-mode
-;;  spell check asynchronous 
 (package-initialize)
 ;;(package-refresh-contents)
 
