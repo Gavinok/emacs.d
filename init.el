@@ -78,16 +78,6 @@
 	 (add-to-list 'term-file-aliases
 		      '("st-256color" . "xterm-256color"))))
 
-;; (defun noct:conditionally-toggle-xclip-mode ()
-;;   (if (display-graphic-p)
-;;       (if (bound-and-true-p xclip-mode)
-;; 	  (xclip-mode -1))
-;;     (xclip-mode)))
-
-;; (noct:conditionally-toggle-xclip-mode)
-
-;; (add-hook 'focus-in-hook
-;;           #'noct:conditionally-toggle-xclip-mode)
 
 (evil-set-leader 'normal " ")
 (evil-define-key 'normal 'global (kbd "<leader>b") 'ivy-switch-buffer)
