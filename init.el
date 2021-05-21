@@ -105,6 +105,7 @@
 (load-theme 'badger t)
 ;(set-fringe-mode 10) ; give some breathing room
 (set-cursor-color "#dc322f")
+(set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
 
 (set-frame-parameter (selected-frame) 'alpha '(90 90))
 (add-to-list 'default-frame-alist '(alpha 90 90))
