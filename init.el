@@ -132,11 +132,11 @@
 	(sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
 ;; Configure custom agenda views
 (setq org-agenda-custom-commands
-  '(("d" "Dashboard"
-     ((agenda "" ((org-deadline-warning-days 7)))
-      (todo "NEXT"
-        ((org-agenda-overriding-header "Next Tasks")))
-      (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
+      '(("d" "Dashboard"
+	 ((agenda "" ((org-deadline-warning-days 7)))
+	  (todo "NEXT"
+		((org-agenda-overriding-header "Next Tasks")))
+	  (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
 
     ("n" "Next Tasks"
      ((todo "NEXT"
@@ -231,6 +231,11 @@
 (add-hook 'org-mode-hook 'typo-suggest-company-mode)
 (add-hook 'mail-mode-hook 'typo-suggest-company-mode)
 
+;;archive completed tasks
+(defun my-org-archive-done-tasks ()
+  (interactive)
+  (org-map-entries 'org-archive-subtree "/DONE" 'file))
+
 ;; Langs ----------------------------------------------
 ; better lisp bindings
 (define-key  evil-normal-state-map (kbd "(") (lambda () (interactive)
@@ -266,10 +271,6 @@
 
 
 (set-frame-font "Liberation Mono 14" nil t)
-
-(defun my-org-archive-done-tasks ()
-  (interactive)
-  (org-map-entries 'org-archive-subtree "/DONE" 'file))
 
 (add-to-list 'auto-mode-alist '("^/tmp/neomutt.*\\'" . mail-mode))
 (add-hook 'mail-mode-hook 'flyspell-mode)
