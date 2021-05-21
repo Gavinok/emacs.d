@@ -274,6 +274,10 @@
 
 (add-to-list 'auto-mode-alist '("^/tmp/neomutt.*\\'" . mail-mode))
 (add-hook 'mail-mode-hook 'flyspell-mode)
+;;non essential packages
+(unless (package-installed-p 'transmission)
+  (package-install 'transmission))
+(require 'transmission)
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
