@@ -23,7 +23,6 @@
   (unless (package-installed-p 'undo-fu)
     (package-install 'undo-fu))
   (require 'undo-fu)
-  ; (global-undo-fu-mode)
 
   (unless (package-installed-p 'evil)
     (package-install 'evil))
