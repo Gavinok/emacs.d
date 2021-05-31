@@ -115,6 +115,13 @@
 (setq right-margin-width 26)
 
 ;; Org Stuff
+(unless (package-installed-p 'org-download)
+    (package-install 'org-download))
+(require 'org-download)
+(add-hook 'dired-mode-hook 'org-download-enable)
+(setq-default org-download-image-dir "./pic")
+
+
 (add-hook 'org-mode-hook 'turn-on-flyspell) ;spell checking
 (setq org-directory "~/Documents/org")
 (setq org-agenda-files '("today.org" "refile.org"
