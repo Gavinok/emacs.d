@@ -230,10 +230,12 @@
 ;; Completion END --------------------------------------------------
 (unless (package-installed-p 'helpful)
   (package-install 'helpful))
-(unless (package-installed-p 'company)
-  (package-install 'company))
-(require 'company)
-(company-mode 1)
+;; (unless (package-installed-p 'company)
+;;   (package-install 'company))
+;; (require 'company)
+;; (add-hook 'after-init-hook 'global-company-mode)
+
+
 (unless (package-installed-p 'typo-suggest)
   (package-install 'typo-suggest))
 (add-hook 'org-mode-hook 'typo-suggest-company-mode)
