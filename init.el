@@ -81,6 +81,8 @@
 (evil-set-leader 'normal " ")
 (evil-define-key 'normal 'global (kbd "<leader>b") 'ivy-switch-buffer)
 (evil-define-key 'normal 'global (kbd "<leader>f") 'counsel-find-file)
+(evil-define-key 'normal 'global (kbd "<leader>t") 'capitalize-dwim)
+(evil-define-key 'visual 'global (kbd "<leader>t") 'capitalize-dwim)
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 ;; Setup Ivy
