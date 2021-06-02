@@ -186,6 +186,13 @@
       (todo "CANC"
             ((org-agenda-overriding-header "Cancelled Projects")
              (org-agenda-files org-agenda-files)))))))
+;; Magit
+(unless (package-installed-p 'magit)
+    (package-install 'magit))
+
+(unless (package-installed-p 'git-gutter)
+    (package-install 'git-gutter))
+(global-git-gutter-mode +1)
 ;; Make sure org-indent face is available
 (require 'org-indent)
 
@@ -298,7 +305,7 @@
  '(helm-minibuffer-history-key "M-p")
  '(org-agenda-files '("~/Documents/org/today.org"))
  '(package-selected-packages
-   '(org-download exwm-mff evil-mff evil-exwm-state typo-suggest type-suggest company helpful racket-mode fennel-mode undo-fu undo-fu-session org-bullets evil-collection ivy evil-lion evil-surround evil-commentary evil)))
+   '(magit git-gutter org-download exwm-mff evil-mff evil-exwm-state typo-suggest type-suggest company helpful racket-mode fennel-mode undo-fu undo-fu-session org-bullets evil-collection ivy evil-lion evil-surround evil-commentary evil)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
