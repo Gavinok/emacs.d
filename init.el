@@ -20,6 +20,11 @@
 (add-hook 'evil-mode-hook 'hexcolour-add-to-font-lock)
 
 (progn
+
+  ;; Vim like scrolling
+  (setq scroll-step            1
+	scroll-conservatively  10000)
+  ;; Vim style undo
   (unless (package-installed-p 'undo-fu)
     (package-install 'undo-fu))
   (require 'undo-fu)
