@@ -40,6 +40,7 @@
   (require 'evil)
   (evil-mode 1)
 
+  ;; evil mode in other modes live viewing pdfs
   (unless (package-installed-p 'evil-collection)
     (package-install 'evil-collection))
   ;; enable evil
@@ -67,7 +68,7 @@
 						 (evil-lion-left)))
   (define-key evil-normal-state-map (kbd "gL") (lambda () (interactive)
 						 (evil-lion-right)))
-  ;; cursor shape
+  ;; Cursor Shape
   (unless (package-installed-p 'evil-terminal-cursor-changer)
     (package-install 'evil-terminal-cursor-changer))
   (unless (display-graphic-p)
@@ -75,7 +76,7 @@
     (evil-terminal-cursor-changer-activate)))
 
 
-;; terminal settings
+;; Terminal Settings
 (if (display-graphic-p)
     (set-face-background 'default "#000000")
   (progn (set-face-background 'default "undefined")
