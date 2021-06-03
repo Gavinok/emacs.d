@@ -7,6 +7,8 @@
 
 (package-initialize)
 ;;(package-refresh-contents)
+(unless (package-installed-p 'use-package)
+    (package-install 'use-package))
 
 ;; Evil Stuff
 (defvar hexcolour-keywords
@@ -25,56 +27,56 @@
   (setq scroll-step            1
 	scroll-conservatively  10000)
   ;; Vim style undo
-  (unless (package-installed-p 'undo-fu)
-    (package-install 'undo-fu))
-  (require 'undo-fu)
+  ;; (unless (package-installed-p 'undo-fu)
+  ;;   (package-install 'undo-fu))
+  (use-package undo-fu)
 
-  (unless (package-installed-p 'evil)
-    (package-install 'evil))
-  ;; enable evil
-  (setq evil-evil-want-Y-yank-to-eol t)
-  (setq evil-want-keybinding nil)
-  (setq evil-split-window-below t)
-  (setq evil-split-window-right t)
-  (setq evil-undo-system 'undo-fu)
-  (require 'evil)
-  (evil-mode 1)
+  (use-package  evil
+		:init
+		(setq evil-evil-want-Y-yank-to-eol t)
+		(setq evil-want-keybinding nil)
+		(setq evil-split-window-below t)
+		(setq evil-split-window-right t)
+		(setq evil-undo-system 'undo-fu)
+		:config
+		(evil-mode 1)
+		(evil-set-leader 'normal " ")
+		(evil-define-key 'normal 'global (kbd "<leader>b") 'ivy-switch-buffer)
+		(evil-define-key 'normal 'global (kbd "<leader>f") 'counsel-find-file)
+		(evil-define-key 'normal 'global (kbd "<leader>t") 'capitalize-dwim)
+		(evil-define-key 'visual 'global (kbd "<leader>t") 'capitalize-dwim)
+		(global-set-key (kbd "<escape>") 'keyboard-escape-quit))
 
   ;; evil mode in other modes live viewing pdfs
-  (unless (package-installed-p 'evil-collection)
-    (package-install 'evil-collection))
+  (use-package  evil-collection
+		:config
+		(evil-collection-init))
   ;; enable evil
-  (require 'evil-collection)
-  (evil-collection-init)
 
   ;; Enable Commentary
-  (unless (package-installed-p 'evil-commentary)
-    (package-install 'evil-commentary))
-  (require 'evil-commentary)
-  (evil-commentary-mode 1)
+  (use-package evil-commentary
+	       :config
+	       (evil-commentary-mode 1))
+  
 
   ;; Enable Surround
-  (unless (package-installed-p 'evil-surround)
-    (package-install 'evil-surround))
-  (require 'evil-surround)
-  (global-evil-surround-mode 1)
+  (use-package evil-surround
+	       :config
+	       (global-evil-surround-mode 1))
 
   ;; Enable Lion
-  (unless (package-installed-p 'evil-lion)
-    (package-install 'evil-lion))
-  (require 'evil-lion)
-  (evil-lion-mode 1)
-  (define-key evil-normal-state-map (kbd "gl") (lambda () (interactive)
-						 (evil-lion-left)))
-  (define-key evil-normal-state-map (kbd "gL") (lambda () (interactive)
-						 (evil-lion-right)))
+  (use-package evil-lion
+	       :config
+	       (evil-lion-mode 1)
+	       (define-key evil-normal-state-map (kbd "gl") (lambda () (interactive)
+							      (evil-lion-left)))
+	       (define-key evil-normal-state-map (kbd "gL") (lambda () (interactive)
+							      (evil-lion-right))))
   ;; Cursor Shape
-  (unless (package-installed-p 'evil-terminal-cursor-changer)
-    (package-install 'evil-terminal-cursor-changer))
-  (unless (display-graphic-p)
-    (require 'evil-terminal-cursor-changer)
-    (evil-terminal-cursor-changer-activate)))
-
+  (use-package evil-terminal-cursor-changer
+	       :config
+	       (unless (display-graphic-p)
+		 (evil-terminal-cursor-changer-activate))))
 
 ;; Terminal Settings
 (if (display-graphic-p)
@@ -83,67 +85,57 @@
 	 (add-to-list 'term-file-aliases
 		      '("st-256color" . "xterm-256color"))))
 
-
-(evil-set-leader 'normal " ")
-(evil-define-key 'normal 'global (kbd "<leader>b") 'ivy-switch-buffer)
-(evil-define-key 'normal 'global (kbd "<leader>f") 'counsel-find-file)
-(evil-define-key 'normal 'global (kbd "<leader>t") 'capitalize-dwim)
-(evil-define-key 'visual 'global (kbd "<leader>t") 'capitalize-dwim)
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-
 ;; Setup Ivy
-(progn
-  (unless (package-installed-p 'counsel)
-    (package-install 'counsel))
-  (require 'counsel)
-  (counsel-mode 1)
-  (global-set-key (kbd "C-s") 'swiper-isearch)
-  (global-set-key (kbd "M-x") 'counsel-M-x)
-  (global-set-key (kbd "C-x C-f") 'counsel-find-file)
-  (global-set-key (kbd "M-y") 'counsel-yank-pop)
-  (global-set-key (kbd "C-x b") 'ivy-switch-buffer)
-  (global-set-key (kbd "C-c v") 'ivy-push-view)
-  (global-set-key (kbd "C-c V") 'ivy-pop-view))
+(use-package counsel
+	     :config
+	     (counsel-mode 1)
+	     (global-set-key (kbd "C-s") 'swiper-isearch)
+	     (global-set-key (kbd "M-x") 'counsel-M-x)
+	     (global-set-key (kbd "C-x C-f") 'counsel-find-file)
+	     (global-set-key (kbd "M-y") 'counsel-yank-pop)
+	     (global-set-key (kbd "C-x b") 'ivy-switch-buffer)
+	     (global-set-key (kbd "C-c v") 'ivy-push-view)
+	     (global-set-key (kbd "C-c V") 'ivy-pop-view))
 
 ;; Themeing
 ;; todo
-  (unless (package-installed-p 'badger-theme)
-    (package-install 'badger-theme))
-(load-theme 'badger t)
-;(set-fringe-mode 10) ; give some breathing room
-(set-cursor-color "#dc322f")
-(set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
+(use-package badger-theme
+	     :config
+	     (load-theme 'badger t)
+	     (set-cursor-color "#dc322f")
+	     (set-face-attribute 'region nil :background "#666" :foreground "#ffffff"))
 
 (set-frame-parameter (selected-frame) 'alpha '(90 90))
 (add-to-list 'default-frame-alist '(alpha 90 90))
 
-(setq left-margin-width 26)
-(setq right-margin-width 26)
-
 ;; Org Stuff
-(unless (package-installed-p 'org-download)
-    (package-install 'org-download))
-(require 'org-download)
-(add-hook 'dired-mode-hook 'org-download-enable)
-(setq-default org-download-image-dir "./pic")
+(use-package org-download
+	     :init
+	     (setq org-directory "~/Documents/org")
+	     (setq org-agenda-files '("today.org" "refile.org"
+				      "work.org" "Practices.org"))
+	     :config
+	     (add-hook 'dired-mode-hook 'org-download-enable)
+	     (setq-default org-download-image-dir "./pic"))
 
 
-(add-hook 'org-mode-hook 'turn-on-flyspell) ;spell checking
-(setq org-directory "~/Documents/org")
-(setq org-agenda-files '("today.org" "refile.org"
-			 "work.org" "Practices.org"))
+(use-package org-bullets
+	     :config
+	     (if (display-graphic-p)
+		 (add-hook 'org-mode-hook #'org-bullets-mode)))
+
+;; Make sure org-indent face is available
+(require 'org-indent)
+
 (evil-define-key 'normal 'global (kbd "gA") 'org-agenda)
-(if (display-graphic-p)
-    (progn (unless (package-installed-p 'org-bullets)
-	     (package-install 'org-bullets))
-	   (require 'org-bullets)
-	   (add-hook 'org-mode-hook #'org-bullets-mode)))
+
 (setq org-default-notes-file (concat org-directory "/refile.org"))
 (setq org-log-done 'time)
 (setq org-log-into-drawer t)
 (setq org-todo-keywords
       '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
 	(sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
+
 ;; Configure custom agenda views
 (setq org-agenda-custom-commands
       '(("d" "Dashboard"
@@ -192,6 +184,7 @@
       (todo "CANC"
             ((org-agenda-overriding-header "Cancelled Projects")
              (org-agenda-files org-agenda-files)))))))
+
 ;; Magit
 (unless (package-installed-p 'magit)
     (package-install 'magit))
@@ -199,8 +192,6 @@
 (unless (package-installed-p 'git-gutter)
     (package-install 'git-gutter))
 (global-git-gutter-mode +1)
-;; Make sure org-indent face is available
-(require 'org-indent)
 
 ;; pdf auto refresh
 (add-hook 'doc-view-mode-hook 'auto-revert-mode)
@@ -213,6 +204,8 @@
 (setq backup-by-copying t)
 (setq create-lockfiles nil)
 (setq auto-save-default nil)
+;; add borders
+(set-frame-parameter nil 'internal-border-width 10)
 ;; To disable the menu bar, place the following line in your .emacs file:
 (menu-bar-mode -1)
 ;; To disable the scroll bar, use the following line:
@@ -241,18 +234,6 @@
 	;; try-expand-line
 	))
 ;; Completion END --------------------------------------------------
-(unless (package-installed-p 'helpful)
-  (package-install 'helpful))
-;; (unless (package-installed-p 'company)
-;;   (package-install 'company))
-;; (require 'company)
-;; (add-hook 'after-init-hook 'global-company-mode)
-
-
-(unless (package-installed-p 'typo-suggest)
-  (package-install 'typo-suggest))
-(add-hook 'org-mode-hook 'typo-suggest-company-mode)
-(add-hook 'mail-mode-hook 'typo-suggest-company-mode)
 
 ;;archive completed tasks
 (defun my-org-archive-done-tasks ()
@@ -272,13 +253,9 @@
 (define-key  evil-operator-state-map (kbd ")") (lambda () (interactive)
 					       (evil-next-close-paren)))
 
-(unless (package-installed-p 'fennel-mode)
-  (package-install 'fennel-mode))
-(require 'fennel-mode)
+(use-package fennel-mode)
 
-(unless (package-installed-p 'racket-mode)
-  (package-install 'racket-mode))
-(require 'racket-mode)
+(use-package  racket-mode)
 ;; Langs END ----------------------------------------------
 
 ;; Dired settings --------------------------------------------------
@@ -297,10 +274,11 @@
 
 (add-to-list 'auto-mode-alist '("^/tmp/neomutt.*\\'" . mail-mode))
 (add-hook 'mail-mode-hook 'flyspell-mode)
+(add-hook 'org-mode-hook 'turn-on-flyspell) ;spell checking
+
 ;;non essential packages
-(unless (package-installed-p 'transmission)
-  (package-install 'transmission))
-(require 'transmission)
+(use-package transmission)
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
