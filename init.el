@@ -282,6 +282,56 @@
 ;;non essential packages
 (use-package transmission)
 
+(use-package exwm
+  :init (setq mouse-autoselect-window t
+      focus-follows-mouse t))
+(use-package exwm-config)
+(require 'exwm-systemtray)
+(exwm-systemtray-enable)
+(exwm-config-example)
+(setq exwm-input-global-keys
+      `(([?\s-r] . exwm-reset)
+	([?\s-w] . exwm-workspace-switch)
+	([?\s-b] . counsel-switch-buffer)
+	([?\s-Z] . exwm-floating-toggle-floating)
+	([?\s-f] . exwm-layout-set-fullscreen)
+        ([?\s-q] . kill-this-buffer)
+        ([?\s-p] . counsel-yank-pop)
+	([?\s-d] . (lambda (command)
+		     (interactive (list (read-shell-command "λ ")))
+		     (start-process-shell-command command nil command)))
+
+	,@(mapcar (lambda (i)
+                    `(,(kbd (format "s-%d" i))
+                      (lambda ()
+                        (interactive)
+                        (exwm-workspace-switch-create ,i))))
+                  (number-sequence 0 9))))
+
+;; (use-package alert
+;;   :config
+;;   (setq alert-default-style 'libnotify))
+
+(setq exwm-input-simulation-keys
+      '(([?\C-b] . [left])
+        ([?\C-f] . [right])
+        ([?\C-p] . [up])
+        ([?\C-n] . [down])
+        ([?\C-a] . [home])
+        ([?\C-e] . [end])
+        ([?\M-v] . [prior])
+        ([?\C-v] . [next])
+        ([?\C-d] . [delete])
+        ([?\C-k] . [S-end delete])))
+
+(add-hook 'exwm-manage-finish-hook
+          (lambda ()
+            (when (and exwm-class-name
+                       (or (string= exwm-class-name "qutebrowser")))
+              (exwm-input-set-local-simulation-keys nil))))
+
+(define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
