@@ -7,10 +7,10 @@
 
 (package-initialize)
 ;;(package-refresh-contents)
+(setq use-package-always-ensure t)
 (unless (package-installed-p 'use-package)
     (package-install 'use-package))
 
-;; Evil Stuff
 (defvar hexcolour-keywords
   '(("#[abcdef[:digit:]]\\{6\\}"
      (0 (put-text-property (match-beginning 0)
@@ -21,6 +21,7 @@
   (font-lock-add-keywords nil hexcolour-keywords))
 (add-hook 'evil-mode-hook 'hexcolour-add-to-font-lock)
 
+;; Evil mode settings
 (progn
 
   ;; Vim like scrolling
