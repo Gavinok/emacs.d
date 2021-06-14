@@ -282,24 +282,34 @@
 ;;non essential packages
 (use-package transmission)
 
+;; EXWM
 (use-package exwm
   :init (setq mouse-autoselect-window t
-      focus-follows-mouse t))
+	      focus-follows-mouse t))
 (use-package exwm-config)
 (require 'exwm-systemtray)
 (exwm-systemtray-enable)
 (exwm-config-example)
 (setq exwm-input-global-keys
-      `(([?\s-r] . exwm-reset)
-	([?\s-w] . exwm-workspace-switch)
-	([?\s-b] . counsel-switch-buffer)
-	([?\s-Z] . exwm-floating-toggle-floating)
-	([?\s-f] . exwm-layout-set-fullscreen)
-        ([?\s-q] . kill-this-buffer)
-        ([?\s-p] . counsel-yank-pop)
-	([?\s-d] . (lambda (command)
-		     (interactive (list (read-shell-command "λ ")))
-		     (start-process-shell-command command nil command)))
+      `( ([?\s-h] . windmove-left)
+	 ([?\s-l] . windmove-right)
+	 ;; ([?\s-j] . windmove-down)
+	 ;; ([?\s-k] . windmove-up)
+	 ([?\s-j] . edwina-select-next-window)
+	 ([?\s-k] . edwina-select-previous-window)
+	 ([?\s-s] . edwina-dec-nmaster)
+	 ([?\s-a] . edwina-inc-nmaster)
+	 ([?\s-v] . edwina-zoom)
+	 ([?\s-r] . exwm-reset)
+	 ([?\s-w] . exwm-workspace-switch)
+	 ([?\s-b] . counsel-switch-buffer)
+	 ([?\s-z] . exwm-floating-toggle-floating)
+	 ([?\s-f] . exwm-layout-set-fullscreen)
+	 ([?\s-q] . kill-this-buffer)
+	 ([?\s-p] . counsel-yank-pop)
+	 ([?\s-d] . (lambda (command)
+		      (interactive (list (read-shell-command "λ ")))
+		      (start-process-shell-command command nil command)))
 
 	,@(mapcar (lambda (i)
                     `(,(kbd (format "s-%d" i))
@@ -308,26 +318,33 @@
                         (exwm-workspace-switch-create ,i))))
                   (number-sequence 0 9))))
 
-;; (use-package alert
-;;   :config
-;;   (setq alert-default-style 'libnotify))
+(exwm-input-set-key (kbd "s-]") 'edwina-inc-mfact)
+(exwm-input-set-key (kbd "s-[") 'edwina-dec-mfact)
+(exwm-input-set-key (kbd "s-<return>") 'edwina-clone-window)
 
-(setq exwm-input-simulation-keys
-      '(([?\C-b] . [left])
-        ([?\C-f] . [right])
-        ([?\C-p] . [up])
-        ([?\C-n] . [down])
-        ([?\C-a] . [home])
-        ([?\C-e] . [end])
-        ([?\M-v] . [prior])
-        ([?\C-v] . [next])
-        ([?\C-d] . [delete])
-        ([?\C-k] . [S-end delete])))
+(use-package edwina
+  :ensure t
+  :config
+  (setq display-buffer-base-action '(display-buffer-below-selected))
+  (edwina-mode 1))
+
+;; (setq exwm-input-simulation-keys
+;;       '(([?\C-b] . [left])
+;;         ([?\C-f] . [right])
+;;         ([?\C-p] . [up])
+;;         ([?\C-n] . [down])
+;;         ([?\C-a] . [home])
+;;         ([?\C-e] . [end])
+;;         ([?\M-v] . [prior])
+;;         ([?\C-v] . [next])
+;;         ([?\C-d] . [delete])
+;;         ([?\C-k] . [S-end delete])))
 
 (add-hook 'exwm-manage-finish-hook
           (lambda ()
             (when (and exwm-class-name
-                       (or (string= exwm-class-name "qutebrowser")))
+                       (or (string= exwm-class-name "qutebrowser")
+			   (string= exwm-class-name "Brave-browser")))
               (exwm-input-set-local-simulation-keys nil))))
 
 (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
