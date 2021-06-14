@@ -188,12 +188,13 @@
              (org-agenda-files org-agenda-files)))))))
 
 ;; Magit
-(unless (package-installed-p 'magit)
-    (package-install 'magit))
+(use-package magit
+  :config
+  (evil-define-key 'normal 'global (kbd "Q") 'magit))
 
-(unless (package-installed-p 'git-gutter)
-    (package-install 'git-gutter))
-(global-git-gutter-mode +1)
+(use-package git-gutter
+  :config
+  (global-git-gutter-mode +1))
 
 ;; pdf auto refresh
 (add-hook 'doc-view-mode-hook 'auto-revert-mode)
