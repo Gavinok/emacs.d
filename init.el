@@ -127,6 +127,7 @@
 
 ;; Make sure org-indent face is available
 (require 'org-indent)
+(require 'org-tempo)
 
 (evil-define-key 'normal 'global (kbd "gA") 'org-agenda)
 
