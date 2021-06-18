@@ -23,7 +23,6 @@
 
 ;; Evil mode settings
 (progn
-
   ;; Vim like scrolling
   (setq scroll-step            1
 	scroll-conservatively  10000)
@@ -271,7 +270,6 @@
   (dired-hide-details-mode 1)
   (define-key dired-mode-map (kbd "-") (lambda () (interactive) (find-alternate-file ".."))))
 (add-hook 'dired-mode-hook 'gavin-dired-mode-setup)
-
 
 (set-frame-font "Liberation Mono 14" nil t)
 
