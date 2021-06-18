@@ -188,6 +188,15 @@
             ((org-agenda-overriding-header "Cancelled Projects")
              (org-agenda-files org-agenda-files)))))))
 
+(setq org-capture-templates
+      '(("t" "Todo" entry (file "~/Documents/org/refile.org")
+	 "* TODO %?\nDEADLINE: %T\n  %a")
+	("m" "Meeting" entry (file+headline "~/Documents/org/mylife.org" "Tasks")
+	 "* %?\nSCHEDULED: %T\n")
+	("r" "Refund" entry (file+headline "~/Documents/org/mylife.org" "Tasks")
+	 "* TODO refund %?\n%?  %a\n")
+	("c" "Cool Thing" entry (file+datetree "~/Documents/org/archive.org")
+	 "* %?\nEntered on %U\n  %i\n  %a")))
 ;; Magit
 (use-package magit
   :config
