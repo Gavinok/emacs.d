@@ -130,6 +130,7 @@
 (require 'org-tempo)
 
 (evil-define-key 'normal 'global (kbd "gA") 'org-agenda)
+(evil-define-key 'normal 'global (kbd "gC") 'org-capture)
 
 (setq org-default-notes-file (concat org-directory "/refile.org"))
 (setq org-log-done 'time)
