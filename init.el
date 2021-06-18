@@ -110,14 +110,15 @@
 
 ;; Org Stuff
 (use-package org-download
-	     :init
-	     (setq org-directory "~/Documents/org")
-	     (setq org-agenda-files '("today.org" "refile.org"
-				      "work.org" "Practices.org"))
-	     :config
-	     (add-hook 'dired-mode-hook 'org-download-enable)
-	     (setq-default org-download-image-dir "./pic"))
-
+  :init
+  (setq org-directory "~/Documents/org")
+  (setq org-agenda-files '("today.org" "refile.org"
+			   "work.org" "Practices.org"))
+  (setq-default org-download-screenshot-method "gnome-screenshot -a -f %s")
+  (setq-default org-download-image-dir "./pic")
+  (exwm-input-set-key (kbd "s-i") 'org-download-screenshot)
+  :config
+  (add-hook 'dired-mode-hook 'org-download-enable))
 
 (use-package org-bullets
 	     :config
