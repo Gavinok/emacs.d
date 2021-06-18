@@ -487,11 +487,14 @@
 ;;         ([?\C-k] . [S-end delete])))
 
 (add-hook 'exwm-manage-finish-hook
-          (lambda ()
-            (when (and exwm-class-name
-                       (or (string= exwm-class-name "qutebrowser")
+	  (lambda ()
+	    (when (and exwm-class-name
+		       (or (string= exwm-class-name "qutebrowser")
+			   (string= exwm-class-name "libreoffice-writer")
+			   (string= exwm-class-name "libreoffice-calc")
+			   (string= exwm-class-name "Google-chrome")
 			   (string= exwm-class-name "Brave-browser")))
-              (exwm-input-set-local-simulation-keys nil))))
+	      (exwm-input-set-local-simulation-keys nil))))
 
 (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
 
