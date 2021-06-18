@@ -471,7 +471,8 @@
   :ensure t
   :config
   (setq display-buffer-base-action '(display-buffer-below-selected))
-  (edwina-mode 1))
+					;(edwina-mode 1)
+  )
 
 ;; (setq exwm-input-simulation-keys
 ;;       '(([?\C-b] . [left])
