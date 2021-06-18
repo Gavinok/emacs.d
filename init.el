@@ -393,6 +393,9 @@
 (setq exwm-input-global-keys
       `( ([?\s-h] . windmove-left)
 	 ([?\s-l] . windmove-right)
+	 ([?\s-0] . (lambda ()
+		      (interactive )
+		      (start-process-shell-command "dmenu_connection_manager.sh" nil "dmenu_connection_manager.sh")))
 	 ;; ([?\s-j] . windmove-down)
 	 ;; ([?\s-k] . windmove-up)
 	 ([?\s-j] . edwina-select-next-window)
