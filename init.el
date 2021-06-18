@@ -373,6 +373,13 @@
   
 
 ;;non essential packages
+(use-package esh-autosuggest)
+
+;https://github.com/politza/pdf-tools
+; annotate pdfs with c-c c-a
+; hl with c-c c-a h
+; for help M-x pdf-tools-help RET
+(use-package pdf-tools)
 (use-package transmission)
 
 ;; EXWM
