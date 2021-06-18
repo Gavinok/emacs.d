@@ -386,10 +386,21 @@
 (use-package exwm
   :init (setq mouse-autoselect-window t
 	      focus-follows-mouse t))
-(use-package exwm-config)
+(use-package exwm-config
+  :ensure nil)
 (require 'exwm-systemtray)
 (exwm-systemtray-enable)
 (exwm-config-example)
+
+;; randr
+(require 'exwm-randr)
+(setq exwm-randr-workspace-output-plist '(3 "HDMI2"))
+(add-hook 'exwm-randr-screen-change-hook
+          (lambda ()
+            (start-process-shell-command
+             "xrandr" nil "xrandr --output eDP1 --primary --auto --right-of HDMI2 --auto")))
+(exwm-randr-enable)
+
 (setq exwm-input-global-keys
       `( ([?\s-h] . windmove-left)
 	 ([?\s-l] . windmove-right)
