@@ -495,6 +495,33 @@
 
 (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
 
+;; Use minibuffer as modeline for better space efficience
+(use-package mini-modeline
+  :init
+  (setq mini-modeline-r-format
+	(list
+	 ;; value of `mode-name'
+	 ;; value of current buffer name
+	 '(:eval (propertize "%b, " 'face 'font-lock-variable-name-face))
+	 '(:eval (propertize (if (eq 'emacs evil-state) "  " "  ")
+			     'face 'epa-validity-high))
+	 ;; value of current line number
+	 "l:%l "
+	 ;; major mode
+	 "%m: "
+	 "                 "
+	 ;; ;; spaces to align right
+	 ;; '(:eval (propertize
+	 ;; 		" " 'display
+	 ;; 		`((space :align-to (- (+ right right-fringe right-margin)
+	 ;; 				      ,(+ 10 (string-width mode-name)))))))
+	 ;; value of use
+	 '(:eval (propertize
+		  (format-time-string "%a, %b %d %I:%M%p")
+		  'face 'change-log-list))))
+  :config
+  (mini-modeline-mode t))
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
