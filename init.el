@@ -269,9 +269,13 @@
 (use-package fennel-mode)
 
 (use-package  racket-mode)
+
+(use-package company
+  :config (global-company-mode t))
 ;; Langs END ----------------------------------------------
 
-;; Dired settings --------------------------------------------------
+
+;; dired settings --------------------------------------------------
 
 ;; A poor mans vim vinegar 
 (define-key  evil-normal-state-map (kbd "-") (lambda () (interactive)
