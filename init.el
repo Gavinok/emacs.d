@@ -543,6 +543,9 @@
   :config
   (mini-modeline-mode t))
 
+;; start network manager applet
+(start-process-shell-command "nm-applet" nil "nm-applet")
+
 ;;For org capture in qute
 (server-start)
 (custom-set-variables
