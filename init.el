@@ -545,6 +545,7 @@
 
 ;; start network manager applet
 (start-process-shell-command "nm-applet" nil "nm-applet")
+(start-process-shell-command "blueman-applet" nil "blueman-applet")
 
 ;;For org capture in qute
 (server-start)
