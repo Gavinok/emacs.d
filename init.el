@@ -191,10 +191,17 @@
 (setq org-capture-templates
       '(("t" "Todo" entry (file "~/Documents/org/refile.org")
 	 "* TODO %?\nDEADLINE: %T\n  %a")
-	("m" "Meeting" entry (file+headline "~/Documents/org/mylife.org" "Tasks")
-	 "* %?\nSCHEDULED: %T\n")
-	("r" "Refund" entry (file+headline "~/Documents/org/mylife.org" "Tasks")
-	 "* TODO refund %?\n%?  %a\n")
+	("m" "Meeting" entry (file+headline "~/Documents/org/mylife.org" "Meetings")
+	 "* Meeting with  %?\nSCHEDULED: %T\n")
+	("r" "Refund" entry (file+olp "~/Documents/org/Work.org"
+				      "Work" "Refunds")
+	 "* TODO Refund %?\n%?  %a\n")
+	("w" "Waitlist" entry (file+olp "~/Documents/org/Work.org"
+					"Work" "Waitlist")
+	 "* %?\n%? %a\n")
+	("v" "Video Idea" entry (file+olp "~/Documents/org/youtube.org"
+					  "YouTube" "Video Ideas")
+	 "* %?\n%? %a\n")
 	("c" "Cool Thing" entry (file+datetree "~/Documents/org/archive.org")
 	 "* %?\nEntered on %U\n  %i\n  %a")))
 ;; Magit
