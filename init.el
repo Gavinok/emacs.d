@@ -323,7 +323,7 @@
   ;; allow for updating mail using 'U' in the main view:
   (setq mu4e-get-mail-command "mailsync"
 	sendmail-program "/usr/bin/msmtp"
-	message-sendmail-extra-arguments '("--read-envelope-from -t")
+	message-sendmail-extra-arguments '("--read-envelope-from")
 	send-mail-function 'smtpmail-send-it
 	message-sendmail-f-is-evil t
 	message-send-mail-function 'message-send-mail-with-sendmail)
