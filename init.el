@@ -331,12 +331,11 @@
 	;; try-expand-list
 	;; try-expand-line
 	))
-;; Completion END --------------------------------------------------
-
-;;archive completed tasks
-(defun my-org-archive-done-tasks ()
-  (interactive)
-  (org-map-entries 'org-archive-subtree "/DONE" 'file))
+(use-package company
+  :config (global-company-mode t)
+  (setq company-idle-delay 0.1
+	company-minimum-prefix-length 1))
+;; END CODE COMPLETION --------------------------------------------------
 
 ;; Langs ----------------------------------------------
 ; better lisp bindings
@@ -350,18 +349,11 @@
 					       (evil-previous-open-paren)))
 (define-key  evil-operator-state-map (kbd ")") (lambda () (interactive)
 					       (evil-next-close-paren)))
-
 (use-package fennel-mode)
-
 (use-package  racket-mode)
-
-(use-package company
-  :config (global-company-mode t))
 ;; Langs END ----------------------------------------------
 
-
 ;; dired settings --------------------------------------------------
-
 ;; A poor mans vim vinegar 
 (define-key  evil-normal-state-map (kbd "-") (lambda () (interactive)
 						(dired ".")))
