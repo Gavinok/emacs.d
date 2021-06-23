@@ -363,11 +363,8 @@
 
 (set-frame-font "Liberation Mono 14" nil t)
 
-(add-to-list 'auto-mode-alist '("^/tmp/neomutt.*\\'" . mail-mode))
-(add-hook 'mail-mode-hook 'flyspell-mode)
-(add-hook 'org-mode-hook 'turn-on-flyspell) ;spell checking
 
-;; email
+;; EMAIL --------------------------------------------------------
 ;; where to find mu4e
 (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
 (use-package mu4e
@@ -375,6 +372,9 @@
   :config
   ;; This is set to 't' to avoid mail syncing issues when using mbsync
   (setq mu4e-change-filenames-when-moving t)
+
+  ;; Show full email address
+  (setq mu4e-view-show-addresses 't)
 
   ;; where to put attachemnts
   (setq mu4e-attachment-dir  "~/Downloads")
@@ -400,6 +400,8 @@
   (setq mu4e-view-show-images t)
 
   (add-hook 'mu4e-compose-mode-hook 'flyspell-mode)
+  (add-to-list 'auto-mode-alist '("^/tmp/neomutt.*\\'" . mail-mode))
+  (add-hook 'mail-mode-hook 'flyspell-mode)
 
   ;; something about ourselves
   (setq mu4e-contexts
@@ -444,10 +446,15 @@
 		  (mu4e-drafts-folder               . "/coach/[Gmail].Drafts")
 		  (mu4e-sent-folder                 . "/coach/[Gmail].Sent Mail")
 		  (mu4e-refile-folder               . "/coach/[Gmail].All Mail")
-		  (mu4e-trash-folder                . "/coach/[Gmail].Trash"))))))
-  
-
-;;non essential packages
+		  (mu4e-trash-folder                . "/coach/[Gmail].Trash")))))
+  ;; Contacts
+  (setq mail-personal-alias-file  "~/.config/mutt/aliases")
+  (setq mu4e-org-contacts-file  "~/Documents/org/contacts.org")
+  (add-to-list 'mu4e-headers-actions
+	       '("org-contact-add" . mu4e-action-add-org-contact) t)
+  (add-to-list 'mu4e-view-actions
+	       '("org-contact-add" . mu4e-action-add-org-contact) t))
+ ;;End EMAIL ----------------------------------------------------------- 
 (use-package esh-autosuggest)
 
 ;https://github.com/politza/pdf-tools
