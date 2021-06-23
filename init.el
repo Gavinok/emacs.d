@@ -38,22 +38,21 @@
   ;; (unless (package-installed-p 'undo-fu)
   ;;   (package-install 'undo-fu))
   (use-package undo-fu)
-
   (use-package  evil
-		:init
-		(setq evil-evil-want-Y-yank-to-eol t)
-		(setq evil-want-keybinding nil)
-		(setq evil-split-window-below t)
-		(setq evil-split-window-right t)
-		(setq evil-undo-system 'undo-fu)
-		:config
-		(evil-mode 1)
-		(evil-set-leader 'normal " ")
-		(evil-define-key 'normal 'global (kbd "<leader>b") 'ivy-switch-buffer)
-		(evil-define-key 'normal 'global (kbd "<leader>f") 'counsel-find-file)
-		(evil-define-key 'normal 'global (kbd "<leader>t") 'capitalize-dwim)
-		(evil-define-key 'visual 'global (kbd "<leader>t") 'capitalize-dwim)
-		(global-set-key (kbd "<escape>") 'keyboard-escape-quit))
+    :after undo-fu
+    :init
+    (setq evil-evil-want-Y-yank-to-eol t)
+    (setq evil-want-keybinding nil)
+    (setq evil-split-window-below t)
+    (setq evil-split-window-right t)
+    (setq evil-undo-system 'undo-fu)
+    :config
+    (evil-mode 1)
+    (evil-set-leader 'normal " ")
+    (evil-define-key 'normal 'global (kbd "<leader>b") 'consult-buffer)
+    (evil-define-key 'normal 'global (kbd "<leader>t") 'capitalize-dwim)
+    (evil-define-key 'visual 'global (kbd "<leader>t") 'capitalize-dwim)
+    (global-set-key (kbd "<escape>") 'keyboard-escape-quit))
 
   ;; evil mode in other modes live viewing pdfs
   (use-package  evil-collection
