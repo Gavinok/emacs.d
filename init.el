@@ -57,41 +57,82 @@
 
   ;; evil mode in other modes live viewing pdfs
   (use-package  evil-collection
-		:config
-		(evil-collection-init))
+    :config
+    (evil-collection-init))
   ;; enable evil
 
   ;; Enable Commentary
   (use-package evil-commentary
-	       :config
-	       (evil-commentary-mode 1))
+    :config
+    (evil-commentary-mode 1))
   
 
   ;; Enable Surround
   (use-package evil-surround
-	       :config
-	       (global-evil-surround-mode 1))
+    :config
+    (global-evil-surround-mode 1))
 
   ;; Enable Lion
   (use-package evil-lion
-	       :config
-	       (evil-lion-mode 1)
-	       (define-key evil-normal-state-map (kbd "gl") (lambda () (interactive)
-							      (evil-lion-left)))
-	       (define-key evil-normal-state-map (kbd "gL") (lambda () (interactive)
-							      (evil-lion-right))))
+    :config
+    (evil-lion-mode 1)
+    (define-key evil-normal-state-map (kbd "gl") (lambda () (interactive)
+						   (evil-lion-left)))
+    (define-key evil-normal-state-map (kbd "gL") (lambda () (interactive)
+						   (evil-lion-right))))
   ;; Cursor Shape
   (use-package evil-terminal-cursor-changer
-	       :config
-	       (unless (display-graphic-p)
-		 (evil-terminal-cursor-changer-activate))))
+    :config
+    (unless (display-graphic-p)
+      (evil-terminal-cursor-changer-activate))))
+;; END EVIL MODE ----------------------------------
 
-;; Terminal Settings
+;; TERMINAL SETTINGS -------------------
 (if (display-graphic-p)
     (set-face-background 'default "#000000")
-  (progn (set-face-background 'default "undefined")
+  (progn (set-face-background 'default "undefinded")
 	 (add-to-list 'term-file-aliases
 		      '("st-256color" . "xterm-256color"))))
+;; END TERMINAL SETTINGS -------------------
+
+;; COMPLETION -------------------------------------
+(use-package vertico
+  :bind (("C-x C-f" . find-file))
+  :init
+  (vertico-mode))
+
+(use-package orderless
+  :ensure t
+  :custom (completion-styles '(orderless)))
+
+(use-package marginalia
+  :after vertico
+  :custom
+  (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
+  :init
+  (marginalia-mode))
+
+(use-package consult
+  :after vertico
+  :bind (("C-s" . consult-line)
+         ("C-M-l" . consult-imenu)
+         ("C-M-j" . persp-switch-to-buffer*)
+         :map minibuffer-local-map)
+  :custom
+  (completion-in-region-function #'consult-completion-in-region))
+(use-package affe
+  :after orderless
+  :config
+  ;; only exclude git files
+  (setq affe-find-command "find  -not -path '*/\\.nnn*' -not -path '*/\\.git*' -type f")
+  ;; Configure Orderless
+  (setq affe-regexp-function #'orderless-pattern-compiler
+        affe-highlight-function #'orderless--highlight)
+
+  ;; Manual preview key for `affe-grep'
+  (consult-customize affe-grep :preview-key (kbd "M-."))
+  (evil-define-key 'normal 'global (kbd "<leader>g") 'affe-grep)
+  (evil-define-key 'normal 'global (kbd "<leader>f") 'affe-find))
 
 ;; Setup Ivy
 (use-package counsel
