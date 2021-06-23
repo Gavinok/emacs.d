@@ -1,15 +1,17 @@
-;; Set up package.el to work with MELPA
-(require 'package)
+;; Set up package.el to work with MELPA (require 'package)
 (setq package-archives
       '(("melpa" . "https://melpa.org/packages/")
 	("org" . "https://orgmode.org/elpa/")
 	("elpa" . "https://elpa.gnu.org/packages/")))
 
+;; BOOTSTRAP USE-PACKAGE ------------------
 (package-initialize)
 ;;(package-refresh-contents)
 (setq use-package-always-ensure t)
 (unless (package-installed-p 'use-package)
     (package-install 'use-package))
+(eval-when-compile (require 'use-package))
+;; END BOOTSTRAP USE-PACKAGE ------------------
 
 (defvar hexcolour-keywords
   '(("#[abcdef[:digit:]]\\{6\\}"
@@ -21,7 +23,13 @@
   (font-lock-add-keywords nil hexcolour-keywords))
 (add-hook 'evil-mode-hook 'hexcolour-add-to-font-lock)
 
-;; Evil mode settings
+(defun sudo-save ()
+  (interactive)
+  (if (not buffer-file-name)
+      (write-file (concat "/sudo:root@localhost:" (ido-read-file-name "File:")))
+    (write-file (concat "/sudo:root@localhost:" buffer-file-name))))
+
+;; EVIL MODE ----------------------------------
 (progn
   ;; Vim like scrolling
   (setq scroll-step            1
