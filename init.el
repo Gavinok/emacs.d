@@ -464,15 +464,121 @@
 (use-package pdf-tools)
 (use-package transmission)
 
-;; EXWM
+;; EXWM ----------------
 (use-package exwm
+  :after vertico
+  :config
+  (add-hook 'exwm-update-class-hook
+	    (lambda ()
+	      (exwm-workspace-rename-buffer exwm-class-name)))
+
+  (add-hook 'exwm-manage-finish-hook
+	    (lambda ()
+	      (when (and exwm-class-name
+			 (or (string= exwm-class-name "qutebrowser")
+			     (string= exwm-class-name "libreoffice-writer")
+			     (string= exwm-class-name "libreoffice-calc")
+			     (string= exwm-class-name "Google-chrome")
+			     (string= exwm-class-name "Brave-browser")))
+		(exwm-input-set-local-simulation-keys nil))))
+
+  (add-hook 'exwm-update-title-hook
+	    (lambda ()
+	      (pcase exwm-class-name
+		("qutebrowser" (exwm-workspace-rename-buffer (format "Qute: %s" exwm-title))))))
+  (setq exwm-input-global-keys
+	`( ([?\s-h] . windmove-left)
+	   ([?\s-l] . windmove-right)
+	   ([?\s-0] . (lambda ()
+			(interactive )
+			(start-process-shell-command "dmenu_connection_manager.sh" nil "dmenu_connection_manager.sh")))
+	   ([?\s-j] . edwina-select-next-window)
+	   ([?\s-k] . edwina-select-previous-window)
+	   ([?\s-s] . edwina-dec-nmaster)
+	   ([?\s-a] . edwina-inc-nmaster)
+	   ([?\s-v] . edwina-zoom)
+					; closing windows
+	   ([?\s-q] . edwina-delete-window)
+	   ([?\s-C] . (lambda ()
+			(interactive)
+			(progn (kill-this-buffer)
+			       (edwina-delete-window))))
+	   ;; reset exwm
+	   ([?\s-r] . (lambda ()
+			(interactive)
+			(progn (exwm-reset)
+			       (edwina-arrange))))
+	   ;; tile exwm
+	   ([?\s-t] . (lambda ()
+			(interactive)
+			(progn (exwm-reset)
+			       (edwina-arrange))))
+	   ;; launch any program
+	   ([?\s-d] . (lambda (command)
+			(interactive (list (read-shell-command "λ ")))
+			(start-process-shell-command command nil command)))
+	   ;; web browser
+	   ([?\s-w] . (lambda ()
+			(interactive)
+			(start-process-shell-command "ducksearch" nil "ducksearch")))
+
+	   ([?\s-e] . (lambda ()
+			(interactive)
+			(progn (edwina-clone-window)
+			       (mu4e))))
+	   ;;powermanager
+	   ([?\s-x] . (lambda ()
+			(interactive)
+			(start-process-shell-command "power_menu.sh" nil "power_menu.sh")))
+	   ([?\s-m] . (defun remind-timer (reminder)
+			(interactive "reminder?")
+			(egg-timer-do-schedule 3 reminder)))
+	   ([?\s-g] . exwm-workspace-switch)
+	   ([?\s-f] . exwm-layout-set-fullscreen)
+	   ([?\s-p] . consult-yank-pop)
+	   ([?\s-b] . consult-buffer)
+	   
+	   ,@(mapcar (lambda (i)
+		       `(,(kbd (format "s-%d" i))
+			 (lambda ()
+			   (interactive)
+			   (exwm-workspace-switch-create ,i))))
+		     (number-sequence 1 9))))
+
+  ;; screen and audio controls
+  (exwm-input-set-key (kbd "C-s-f") '(lambda ()
+				       (interactive)
+				       (start-process-shell-command "cm up 5" nil "cm up 5")))
+  (exwm-input-set-key (kbd "C-s-a") '(lambda ()
+				       (interactive)
+				       (start-process-shell-command "cm down 5" nil "cm down 5")))
+  (exwm-input-set-key (kbd "C-s-d") '(lambda ()
+				       (interactive)
+				       (start-process-shell-command "cl up 5" nil "cl up 5")))
+  (exwm-input-set-key (kbd "C-s-s") '(lambda ()
+				       (interactive)
+				       (start-process-shell-command "cl dowm 5" nil "cl down 5")))
+  (exwm-input-set-key (kbd "s-]") 'edwina-inc-mfact)
+  ;; (exwm-input-set-key (kbd "s-e") '(lambda ()
+  ;; 		      (interactive)
+  ;; 		      (progn (edwina-clone-window)
+  ;; 			     (eshell))))
+  (exwm-input-set-key (kbd "s-]") 'edwina-inc-mfact)
+  (exwm-input-set-key (kbd "s-[") 'edwina-dec-mfact)
+  (exwm-input-set-key (kbd "s-q") 'edwina-delete-window)
+  (exwm-input-set-key (kbd "s-<return>") 'edwina-clone-window)
+  (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
+  (fringe-mode 1)
+  (exwm-enable)
   :init (setq mouse-autoselect-window t
 	      focus-follows-mouse t))
-(use-package exwm-config
-  :ensure nil)
-(require 'exwm-systemtray)
-(exwm-systemtray-enable)
-(exwm-config-example)
+
+(use-package exwm-systemtray
+  :ensure nil
+  :after exwm
+  :config
+  (exwm-systemtray-enable)
+  (setq exwm-systemtray-height 25))
 
 ;; randr
 (require 'exwm-randr)
@@ -480,118 +586,13 @@
 (add-hook 'exwm-randr-screen-change-hook
           (lambda ()
             (start-process-shell-command
-             "xrandr" nil "xrandr --output eDP1 --primary --auto --right-of HDMI2 --auto")))
+             "xrandr" nil "xrandr --output eDP1 --primary --auto --left-of HDMI2 --auto")))
 (exwm-randr-enable)
-
-(setq exwm-input-global-keys
-      `( ([?\s-h] . windmove-left)
-	 ([?\s-l] . windmove-right)
-	 ([?\s-0] . (lambda ()
-		      (interactive )
-		      (start-process-shell-command "dmenu_connection_manager.sh" nil "dmenu_connection_manager.sh")))
-	 ;; ([?\s-j] . windmove-down)
-	 ;; ([?\s-k] . windmove-up)
-	 ([?\s-j] . edwina-select-next-window)
-	 ([?\s-k] . edwina-select-previous-window)
-	 ([?\s-s] . edwina-dec-nmaster)
-	 ([?\s-a] . edwina-inc-nmaster)
-	 ([?\s-v] . edwina-zoom)
-					; closing windows
-	 ([?\s-q] . edwina-delete-window)
-	 ([?\s-C] . (lambda ()
-		      (interactive)
-		      (progn (kill-this-buffer)
-			     (edwina-delete-window))))
-	 ;; reset exwm
-	 ([?\s-r] . (lambda ()
-		      (interactive)
-		      (progn (exwm-reset)
-			     (edwina-arrange))))
-	 ;; launch any program
-	 ([?\s-d] . (lambda (command)
-		      (interactive (list (read-shell-command "λ ")))
-		      (start-process-shell-command command nil command)))
-	 ;; web browser
-	 ([?\s-w] . (lambda ()
-		      (interactive)
-		      (start-process-shell-command "ducksearch" nil "ducksearch")))
-
-	 ([?\s-e] . (lambda ()
-		      (interactive)
-		      (progn (edwina-clone-window)
-			     (mu4e))))
-	 ;;powermanager
-	 ([?\s-x] . (lambda ()
-		      (interactive)
-		      (start-process-shell-command "power_menu.sh" nil "power_menu.sh")))
-	 ([?\s-g] . exwm-workspace-switch)
-	 ([?\s-z] . exwm-floating-toggle-floating)
-	 ([?\s-f] . exwm-layout-set-fullscreen)
-	 ([?\s-p] . counsel-yank-pop)
-	 ([?\s-b] . counsel-switch-buffer)
-	
-	,@(mapcar (lambda (i)
-                    `(,(kbd (format "s-%d" i))
-                      (lambda ()
-                        (interactive)
-                        (exwm-workspace-switch-create ,i))))
-                  (number-sequence 1 9))))
-
-;; screen and audio controls
-(exwm-input-set-key (kbd "C-s-f") '(lambda ()
-		      (interactive)
-		      (start-process-shell-command "cm up 5" nil "cm up 5")))
-(exwm-input-set-key (kbd "C-s-a") '(lambda ()
-		      (interactive)
-		      (start-process-shell-command "cm down 5" nil "cm down 5")))
-(exwm-input-set-key (kbd "C-s-d") '(lambda ()
-		      (interactive)
-		      (start-process-shell-command "cl up 5" nil "cl up 5")))
-(exwm-input-set-key (kbd "C-s-s") '(lambda ()
-		      (interactive)
-		      (start-process-shell-command "cl dowm 5" nil "cl down 5")))
-(exwm-input-set-key (kbd "s-]") 'edwina-inc-mfact)
-(exwm-input-set-key (kbd "s-e") '(lambda ()
-		      (interactive)
-		      (progn (edwina-clone-window)
-			     (eshell))))
-(exwm-input-set-key (kbd "s-]") 'edwina-inc-mfact)
-(exwm-input-set-key (kbd "s-[") 'edwina-dec-mfact)
-(exwm-input-set-key (kbd "s-q") 'edwina-delete-window)
-(exwm-input-set-key (kbd "s-<return>") 'edwina-clone-window)
-
 (use-package edwina
-  :ensure t
   :config
-  (setq display-buffer-base-action '(display-buffer-below-selected))
-					;(edwina-mode 1)
-  )
+  (setq display-buffer-base-action '(display-buffer-below-selected)))
+;; END EXWM ----------------
 
-;; (setq exwm-input-simulation-keys
-;;       '(([?\C-b] . [left])
-;;         ([?\C-f] . [right])
-;;         ([?\C-p] . [up])
-;;         ([?\C-n] . [down])
-;;         ([?\C-a] . [home])
-;;         ([?\C-e] . [end])
-;;         ([?\M-v] . [prior])
-;;         ([?\C-v] . [next])
-;;         ([?\C-d] . [delete])
-;;         ([?\C-k] . [S-end delete])))
-
-(add-hook 'exwm-manage-finish-hook
-	  (lambda ()
-	    (when (and exwm-class-name
-		       (or (string= exwm-class-name "qutebrowser")
-			   (string= exwm-class-name "libreoffice-writer")
-			   (string= exwm-class-name "libreoffice-calc")
-			   (string= exwm-class-name "Google-chrome")
-			   (string= exwm-class-name "Brave-browser")))
-	      (exwm-input-set-local-simulation-keys nil))))
-
-(define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
-
-;; Use minibuffer as modeline for better space efficience
 (use-package mini-modeline
   :init
   (setq mini-modeline-r-format
