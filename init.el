@@ -290,9 +290,7 @@
 (use-package git-gutter
   :config
   (global-git-gutter-mode +1))
-
-;; pdf auto refresh
-(add-hook 'doc-view-mode-hook 'auto-revert-mode)
+;; END GIT -------------------------
 
 ;; No startup
 (setq inhibit-startup-screen t)
@@ -302,7 +300,7 @@
 (setq backup-by-copying t)
 (setq create-lockfiles nil)
 (setq auto-save-default nil)
-;; add borders
+;; add border
 (set-frame-parameter nil 'internal-border-width 10)
 ;; To disable the menu bar, place the following line in your .emacs file:
 (menu-bar-mode -1)
@@ -312,12 +310,12 @@
 (tool-bar-mode -1)
 ;; don't ask to spell out "yes"
 (fset 'yes-or-no-p 'y-or-n-p)
-
-
+;; use primary as clipboard in emacs
+(setq x-select-enable-primary t)
 ;; Highlight parenthesis
 (show-paren-mode 1)
 
-;; Completion BEGIN --------------------------------------------------
+;; CODE COMPLETION --------------------------------------------------
 (setq hippie-expand-try-functions-list
       '(
 	try-expand-dabbrev
