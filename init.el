@@ -593,6 +593,7 @@
   (setq display-buffer-base-action '(display-buffer-below-selected)))
 ;; END EXWM ----------------
 
+;; MODELINE --------------------------------------
 (use-package mini-modeline
   :init
   (setq mini-modeline-r-format
@@ -606,18 +607,22 @@
 	 "l:%l "
 	 ;; major mode
 	 "%m: "
-	 "                 "
 	 ;; ;; spaces to align right
 	 ;; '(:eval (propertize
 	 ;; 		" " 'display
 	 ;; 		`((space :align-to (- (+ right right-fringe right-margin)
 	 ;; 				      ,(+ 10 (string-width mode-name)))))))
-	 ;; value of use
 	 '(:eval (propertize
 		  (format-time-string "%a, %b %d %I:%M%p")
-		  'face 'change-log-list))))
+		  'face 'change-log-list))
+	 " "
+	 '(:eval (propertize
+		  (battery-format "[%p%%]" (funcall battery-status-function))
+		  'face 'change-log-list))
+	 "    "))
   :config
   (mini-modeline-mode t))
+;; END MODELINE --------------------------------------
 
 ;; start network manager applet
 (start-process-shell-command "nm-applet" nil "nm-applet")
