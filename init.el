@@ -152,102 +152,136 @@
 (set-frame-parameter (selected-frame) 'alpha '(90 90))
 (add-to-list 'default-frame-alist '(alpha 90 90))
 
-;; Org Stuff
+;; ORG -------------------------
+(use-package org
+  :ensure org-plus-contrib
+  :config
+  (evil-define-key 'normal 'global (kbd "gA") 'org-agenda)
+  (evil-define-key 'normal 'global (kbd "gC") 'org-capture)
+  (evil-define-key 'normal 'global (kbd "gO") 'counsel-recoll)
+
+  (setq org-default-notes-file (concat org-directory "/refile.org"))
+  (setq org-log-done 'time)
+  (setq org-log-into-drawer t)
+  (setq org-todo-keywords
+	'((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
+	  (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANCELLED(k@)")))
+
+  ;; Configure custom agenda views
+  (setq org-agenda-custom-commands
+	'(("d" "Today's Tasks"
+	   ((agenda "" ((org-agenda-span 1)
+			(org-agenda-overriding-header "Today's Tasks")))))
+	  ;; ("d" "Dashboard"
+	  ;;  ((agenda "" ((org-deadline-warning-days 7)))
+	  ;;   (todo "NEXT"
+	  ;; 	  ((org-agenda-overriding-header "Next Tasks")))
+	  ;;   (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
+
+	  ("n" "Next Tasks"
+	   ((todo "NEXT"
+		  ((org-agenda-overriding-header "Next Tasks")))))
+
+
+	  ("W" "Work Tasks" tags-todo "+work")
+
+	  ;; Low-effort next actions
+	  ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&+Effort>0"
+	   ((org-agenda-overriding-header "Low Effort Tasks")
+	    (org-agenda-max-todos 20)
+	    (org-agenda-files org-agenda-files)))
+	  ("w" "Workflow Status"
+	   ((todo "WAIT"
+		  ((org-agenda-overriding-header "Waiting on External")
+		   (org-agenda-files org-agenda-files)))
+	    (todo "REVIEW"
+		  ((org-agenda-overriding-header "In Review")
+		   (org-agenda-files org-agenda-files)))
+	    (todo "PLAN"
+		  ((org-agenda-overriding-header "In Planning")
+		   (org-agenda-todo-list-sublevels nil)
+		   (org-agenda-files org-agenda-files)))
+	    (todo "BACKLOG"
+		  ((org-agenda-overriding-header "Project Backlog")
+		   (org-agenda-todo-list-sublevels nil)
+		   (org-agenda-files org-agenda-files)))
+	    (todo "READY"
+		  ((org-agenda-overriding-header "Ready for Work")
+		   (org-agenda-files org-agenda-files)))
+	    (todo "ACTIVE"
+		  ((org-agenda-overriding-header "Active Projects")
+		   (org-agenda-files org-agenda-files)))
+	    (todo "COMPLETED"
+		  ((org-agenda-overriding-header "Completed Projects")
+		   (org-agenda-files org-agenda-files)))
+	    (todo "CANCELLED"
+		  ((org-agenda-overriding-header "Cancelled Projects")
+		   (org-agenda-files org-agenda-files)))))))
+
+  (setq org-capture-templates
+	'(("t" "Todo" entry (file "~/Documents/org/refile.org")
+	   "* TODO %?\nDEADLINE: %T\n  %a")
+	  ("m" "Meeting" entry (file+headline "~/Documents/org/mylife.org" "Meetings")
+	   "* Meeting with  %?\nSCHEDULED: %T\n")
+	  ("r" "Refund" entry (file+olp "~/Documents/org/Work.org"
+					"Work" "Refunds")
+	   "* TODO Refund %?\n%?  %a\n")
+	  ("w" "Waitlist" entry (file+olp "~/Documents/org/Work.org"
+					  "Work" "Waitlist")
+	   "* %?\n%? %a\n")
+	  ("v" "Video Idea" entry (file+olp "~/Documents/org/youtube.org"
+					    "YouTube" "Video Ideas")
+	   "* %?\n%? %a\n")
+	  ("c" "Cool Thing" entry (file+datetree "~/Documents/org/archive.org")
+	   "* %?\nEntered on %U\n  %i\n  %a"))))
+
+(use-package org-contacts
+  :ensure nil
+  :after org
+  :custom (org-contacts-files '("~/Documents/org/contacts.org")))
+
 (use-package org-download
   :init
   (setq org-directory "~/Documents/org")
-  (setq org-agenda-files '("today.org" "refile.org"
-			   "work.org" "Practices.org"))
+  (setq org-agenda-files (seq-filter (lambda(x) (not (string-match "completed.org" x)))
+       (directory-files-recursively org-directory "\\.org$")))
   (setq-default org-download-screenshot-method "gnome-screenshot -a -f %s")
   (setq-default org-download-image-dir "./pic")
   (exwm-input-set-key (kbd "s-i") 'org-download-screenshot)
+  :after org
   :config
   (add-hook 'dired-mode-hook 'org-download-enable))
 
 (use-package org-bullets
-	     :config
-	     (if (display-graphic-p)
-		 (add-hook 'org-mode-hook #'org-bullets-mode)))
+  :after org
+  :config
+  (if (display-graphic-p)
+      (add-hook 'org-mode-hook #'org-bullets-mode)))
 
 ;; Make sure org-indent face is available
 (require 'org-indent)
 (require 'org-tempo)
 
-(evil-define-key 'normal 'global (kbd "gA") 'org-agenda)
-(evil-define-key 'normal 'global (kbd "gC") 'org-capture)
+;; (use-package org-alert
+;;   :config
+;;   (setq alert-default-style 'libnotify)
+;;   (org-alert-enable))
+(use-package org-notifications
+  :config
+  (org-notifications-start))
 
-(setq org-default-notes-file (concat org-directory "/refile.org"))
-(setq org-log-done 'time)
-(setq org-log-into-drawer t)
-(setq org-todo-keywords
-      '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
-	(sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
+;;archive completed tasks
+(defun my-org-archive-done-tasks ()
+  (interactive)
+  (progn
+    (org-map-entries 'org-archive-subtree "/DONE" 'file)
+    (org-map-entries 'org-archive-subtree "/CANCELLED" 'file)))
 
-;; Configure custom agenda views
-(setq org-agenda-custom-commands
-      '(("d" "Dashboard"
-	 ((agenda "" ((org-deadline-warning-days 7)))
-	  (todo "NEXT"
-		((org-agenda-overriding-header "Next Tasks")))
-	  (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
+(add-hook 'org-mode-hook 'turn-on-flyspell) ;spell checking
 
-    ("n" "Next Tasks"
-     ((todo "NEXT"
-        ((org-agenda-overriding-header "Next Tasks")))))
+;; END ORG -------------------------
 
-
-    ("W" "Work Tasks" tags-todo "+work")
-
-    ;; Low-effort next actions
-    ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&+Effort>0"
-     ((org-agenda-overriding-header "Low Effort Tasks")
-      (org-agenda-max-todos 20)
-      (org-agenda-files org-agenda-files)))
-
-    ("w" "Workflow Status"
-     ((todo "WAIT"
-            ((org-agenda-overriding-header "Waiting on External")
-             (org-agenda-files org-agenda-files)))
-      (todo "REVIEW"
-            ((org-agenda-overriding-header "In Review")
-             (org-agenda-files org-agenda-files)))
-      (todo "PLAN"
-            ((org-agenda-overriding-header "In Planning")
-             (org-agenda-todo-list-sublevels nil)
-             (org-agenda-files org-agenda-files)))
-      (todo "BACKLOG"
-            ((org-agenda-overriding-header "Project Backlog")
-             (org-agenda-todo-list-sublevels nil)
-             (org-agenda-files org-agenda-files)))
-      (todo "READY"
-            ((org-agenda-overriding-header "Ready for Work")
-             (org-agenda-files org-agenda-files)))
-      (todo "ACTIVE"
-            ((org-agenda-overriding-header "Active Projects")
-             (org-agenda-files org-agenda-files)))
-      (todo "COMPLETED"
-            ((org-agenda-overriding-header "Completed Projects")
-             (org-agenda-files org-agenda-files)))
-      (todo "CANC"
-            ((org-agenda-overriding-header "Cancelled Projects")
-             (org-agenda-files org-agenda-files)))))))
-
-(setq org-capture-templates
-      '(("t" "Todo" entry (file "~/Documents/org/refile.org")
-	 "* TODO %?\nDEADLINE: %T\n  %a")
-	("m" "Meeting" entry (file+headline "~/Documents/org/mylife.org" "Meetings")
-	 "* Meeting with  %?\nSCHEDULED: %T\n")
-	("r" "Refund" entry (file+olp "~/Documents/org/Work.org"
-				      "Work" "Refunds")
-	 "* TODO Refund %?\n%?  %a\n")
-	("w" "Waitlist" entry (file+olp "~/Documents/org/Work.org"
-					"Work" "Waitlist")
-	 "* %?\n%? %a\n")
-	("v" "Video Idea" entry (file+olp "~/Documents/org/youtube.org"
-					  "YouTube" "Video Ideas")
-	 "* %?\n%? %a\n")
-	("c" "Cool Thing" entry (file+datetree "~/Documents/org/archive.org")
-	 "* %?\nEntered on %U\n  %i\n  %a")))
+;; GIT -------------------------
 ;; Magit
 (use-package magit
   :config
