@@ -300,20 +300,14 @@
 (setq backup-by-copying t)
 (setq create-lockfiles nil)
 (setq auto-save-default nil)
-;; add border
+;; Add border
 (set-frame-parameter nil 'internal-border-width 10)
-;; To disable the menu bar, place the following line in your .emacs file:
-(menu-bar-mode -1)
-;; To disable the scroll bar, use the following line:
-(toggle-scroll-bar -1)
-;; To disable the toolbar, use the following line:
-(tool-bar-mode -1)
-;; don't ask to spell out "yes"
-(fset 'yes-or-no-p 'y-or-n-p)
-;; use primary as clipboard in emacs
-(setq x-select-enable-primary t)
-;; Highlight parenthesis
-(show-paren-mode 1)
+(menu-bar-mode -1)               ; To disable the menu bar, place the following line in your .emacs file:
+(scroll-bar-mode -1)             ; To disable the scroll bar, use the following line:
+(tool-bar-mode -1)               ; To disable the toolbar, use the following line:
+(fset 'yes-or-no-p 'y-or-n-p)    ; don't ask to spell out "yes"
+(show-paren-mode 1)              ; Highlight parenthesis
+(setq x-select-enable-primary t) ; use primary as clipboard in emacs
 
 ;; CODE COMPLETION --------------------------------------------------
 (setq hippie-expand-try-functions-list
