@@ -455,13 +455,21 @@
   (add-to-list 'mu4e-view-actions
 	       '("org-contact-add" . mu4e-action-add-org-contact) t))
  ;;End EMAIL ----------------------------------------------------------- 
+
+;;NON-ESSENTIAL PACKAGES
+(use-package egg-timer)
 (use-package esh-autosuggest)
 
+;; (setq eshell-aliases-file "~/.emacs.d/aliases")
 ;https://github.com/politza/pdf-tools
 ; annotate pdfs with c-c c-a
 ; hl with c-c c-a h
 ; for help M-x pdf-tools-help RET
-(use-package pdf-tools)
+(use-package pdf-tools
+  :config
+  ;; pdf auto refresh
+  (add-hook 'doc-view-mode-hook 'auto-revert-mode))
+
 (use-package transmission)
 
 ;; EXWM ----------------
@@ -625,8 +633,8 @@
 ;; END MODELINE --------------------------------------
 
 ;; start network manager applet
-(start-process-shell-command "nm-applet" nil "nm-applet")
 (start-process-shell-command "blueman-applet" nil "blueman-applet")
+(start-process-shell-command "nm-applet" nil "nm-applet")
 
 ;;For org capture in qute
 (server-start)
@@ -638,9 +646,10 @@
  '(custom-safe-themes
    '("43f03c7bf52ec64cdf9f2c5956852be18c69b41c38ab5525d0bedfbd73619b6a" default))
  '(helm-minibuffer-history-key "M-p")
- '(org-agenda-files '("~/Documents/org/today.org"))
+ '(org-agenda-files
+   '("/home/gavinok/Documents/org/Work.org" "/home/gavinok/Documents/org/today.org"))
  '(package-selected-packages
-   '(magit git-gutter org-download exwm-mff evil-mff evil-exwm-state typo-suggest type-suggest company helpful racket-mode fennel-mode undo-fu undo-fu-session org-bullets evil-collection ivy evil-lion evil-surround evil-commentary evil)))
+   '(affe symon vertico consult org-notifications egg-timer org-plus-contrib volume ivy-youtube ytel esh-autosuggest pomidor ivy-clipmenu pdf-tools mini-modeline org-gcal org-alert edwina orderless corfu magit git-gutter org-download exwm-mff evil-mff evil-exwm-state typo-suggest type-suggest company helpful racket-mode fennel-mode undo-fu undo-fu-session org-bullets evil-collection ivy evil-lion evil-surround evil-commentary evil)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
