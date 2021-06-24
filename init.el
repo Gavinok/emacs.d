@@ -465,10 +465,8 @@
   (add-hook 'doc-view-mode-hook 'auto-revert-mode))
 
 (use-package transmission)
-
 ;; EXWM ----------------
 (use-package exwm
-  :after vertico
   :config
   (add-hook 'exwm-update-class-hook
 	    (lambda ()
@@ -561,10 +559,6 @@
 				       (interactive)
 				       (start-process-shell-command "cl dowm 5" nil "cl down 5")))
   (exwm-input-set-key (kbd "s-]") 'edwina-inc-mfact)
-  ;; (exwm-input-set-key (kbd "s-e") '(lambda ()
-  ;; 		      (interactive)
-  ;; 		      (progn (edwina-clone-window)
-  ;; 			     (eshell))))
   (exwm-input-set-key (kbd "s-]") 'edwina-inc-mfact)
   (exwm-input-set-key (kbd "s-[") 'edwina-dec-mfact)
   (exwm-input-set-key (kbd "s-q") 'edwina-delete-window)
@@ -574,25 +568,26 @@
   (exwm-enable)
   :init (setq mouse-autoselect-window t
 	      focus-follows-mouse t))
-
 (use-package exwm-systemtray
   :ensure nil
   :after exwm
   :config
   (exwm-systemtray-enable)
   (setq exwm-systemtray-height 25))
-
-;; randr
-(require 'exwm-randr)
-(setq exwm-randr-workspace-output-plist '(3 "HDMI2"))
-(add-hook 'exwm-randr-screen-change-hook
-          (lambda ()
-            (start-process-shell-command
-             "xrandr" nil "xrandr --output eDP1 --primary --auto --left-of HDMI2 --auto")))
-(exwm-randr-enable)
+(use-package exwm-randr
+  :ensure nil
+  :config
+  (setq exwm-randr-workspace-output-plist '(3 "HDMI2"))
+  (add-hook 'exwm-randr-screen-change-hook
+	    (lambda ()
+	      (start-process-shell-command
+	       "xrandr" nil "xrandr --output eDP1 --primary --auto --left-of HDMI2 --auto")))
+  (exwm-randr-enable))
 (use-package edwina
   :config
   (setq display-buffer-base-action '(display-buffer-below-selected)))
+(start-process-shell-command "blueman-applet" nil "blueman-applet")
+(start-process-shell-command "nm-applet" nil "nm-applet")
 ;; END EXWM ----------------
 
 ;; MODELINE --------------------------------------
@@ -627,8 +622,6 @@
 ;; END MODELINE --------------------------------------
 
 ;; start network manager applet
-(start-process-shell-command "blueman-applet" nil "blueman-applet")
-(start-process-shell-command "nm-applet" nil "nm-applet")
 
 ;;For org capture in qute
 (server-start)
