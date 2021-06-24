@@ -96,22 +96,25 @@
 ;; END TERMINAL SETTINGS -------------------
 
 ;; COMPLETION -------------------------------------
+
+;; Setup Ivy
+(use-package counsel
+  :config
+  (global-set-key (kbd "C-c v") 'ivy-push-view)
+  (global-set-key (kbd "C-c V") 'ivy-pop-view))
+
 (use-package vertico
-  :bind (("C-x C-f" . find-file))
   :init
   (vertico-mode))
-
 (use-package orderless
   :ensure t
   :custom (completion-styles '(orderless)))
-
 (use-package marginalia
   :after vertico
   :custom
   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
   :init
   (marginalia-mode))
-
 (use-package consult
   :after vertico
   :bind (("C-s" . consult-line)
@@ -133,13 +136,6 @@
   (consult-customize affe-grep :preview-key (kbd "M-."))
   (evil-define-key 'normal 'global (kbd "<leader>g") 'affe-grep)
   (evil-define-key 'normal 'global (kbd "<leader>f") 'affe-find))
-
-;; Setup Ivy
-(use-package counsel
-  :config
-  (counsel-mode 1)
-  (global-set-key (kbd "C-c v") 'ivy-push-view)
-  (global-set-key (kbd "C-c V") 'ivy-pop-view))
 
 ;; END COMPLETION -------------------------------------
 
@@ -287,7 +283,6 @@
 (use-package magit
   :config
   (evil-define-key 'normal 'global (kbd "Q") 'magit))
-
 (use-package git-gutter
   :config
   (global-git-gutter-mode +1))
