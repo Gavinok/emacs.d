@@ -22,7 +22,6 @@
 (defun hexcolour-add-to-font-lock ()
   (font-lock-add-keywords nil hexcolour-keywords))
 (add-hook 'evil-mode-hook 'hexcolour-add-to-font-lock)
-
 (defun sudo-save ()
   (interactive)
   (if (not buffer-file-name)
@@ -289,13 +288,13 @@
 ;; END GIT -------------------------
 
 ;; No startup
-(setq inhibit-startup-screen t)
 ;; disable backup
 (setq backup-inhibited t)
 (setq make-backup-files nil)
 (setq backup-by-copying t)
 (setq create-lockfiles nil)
 (setq auto-save-default nil)
+(setq inhibit-startup-screen t)
 ;; Add border
 (set-frame-parameter nil 'internal-border-width 10)
 (menu-bar-mode -1)               ; To disable the menu bar, place the following line in your .emacs file:
@@ -350,9 +349,14 @@
   (dired-hide-details-mode 1)
   (define-key dired-mode-map (kbd "-") (lambda () (interactive) (find-alternate-file ".."))))
 (add-hook 'dired-mode-hook 'gavin-dired-mode-setup)
-
 (set-frame-font "Liberation Mono 14" nil t)
 
+(add-hook 'c-mode-common-hook   'hs-minor-mode)
+(add-hook 'emacs-lisp-mode-hook 'hs-minor-mode)
+(add-hook 'java-mode-hook       'hs-minor-mode)
+(add-hook 'lisp-mode-hook       'hs-minor-mode)
+(add-hook 'perl-mode-hook       'hs-minor-mode)
+(add-hook 'sh-mode-hook         'hs-minor-mode)
 
 ;; EMAIL --------------------------------------------------------
 ;; where to find mu4e
