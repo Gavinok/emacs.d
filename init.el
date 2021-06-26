@@ -37,6 +37,10 @@
   ;; (unless (package-installed-p 'undo-fu)
   ;;   (package-install 'undo-fu))
   (use-package undo-fu)
+  (use-package undo-fu-session
+    :after undo-fu
+    :init
+    (global-undo-fu-session-mode))
   (use-package  evil
     :after undo-fu
     :init
@@ -91,7 +95,10 @@
     (set-face-background 'default "#000000")
   (progn (set-face-background 'default "undefinded")
 	 (add-to-list 'term-file-aliases
-		      '("st-256color" . "xterm-256color"))))
+		      '("st-256color" . "xterm-256color"))
+	 (xterm-mouse-mode t))
+  (global-set-key (kbd "<mouse-4>") 'next-line)
+  (global-set-key (kbd "<mouse-5>") 'previous-line))
 ;; END TERMINAL SETTINGS -------------------
 
 ;; COMPLETION -------------------------------------
