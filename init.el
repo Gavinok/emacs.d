@@ -141,7 +141,7 @@
   (setq affe-find-command "find  -not -path '*/\\.nnn*' -not -path '*/\\.git*' -type f")
   ;; Configure Orderless
   (setq affe-regexp-function #'orderless-pattern-compiler
-        affe-highlight-function #'orderless--highlight)
+	affe-highlight-function #'orderless--highlight)
 
   ;; Manual preview key for `affe-grep'
   (consult-customize affe-grep :preview-key (kbd "M-."))
