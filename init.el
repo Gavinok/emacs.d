@@ -362,18 +362,57 @@
 (define-key  evil-operator-state-map (kbd ")") (lambda () (interactive)
 					       (evil-next-close-paren)))
 (use-package fennel-mode)
-(use-package  racket-mode)
+(use-package racket-mode)
+;;; LSP using eglot
+(use-package eglot)
+
+;; As the built-in project.el support expects to use vc-mode hooks to
+;; find the root of projects we need to provide something equivalent
+;; for it.
+(defun my-git-project-finder (dir)
+  "Integrate .git project roots."
+  (let ((dotgit (and (setq dir (locate-dominating-file dir ".git"))
+		     (expand-file-name dir))))
+    (and dotgit
+	 (cons 'transient (file-name-directory dotgit)))))
+
+
+(use-package project
+  ;; Cannot use :hook because 'project-find-functions does not end in -hook
+  ;; Cannot use :init (must use :config) because otherwise
+  ;; project-find-functions is not yet initialized.
+  :config
+(add-hook 'project-find-functions 'my-git-project-finder))
+
 ;; Langs END ----------------------------------------------
 
 ;; dired settings --------------------------------------------------
 ;; A poor mans vim vinegar 
-(define-key  evil-normal-state-map (kbd "-") (lambda () (interactive)
-						(dired ".")))
-(defun gavin-dired-mode-setup ()
-  "to be run as hook for `dired-mode'."
-  (dired-hide-details-mode 1)
-  (define-key dired-mode-map (kbd "-") (lambda () (interactive) (find-alternate-file ".."))))
-(add-hook 'dired-mode-hook 'gavin-dired-mode-setup)
+;; NATIVE SETTINGS -----------------------------------------
+(use-package dired
+  :ensure nil
+  :custom ((dired-listing-switches "-agho --group-directories-first"))
+  :config
+  (evil-collection-define-key 'normal 'dired-mode-map
+    "-" 'dired-up-directory)
+  (define-key  evil-normal-state-map (kbd "-") (lambda () (interactive)
+						 (dired ".")))
+  ;; (defun gavin-dired-mode-setup ()
+  ;;   "to be run as hook for `dired-mode'."
+  ;;   (dired-hide-details-mode 1)
+  ;;   (define-key dired-mode-map (kbd "-")
+  ;;     (lambda () (interactive) (find-alternate-file ".."))))
+  ;; (add-hook 'dired-mode-hook 'gavin-dired-mode-setup)
+  )
+
+(use-package dired-open
+  :config
+  (setq dired-open-extensions '(("pdf" . "zathura")
+				("ps"  . "zathura")
+				("mkv" . "mpv")
+				("mp4" . "mpv")
+				("mp3" . "mpv"))))
+
 (set-frame-font "Liberation Mono 14" nil t)
 
 (add-hook 'c-mode-common-hook   'hs-minor-mode)
