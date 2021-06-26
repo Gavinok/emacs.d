@@ -308,7 +308,6 @@
 (setq auto-save-default nil)
 (setq inhibit-startup-screen t)
 ;; Add border
-(set-frame-parameter nil 'internal-border-width 10)
 (menu-bar-mode -1)               ; To disable the menu bar, place the following line in your .emacs file:
 (scroll-bar-mode -1)             ; To disable the scroll bar, use the following line:
 (tool-bar-mode -1)               ; To disable the toolbar, use the following line:
