@@ -571,6 +571,7 @@
 	   ([?\s-v] . edwina-zoom)
 					; closing windows
 	   ([?\s-q] . edwina-delete-window)
+	   ([?\s-c] . inferior-octave)
 	   ([?\s-C] . (lambda ()
 			(interactive)
 			(progn (kill-this-buffer)
