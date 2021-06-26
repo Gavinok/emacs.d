@@ -656,6 +656,16 @@
 	      (start-process-shell-command
 	       "xrandr" nil "xrandr --output eDP1 --primary --auto --left-of HDMI2 --auto")))
   (exwm-randr-enable))
+(use-package exwm-mff
+  :config
+  (exwm-mff-mode t))
+(use-package winner
+  :ensure nil
+  :config
+  (exwm-input-set-key (kbd "s-u") 'winner-undo)
+  (exwm-input-set-key (kbd "s-r") 'winner-redo)
+  :init
+  (winner-mode 1))
 (use-package edwina
   :config
   (setq display-buffer-base-action '(display-buffer-below-selected)))
