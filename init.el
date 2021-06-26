@@ -314,6 +314,7 @@
 (fset 'yes-or-no-p 'y-or-n-p)    ; don't ask to spell out "yes"
 (show-paren-mode 1)              ; Highlight parenthesis
 (setq x-select-enable-primary t) ; use primary as clipboard in emacs
+(global-auto-revert-mode t)
 
 ;; CODE COMPLETION --------------------------------------------------
 (setq hippie-expand-try-functions-list
