@@ -164,9 +164,9 @@
 (use-package org
   :ensure org-plus-contrib
   :config
+  (evil-define-key 'normal 'global (kbd "<leader>y") 'org-store-link)
   (evil-define-key 'normal 'global (kbd "gA") 'org-agenda)
   (evil-define-key 'normal 'global (kbd "gC") 'org-capture)
-  (evil-define-key 'normal 'global (kbd "gO") 'counsel-recoll)
 
   (setq org-default-notes-file (concat org-directory "/refile.org"))
   (setq org-log-done 'time)
