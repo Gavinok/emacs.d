@@ -421,7 +421,8 @@
 (add-hook 'lisp-mode-hook       'hs-minor-mode)
 (add-hook 'perl-mode-hook       'hs-minor-mode)
 (add-hook 'sh-mode-hook         'hs-minor-mode)
-
+(add-hook 'emacs-lisp-mode-hook 'prettify-symbols-mode)
+;; END NATIVE SETTINGS -----------------------------------------
 ;; EMAIL --------------------------------------------------------
 ;; where to find mu4e
 (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
