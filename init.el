@@ -333,9 +333,23 @@
   :config (global-company-mode t)
   (setq company-idle-delay 0.1
 	company-minimum-prefix-length 1))
+(use-package corfu
+  :bind (:map corfu-map
+	      ("TAB" . corfu-next)
+	      ("S-TAB" . corfu-previous))
+  :config (setq tab-always-indent 'complete)
+  :init
+  (corfu-global-mode))
+;; Dabbrev works with Corfu
+(use-package dabbrev
+  :ensure nil
+  ;; Swap M-/ and C-M-/
+  :bind (("M-/" . dabbrev-completion)
+	 ("C-M-/" . dabbrev-expand)))
 ;; END CODE COMPLETION --------------------------------------------------
 
 ;; Langs ----------------------------------------------
+
 ; better lisp bindings
 (define-key  evil-normal-state-map (kbd "(") (lambda () (interactive)
 					       (evil-previous-open-paren)))
