@@ -608,7 +608,9 @@
 			(egg-timer-do-schedule 3 reminder)))
 	   ([?\s-g] . exwm-workspace-switch)
 	   ([?\s-f] . exwm-layout-set-fullscreen)
-	   ([?\s-p] . consult-yank-pop)
+	   ([?\s-p] . (lambda ()
+			(interactive)
+			(start-process-shell-command "clipmenu" nil "clipmenu")))
 	   ([?\s-b] . consult-buffer)
 	   
 	   ,@(mapcar (lambda (i)
