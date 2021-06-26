@@ -124,11 +124,16 @@
 (use-package consult
   :after vertico
   :bind (("C-s" . consult-line)
-         ("C-M-l" . consult-imenu)
-         ("C-M-j" . persp-switch-to-buffer*)
-         :map minibuffer-local-map)
+	 ("C-M-l" . consult-imenu)
+	 ("C-M-j" . persp-switch-to-buffer*)
+	 :map minibuffer-local-map)
   :custom
-  (completion-in-region-function #'consult-completion-in-region))
+  (completion-in-region-function #'consult-completion-in-region)
+  :config
+  (evil-define-key 'normal 'global (kbd "<leader>j") 'consult-imenu))
+(use-package consult-recoll
+  :config
+  (evil-define-key 'normal 'global (kbd "gO") 'consult-recoll))
 (use-package affe
   :after orderless
   :config
