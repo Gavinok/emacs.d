@@ -516,7 +516,9 @@
  ;;End EMAIL ----------------------------------------------------------- 
 
 ;;NON-ESSENTIAL PACKAGES
-(use-package egg-timer)
+(use-package beacon
+  :init
+  (beacon-mode 1))
 (use-package esh-autosuggest)
 
 ;; (setq eshell-aliases-file "~/.emacs.d/aliases")
