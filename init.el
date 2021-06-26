@@ -457,7 +457,9 @@
   
   ;;images in emails
   (setq mu4e-view-show-images t)
-
+  (define-abbrev-table 'mu4e-compose-mode-abbrev-table
+    '(("sin" "Sincerely, \nGavin" nil 1)))
+  (add-hook 'mu4e-compose-mode-hook #'abbrev-mode)
   (add-hook 'mu4e-compose-mode-hook 'flyspell-mode)
   (add-to-list 'auto-mode-alist '("^/tmp/neomutt.*\\'" . mail-mode))
   (add-hook 'mail-mode-hook 'flyspell-mode)
