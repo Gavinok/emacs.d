@@ -685,10 +685,13 @@
 	 '(:eval (propertize "%b, " 'face 'font-lock-variable-name-face))
 	 '(:eval (propertize (if (eq 'emacs evil-state) "  " "  ")
 			     'face 'epa-validity-high))
+
 	 ;; value of current line number
-	 "l:%l "
+	 '(:eval (propertize " %l,%c" 'face 'font-lock-comment-face))
+	 '(:eval (propertize " %p" 'face 'font-lock-comment-face))
+	 " "
 	 ;; major mode
-	 "%m: "
+	 '(:eval (propertize " (%m) " 'face 'font-lock-comment-face))
 	 ;; ;; spaces to align right
 	 ;; '(:eval (propertize
 	 ;; 		" " 'display
@@ -699,8 +702,8 @@
 		  'face 'change-log-list))
 	 " "
 	 '(:eval (propertize
-		  (battery-format "[%p%%]" (funcall battery-status-function))
-		  'face 'change-log-list))
+		  (battery-format "[%p]" (funcall battery-status-function))
+		  'face 'apropos-property))
 	 "    "))
   :config
   (mini-modeline-mode t))
