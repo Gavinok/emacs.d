@@ -274,9 +274,9 @@
 ;;   :config
 ;;   (setq alert-default-style 'libnotify)
 ;;   (org-alert-enable))
-(use-package org-notifications
-  :config
-  (org-notifications-start))
+;; (use-package org-notifications
+;;   :config
+;;   (org-notifications-start))
 
 ;;archive completed tasks
 (defun my-org-archive-done-tasks ()
