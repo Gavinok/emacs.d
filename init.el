@@ -554,7 +554,10 @@
   (add-hook 'exwm-update-title-hook
 	    (lambda ()
 	      (pcase exwm-class-name
-		("qutebrowser" (exwm-workspace-rename-buffer (format "Qute: %s" exwm-title))))))
+		("qutebrowser" (exwm-workspace-rename-buffer (format "qb: %s" exwm-title)))
+		("libreoffice-writer" (exwm-workspace-rename-buffer (format "Writer: %s" exwm-title)))
+		("libreoffice-calc" (exwm-workspace-rename-buffer (format "Calc: %s" exwm-title)))
+		("St" (exwm-workspace-rename-buffer (format "%s" exwm-title))))))
   (setq exwm-input-global-keys
 	`( ([?\s-h] . windmove-left)
 	   ([?\s-l] . windmove-right)
