@@ -654,9 +654,10 @@
   (setq display-buffer-base-action '(display-buffer-below-selected)))
 (start-process-shell-command "blueman-applet" nil "blueman-applet")
 (start-process-shell-command "nm-applet" nil "nm-applet")
-;; END EXWM ----------------
 
 ;; MODELINE --------------------------------------
+
+(require 'battery)
 (use-package mini-modeline
   :init
   (setq mini-modeline-r-format
