@@ -10,10 +10,11 @@
 
 ;;; BOOTSTRAP USE-PACKAGE ------------------
 (package-initialize)
-;;(package-refresh-contents)
+
 (setq use-package-always-ensure t)
 (unless (package-installed-p 'use-package)
-    (package-install 'use-package))
+  (progn (package-refresh-contents)
+	 (package-install 'use-package)))
 (eval-when-compile (require 'use-package))
 ;; END BOOTSTRAP USE-PACKAGE ------------------
 
@@ -407,96 +408,97 @@
 
 ;; EMAIL --------------------------------------------------------
 ; where to find mu4e
-(add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
-(use-package mu4e
-  :ensure nil
-  :config
-  ;; This is set to 't' to avoid mail syncing issues when using mbsync
-  (setq mu4e-change-filenames-when-moving t)
+(unless gv/is-termux
+  (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
+  (use-package mu4e
+    :ensure nil
+    :config
+    ;; This is set to 't' to avoid mail syncing issues when using mbsync
+    (setq mu4e-change-filenames-when-moving t)
 
-  ;; Show full email address
-  (setq mu4e-view-show-addresses 't)
+    ;; Show full email address
+    (setq mu4e-view-show-addresses 't)
 
-  ;; where to put attachemnts
-  (setq mu4e-attachment-dir  "~/Downloads")
+    ;; where to put attachemnts
+    (setq mu4e-attachment-dir  "~/Downloads")
 
-  ;; use mu4e for e-mail in emacs
-  (setq mail-user-agent 'mu4e-user-agent)
+    ;; use mu4e for e-mail in emacs
+    (setq mail-user-agent 'mu4e-user-agent)
 
-  (setq mu4e-maildir "~/.local/share/mail")
+    (setq mu4e-maildir "~/.local/share/mail")
 
-  ;; This prevents saving the email to the Sent folder since gmail will do this for us on their end.
-  (setq mu4e-sent-messages-behavior 'delete)
-  (setq message-kill-buffer-on-exit t)
+    ;; This prevents saving the email to the Sent folder since gmail will do this for us on their end.
+    (setq mu4e-sent-messages-behavior 'delete)
+    (setq message-kill-buffer-on-exit t)
 
-  ;; allow for updating mail using 'U' in the main view:
-  (setq mu4e-get-mail-command "mailsync"
-	sendmail-program "/usr/bin/msmtp"
-	message-sendmail-extra-arguments '("--read-envelope-from")
-	send-mail-function 'smtpmail-send-it
-	message-sendmail-f-is-evil t
-	message-send-mail-function 'message-send-mail-with-sendmail)
-  
-  ;;images in emails
-  (setq mu4e-view-show-images t)
-  (define-abbrev-table 'mu4e-compose-mode-abbrev-table
-    '(("sin" "Sincerely, \nGavin Jaeger-Freeborn" nil 1)))
-  (add-hook 'mu4e-compose-mode-hook #'abbrev-mode)
-  (add-hook 'mu4e-compose-mode-hook 'flyspell-mode)
-  (add-to-list 'auto-mode-alist '("^/tmp/neomutt.*\\'" . mail-mode))
-  (add-hook 'mail-mode-hook 'flyspell-mode)
+    ;; allow for updating mail using 'U' in the main view:
+    (setq mu4e-get-mail-command "mailsync"
+	  sendmail-program "/usr/bin/msmtp"
+	  message-sendmail-extra-arguments '("--read-envelope-from")
+	  send-mail-function 'smtpmail-send-it
+	  message-sendmail-f-is-evil t
+	  message-send-mail-function 'message-send-mail-with-sendmail)
+    
+    ;;images in emails
+    (setq mu4e-view-show-images t)
+    (define-abbrev-table 'mu4e-compose-mode-abbrev-table
+      '(("sin" "Sincerely, \nGavin Jaeger-Freeborn" nil 1)))
+    (add-hook 'mu4e-compose-mode-hook #'abbrev-mode)
+    (add-hook 'mu4e-compose-mode-hook 'flyspell-mode)
+    (add-to-list 'auto-mode-alist '("^/tmp/neomutt.*\\'" . mail-mode))
+    (add-hook 'mail-mode-hook 'flyspell-mode)
 
-  ;; something about ourselves
-  (setq mu4e-contexts
-	(list
-	 ;; Personal account
-	 (make-mu4e-context
-	  :name "Personal"
-	  :match-func
-	  (lambda (msg)
-	    (when msg
-	      (string-prefix-p "/personal" (mu4e-message-field msg :maildir))))
-	  :vars '((user-mail-address                . "gavinfreeborn@gmail.com")
-		  (user-full-name                   . "Gavin Jaeger-Freeborn")
-		  (mu4e-drafts-folder               . "/personal/[Gmail].Drafts")
-		  (mu4e-sent-folder                 . "/personal/[Gmail].Sent Mail")
-		  (mu4e-refile-folder               . "/personal/[Gmail].All Mail")
-		  (mu4e-trash-folder                . "/personal/[Gmail].Trash")))
+    ;; something about ourselves
+    (setq mu4e-contexts
+	  (list
+	   ;; Personal account
+	   (make-mu4e-context
+	    :name "Personal"
+	    :match-func
+	    (lambda (msg)
+	      (when msg
+		(string-prefix-p "/personal" (mu4e-message-field msg :maildir))))
+	    :vars '((user-mail-address                . "gavinfreeborn@gmail.com")
+		    (user-full-name                   . "Gavin Jaeger-Freeborn")
+		    (mu4e-drafts-folder               . "/personal/[Gmail].Drafts")
+		    (mu4e-sent-folder                 . "/personal/[Gmail].Sent Mail")
+		    (mu4e-refile-folder               . "/personal/[Gmail].All Mail")
+		    (mu4e-trash-folder                . "/personal/[Gmail].Trash")))
 
-	 ;; Info Work account
-	 (make-mu4e-context
-	  :name "Info"
-	  :match-func
-	  (lambda (msg)
-	    (when msg
-	      (string-prefix-p "/info" (mu4e-message-field msg :maildir))))
-	  :vars '((user-mail-address                . "info@flatwaternorth.ca")
-		  (user-full-name                   . "Gavin Jaeger-Freeborn")
-		  (mu4e-drafts-folder               . "/info/[Gmail].Drafts")
-		  (mu4e-sent-folder                 . "/info/[Gmail].Sent Mail")
-		  (mu4e-refile-folder               . "/info/[Gmail].All Mail")
-		  (mu4e-trash-folder                . "/info/[Gmail].Trash")))
+	   ;; Info Work account
+	   (make-mu4e-context
+	    :name "Info"
+	    :match-func
+	    (lambda (msg)
+	      (when msg
+		(string-prefix-p "/info" (mu4e-message-field msg :maildir))))
+	    :vars '((user-mail-address                . "info@flatwaternorth.ca")
+		    (user-full-name                   . "Gavin Jaeger-Freeborn")
+		    (mu4e-drafts-folder               . "/info/[Gmail].Drafts")
+		    (mu4e-sent-folder                 . "/info/[Gmail].Sent Mail")
+		    (mu4e-refile-folder               . "/info/[Gmail].All Mail")
+		    (mu4e-trash-folder                . "/info/[Gmail].Trash")))
 
-	 ;; Coach Work account
-	 (make-mu4e-context
-	  :name "Coach"
-	  :match-func
-	  (lambda (msg)
-	    (when msg
-	      (string-prefix-p "/coach" (mu4e-message-field msg :maildir))))
-	  :vars '((user-mail-address                . "coach@flatwaternorth.ca")
-		  (user-full-name                   . "Gavin Jaeger-Freeborn")
-		  (mu4e-drafts-folder               . "/coach/[Gmail].Drafts")
-		  (mu4e-sent-folder                 . "/coach/[Gmail].Sent Mail")
-		  (mu4e-refile-folder               . "/coach/[Gmail].All Mail")
-		  (mu4e-trash-folder                . "/coach/[Gmail].Trash")))))
-  ;; Contacts
-  (setq mail-personal-alias-file  "~/.config/mutt/aliases")
-  (setq mu4e-org-contacts-file  "~/Documents/org/contacts.org")
-  (add-to-list 'mu4e-headers-actions
-	       '("org-contact-add" . mu4e-action-add-org-contact) t)
-  (add-to-list 'mu4e-view-actions
-	       '("org-contact-add" . mu4e-action-add-org-contact) t))
+	   ;; Coach Work account
+	   (make-mu4e-context
+	    :name "Coach"
+	    :match-func
+	    (lambda (msg)
+	      (when msg
+		(string-prefix-p "/coach" (mu4e-message-field msg :maildir))))
+	    :vars '((user-mail-address                . "coach@flatwaternorth.ca")
+		    (user-full-name                   . "Gavin Jaeger-Freeborn")
+		    (mu4e-drafts-folder               . "/coach/[Gmail].Drafts")
+		    (mu4e-sent-folder                 . "/coach/[Gmail].Sent Mail")
+		    (mu4e-refile-folder               . "/coach/[Gmail].All Mail")
+		    (mu4e-trash-folder                . "/coach/[Gmail].Trash")))))
+    ;; Contacts
+    (setq mail-personal-alias-file  "~/.config/mutt/aliases")
+    (setq mu4e-org-contacts-file  "~/Documents/org/contacts.org")
+    (add-to-list 'mu4e-headers-actions
+		 '("org-contact-add" . mu4e-action-add-org-contact) t)
+    (add-to-list 'mu4e-view-actions
+		 '("org-contact-add" . mu4e-action-add-org-contact) t)))
  ;;End EMAIL ----------------------------------------------------------- 
 ;; (use-package matrix-client
 ;;   :quelpa (matrix-client :fetcher github :repo "alphapapa/matrix-client.el"
