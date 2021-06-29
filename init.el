@@ -638,6 +638,7 @@
   (setq exwm-systemtray-height 23))
 (use-package exwm-randr
   :ensure nil
+  :after exwm
   :config
   (setq exwm-randr-workspace-output-plist '(3 "HDMI2"))
   (add-hook 'exwm-randr-screen-change-hook
@@ -646,8 +647,13 @@
 	       "xrandr" nil "xrandr --output eDP1 --primary --auto --left-of HDMI2 --auto")))
   (exwm-randr-enable))
 (use-package exwm-mff
+  :after exwm
   :config
   (exwm-mff-mode t))
+(use-package edwina
+  :after exwm
+  :config
+  (setq display-buffer-base-action '(display-buffer-below-selected)))
 (use-package winner
   :ensure nil
   :config
@@ -655,9 +661,6 @@
   (exwm-input-set-key (kbd "s-r") 'winner-redo)
   :init
   (winner-mode 1))
-(use-package edwina
-  :config
-  (setq display-buffer-base-action '(display-buffer-below-selected)))
 (start-process-shell-command "blueman-applet" nil "blueman-applet")
 (start-process-shell-command "nm-applet" nil "nm-applet")
 
