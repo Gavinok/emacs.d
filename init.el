@@ -684,16 +684,16 @@
 	 " "
 	 '(:eval (propertize
 		  (battery-format "[%p]" (funcall battery-status-function))
-		  'face 'apropos-property))
+		  'face 'org-checkbox))
 	 "    "))
   :config
   (mini-modeline-mode t))
-;; END MODELINE --------------------------------------
+(use-package server
+  :ensure nil
+  :config
+  (unless (server-running-p)
+    (server-start)))
 
-;; start network manager applet
-
-;;For org capture in qute
-(server-start)
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
