@@ -311,20 +311,17 @@
   ;; Swap M-/ and C-M-/
   :bind (("M-/" . dabbrev-completion)
 	 ("C-M-/" . dabbrev-expand)))
-;; END CODE COMPLETION --------------------------------------------------
-
 ;; Langs ----------------------------------------------
-
 ; better lisp bindings
-(define-key  evil-normal-state-map (kbd "(") (lambda () (interactive)
-					       (evil-previous-open-paren)))
-(define-key  evil-normal-state-map (kbd ")") (lambda () (interactive)
-					       (evil-next-close-paren)))
-(define-key  evil-normal-state-map (kbd "(") (lambda () (interactive)
-					       (evil-previous-open-paren)))
-(define-key  evil-operator-state-map (kbd "(") (lambda () (interactive)
-					       (evil-previous-open-paren)))
-(define-key  evil-operator-state-map (kbd ")") (lambda () (interactive)
+(define-key evil-normal-state-map (kbd "(") (lambda () (interactive)
+				       (evil-previous-open-paren)))
+(define-key evil-normal-state-map (kbd ")") (lambda () (interactive)
+				       (evil-next-close-paren)))
+(define-key evil-normal-state-map (kbd "(") (lambda () (interactive)
+				       (evil-previous-open-paren)))
+(define-key evil-operator-state-map (kbd "(") (lambda () (interactive)
+				       (evil-previous-open-paren)))
+(define-key evil-operator-state-map (kbd ")") (lambda () (interactive)
 					       (evil-next-close-paren)))
 (use-package fennel-mode)
 (use-package racket-mode)
