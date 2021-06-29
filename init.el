@@ -262,6 +262,7 @@
   :after org
   :custom (org-contacts-files '("~/Documents/org/contacts.org")))
 (use-package org-download
+  :if (not gv/is-termux)
   :init
   (setq org-directory "~/Documents/org")
   (setq org-agenda-files (seq-filter (lambda (x) (not (string-match "completed.org" x)))
