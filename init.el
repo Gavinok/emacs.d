@@ -1,3 +1,4 @@
+;; maybe try this theme outhttps://github.com/mclear-tools/bespoke-themes
 ;; Set up package.el to work with MELPA (require 'package)
 (setq package-archives
       '(("melpa" . "https://melpa.org/packages/")
@@ -709,7 +710,7 @@
  '(org-agenda-files
    '("/home/gavinok/Documents/org/Work.org" "/home/gavinok/Documents/org/today.org"))
  '(package-selected-packages
-   '(affe symon vertico consult org-notifications egg-timer org-plus-contrib volume ivy-youtube ytel esh-autosuggest pomidor ivy-clipmenu pdf-tools mini-modeline org-gcal org-alert edwina orderless corfu magit git-gutter org-download exwm-mff evil-mff evil-exwm-state typo-suggest type-suggest company helpful racket-mode fennel-mode undo-fu undo-fu-session org-bullets evil-collection ivy evil-lion evil-surround evil-commentary evil)))
+   '(flymake-grammarly bespoke-themes beacon dired-open eglot literate-calc-mode calfw calfw-org ccls lsp-mode affe symon vertico consult org-notifications egg-timer org-plus-contrib volume ivy-youtube ytel esh-autosuggest pomidor ivy-clipmenu pdf-tools mini-modeline org-gcal org-alert edwina orderless corfu magit git-gutter org-download exwm-mff evil-mff evil-exwm-state typo-suggest type-suggest company helpful racket-mode fennel-mode undo-fu undo-fu-session org-bullets evil-collection ivy evil-lion evil-surround evil-commentary evil)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
