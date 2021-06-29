@@ -159,8 +159,6 @@
   (set-cursor-color "#dc322f")
   (set-face-attribute 'region nil :background "#666" :foreground "#ffffff"))
 
-(set-frame-parameter (selected-frame) 'alpha '(90 90))
-(add-to-list 'default-frame-alist '(alpha 90 90))
 
 ;; ORG -------------------------
 (use-package org
@@ -299,39 +297,6 @@
 (use-package git-gutter
   :config
   (global-git-gutter-mode +1))
-;; END GIT -------------------------
-
-;; No startup
-;; disable backup
-(setq backup-inhibited t)
-(setq make-backup-files nil)
-(setq backup-by-copying t)
-(setq create-lockfiles nil)
-(setq auto-save-default nil)
-(setq inhibit-startup-screen t)
-;; Add border
-(menu-bar-mode -1)               ; To disable the menu bar, place the following line in your .emacs file:
-(scroll-bar-mode -1)             ; To disable the scroll bar, use the following line:
-(tool-bar-mode -1)               ; To disable the toolbar, use the following line:
-(fset 'yes-or-no-p 'y-or-n-p)    ; don't ask to spell out "yes"
-(show-paren-mode 1)              ; Highlight parenthesis
-(setq x-select-enable-primary t) ; use primary as clipboard in emacs
-(global-auto-revert-mode t)
-
-;; CODE COMPLETION --------------------------------------------------
-(setq hippie-expand-try-functions-list
-      '(
-	try-expand-dabbrev
-	try-expand-dabbrev-all-buffers
-	;; try-expand-dabbrev-from-kill
-	try-complete-lisp-symbol-partially
-	try-complete-lisp-symbol
-	try-complete-file-name-partially
-	try-complete-file-name
-	;; try-expand-all-abbrevs
-	;; try-expand-list
-	;; try-expand-line
-	))
 (use-package company
   :config (global-company-mode t)
   (setq company-idle-delay 0.1
@@ -392,6 +357,50 @@
 ;; dired settings --------------------------------------------------
 ;; A poor mans vim vinegar 
 ;; NATIVE SETTINGS -----------------------------------------
+(use-package emacs
+  :ensure nil
+  :config
+  (set-frame-parameter (selected-frame) 'alpha '(90 90))
+  (add-to-list 'default-frame-alist '(alpha 90 90))
+  (set-frame-font "RobotoMono Nerd Font 14" nil t)
+  (setq backup-inhibited t)
+  (setq make-backup-files nil)
+  (setq backup-by-copying t)
+  (setq create-lockfiles nil)
+  (setq auto-save-default nil)
+  (setq inhibit-startup-screen t)
+  (blink-cursor-mode -1)
+  ;; Add border
+  (menu-bar-mode -1)               ; To disable the menu bar, place the following line in your .emacs file:
+  (unless gv/is-termux
+    (scroll-bar-mode -1))             ; To disable the scroll bar, use the following line:
+  (tool-bar-mode -1)               ; To disable the toolbar, use the following line:
+  (fset 'yes-or-no-p 'y-or-n-p)    ; don't ask to spell out "yes"
+  (show-paren-mode 1)              ; Highlight parenthesis
+  (setq x-select-enable-primary t) ; use primary as clipboard in emacs
+  (global-auto-revert-mode t)
+  (setq hippie-expand-try-functions-list
+	'(try-expand-dabbrev
+	  try-expand-dabbrev-all-buffers
+	  try-expand-dabbrev-from-kill
+	  try-complete-lisp-symbol-partially
+	  try-complete-lisp-symbol
+	  try-complete-file-name-partially
+	  try-complete-file-name
+	  try-expand-all-abbrevs
+	  try-expand-list
+	  try-expand-line))
+  (add-hook 'c-mode-common-hook   'hs-minor-mode)
+  (add-hook 'emacs-lisp-mode-hook 'hs-minor-mode)
+  (add-hook 'java-mode-hook       'hs-minor-mode)
+  (add-hook 'lisp-mode-hook       'hs-minor-mode)
+  (add-hook 'perl-mode-hook       'hs-minor-mode)
+  (add-hook 'sh-mode-hook         'hs-minor-mode)
+  (add-hook 'emacs-lisp-mode-hook 'prettify-symbols-mode)
+  ;; Vim like scrolling
+  (setq scroll-step            1
+	scroll-conservatively  10000))
+;;; dired
 (use-package dired
   :ensure nil
   :custom ((dired-listing-switches "-agho --group-directories-first"))
