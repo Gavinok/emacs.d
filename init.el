@@ -116,7 +116,6 @@
   :init
   (vertico-mode))
 (use-package orderless
-  :ensure t
   :custom (completion-styles '(orderless)))
 (use-package marginalia
   :after vertico
