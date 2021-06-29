@@ -158,9 +158,28 @@
 (use-package org
   :ensure org-plus-contrib
   :config
+  (add-hook 'org-mode-hook 'turn-on-flyspell) ;spell checking
+  ;;archive completed tasks
+  (defun my-org-archive-done-tasks ()
+    (interactive)
+    (progn
+      (org-map-entries 'org-archive-subtree "/DONE" 'file)
+      (org-map-entries 'org-archive-subtree "/CANCELLED" 'file)))
+
   (evil-define-key 'normal 'global (kbd "<leader>y") 'org-store-link)
   (evil-define-key 'normal 'global (kbd "gA") 'org-agenda)
   (evil-define-key 'normal 'global (kbd "gC") 'org-capture)
+
+  (setq org-ellipsis " ▾"
+	org-hide-emphasis-markers t
+	org-src-fontify-natively t
+	org-fontify-quote-and-verse-blocks t
+	org-src-tab-acts-natively t
+	org-edit-src-content-indentation 2
+	org-hide-block-startup nil
+	org-src-preserve-indentation nil
+	org-startup-folded 'content
+	org-cycle-separator-lines 2)
 
   (setq org-default-notes-file (concat org-directory "/refile.org"))
   (setq org-log-done 'time)
@@ -236,16 +255,14 @@
 	   "* %?\n%? %a\n")
 	  ("c" "Cool Thing" entry (file+datetree "~/Documents/org/archive.org")
 	   "* %?\nEntered on %U\n  %i\n  %a"))))
-
 (use-package org-contacts
   :ensure nil
   :after org
   :custom (org-contacts-files '("~/Documents/org/contacts.org")))
-
 (use-package org-download
   :init
   (setq org-directory "~/Documents/org")
-  (setq org-agenda-files (seq-filter (lambda(x) (not (string-match "completed.org" x)))
+  (setq org-agenda-files (seq-filter (lambda (x) (not (string-match "completed.org" x)))
        (directory-files-recursively org-directory "\\.org$")))
   (setq-default org-download-screenshot-method "gnome-screenshot -a -f %s")
   (setq-default org-download-image-dir "./pic")
@@ -253,46 +270,32 @@
   :after org
   :config
   (add-hook 'dired-mode-hook 'org-download-enable))
-
-(use-package org-bullets
+(use-package org-superstar
+  :if (not gv/is-termux)
   :after org
   :config
   (if (display-graphic-p)
-      (add-hook 'org-mode-hook #'org-bullets-mode)))
-
-;; Make sure org-indent face is available
+      (add-hook 'org-mode-hook #'org-superstar-mode)))
 (require 'org-indent)
 (require 'org-tempo)
+(add-to-list 'org-structure-template-alist '("sh" . "src sh"))
+(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+(add-to-list 'org-structure-template-alist '("sc" . "src scheme"))
+(add-to-list 'org-structure-template-alist '("ts" . "src typescript"))
+(add-to-list 'org-structure-template-alist '("py" . "src python"))
+(add-to-list 'org-structure-template-alist '("go" . "src go"))
 
-;; (use-package org-alert
-;;   :config
-;;   (setq alert-default-style 'libnotify)
-;;   (org-alert-enable))
-;; (use-package org-notifications
-;;   :config
-;;   (org-notifications-start))
-
-;;archive completed tasks
-(defun my-org-archive-done-tasks ()
-  (interactive)
-  (progn
-    (org-map-entries 'org-archive-subtree "/DONE" 'file)
-    (org-map-entries 'org-archive-subtree "/CANCELLED" 'file)))
-
-(add-hook 'org-mode-hook 'turn-on-flyspell) ;spell checking
-
-;; END ORG -------------------------
-
-;; GIT -------------------------
-;; Magit
+;;; Git
 (use-package magit
   :config
   (evil-define-key 'normal 'global (kbd "Q") 'magit))
 (use-package git-gutter
   :config
   (global-git-gutter-mode +1))
+;;; Completion
 (use-package company
   :config (global-company-mode t)
+  (add-hook 'org-mode-hook 'company-mode) ;completion in org files
   (setq company-idle-delay 0.1
 	company-minimum-prefix-length 1))
 (use-package corfu
