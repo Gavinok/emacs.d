@@ -33,12 +33,7 @@
 
 ;; EVIL MODE ----------------------------------
 (progn
-  ;; Vim like scrolling
-  (setq scroll-step            1
-	scroll-conservatively  10000)
   ;; Vim style undo
-  ;; (unless (package-installed-p 'undo-fu)
-  ;;   (package-install 'undo-fu))
   (use-package undo-fu)
   (use-package undo-fu-session
     :after undo-fu
@@ -47,7 +42,7 @@
   (use-package  evil
     :after undo-fu
     :init
-    (setq evil-evil-want-Y-yank-to-eol t)
+    (setq evil-want-Y-yank-to-eol t)
     (setq evil-want-keybinding nil)
     (setq evil-split-window-below t)
     (setq evil-split-window-right t)
@@ -111,7 +106,6 @@
   :config
   (global-set-key (kbd "C-c v") 'ivy-push-view)
   (global-set-key (kbd "C-c V") 'ivy-pop-view))
-
 (use-package vertico
   :init
   (vertico-mode))
