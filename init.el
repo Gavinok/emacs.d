@@ -517,6 +517,7 @@
 (use-package transmission)
 ;; EXWM ----------------
 (use-package exwm
+  :if (not gv/is-termux)
   :config
   (add-hook 'exwm-update-class-hook
 	    (lambda ()
@@ -542,14 +543,20 @@
   (setq exwm-input-global-keys
 	`( ([?\s-h] . windmove-left)
 	   ([?\s-l] . windmove-right)
-	   ([?\s-0] . (lambda ()
-			(interactive )
-			(start-process-shell-command "dmenu_connection_manager.sh" nil "dmenu_connection_manager.sh")))
+	   ;; Window Managment
 	   ([?\s-j] . edwina-select-next-window)
 	   ([?\s-k] . edwina-select-previous-window)
 	   ([?\s-s] . edwina-dec-nmaster)
 	   ([?\s-a] . edwina-inc-nmaster)
 	   ([?\s-v] . edwina-zoom)
+	   (,(kbd "s-]")        . edwina-inc-mfact)
+	   (,(kbd "s-[")        . edwina-dec-mfact)
+	   (,(kbd "s-q")        . edwina-delete-window)
+	   (,(kbd "<s-backspace>")        . edwina-delete-window)
+	   (,(kbd "s-<return>") . edwina-clone-window)
+	   ([?\s-g] . exwm-workspace-switch)
+	   ([?\s-f] . exwm-layout-set-fullscreen)
+
 					; closing windows
 	   ([?\s-q] . edwina-delete-window)
 	   ([?\s-c] . inferior-octave)
@@ -571,11 +578,23 @@
 	   ([?\s-d] . (lambda (command)
 			(interactive (list (read-shell-command "λ ")))
 			(start-process-shell-command command nil command)))
+	   ;; screen and audio controls
+	   (,(kbd "C-s-f") . (lambda ()
+			       (interactive)
+			       (start-process-shell-command "cm up 5" nil "cm up 5")))
+	   (,(kbd "C-s-a") . (lambda ()
+			       (interactive)
+			       (start-process-shell-command "cm down 5" nil "cm down 5")))
+	   (,(kbd "C-s-d") . (lambda ()
+			       (interactive)
+			       (start-process-shell-command "cl up 5" nil "cl up 5")))
+	   (,(kbd "C-s-s") . (lambda ()
+			       (interactive)
+			       (start-process-shell-command "cl dowm 5" nil "cl down 5")))
 	   ;; web browser
 	   ([?\s-w] . (lambda ()
 			(interactive)
 			(start-process-shell-command "ducksearch" nil "ducksearch")))
-
 	   ([?\s-e] . (lambda ()
 			(interactive)
 			(progn (edwina-clone-window)
@@ -587,13 +606,13 @@
 	   ([?\s-m] . (defun remind-timer (reminder)
 			(interactive "reminder?")
 			(egg-timer-do-schedule 3 reminder)))
-	   ([?\s-g] . exwm-workspace-switch)
-	   ([?\s-f] . exwm-layout-set-fullscreen)
+	   ([?\s-b] . consult-buffer)
+	   ([?\s-=] . (lambda ()
+			(interactive )
+			(start-process-shell-command "dmenu_connection_manager.sh" nil "dmenu_connection_manager.sh")))
 	   ([?\s-p] . (lambda ()
 			(interactive)
 			(start-process-shell-command "clipmenu" nil "clipmenu")))
-	   ([?\s-b] . consult-buffer)
-	   
 	   ,@(mapcar (lambda (i)
 		       `(,(kbd (format "s-%d" i))
 			 (lambda ()
@@ -601,24 +620,7 @@
 			   (exwm-workspace-switch-create ,i))))
 		     (number-sequence 1 9))))
 
-  ;; screen and audio controls
-  (exwm-input-set-key (kbd "C-s-f") '(lambda ()
-				       (interactive)
-				       (start-process-shell-command "cm up 5" nil "cm up 5")))
-  (exwm-input-set-key (kbd "C-s-a") '(lambda ()
-				       (interactive)
-				       (start-process-shell-command "cm down 5" nil "cm down 5")))
-  (exwm-input-set-key (kbd "C-s-d") '(lambda ()
-				       (interactive)
-				       (start-process-shell-command "cl up 5" nil "cl up 5")))
-  (exwm-input-set-key (kbd "C-s-s") '(lambda ()
-				       (interactive)
-				       (start-process-shell-command "cl dowm 5" nil "cl down 5")))
-  (exwm-input-set-key (kbd "s-]") 'edwina-inc-mfact)
-  (exwm-input-set-key (kbd "s-]") 'edwina-inc-mfact)
-  (exwm-input-set-key (kbd "s-[") 'edwina-dec-mfact)
-  (exwm-input-set-key (kbd "s-q") 'edwina-delete-window)
-  (exwm-input-set-key (kbd "s-<return>") 'edwina-clone-window)
+  ;; (exwm-input-set-key (kbd "s-<SPC>") 'edwina-clone-window)
   (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
   (fringe-mode 1)
   (exwm-enable)
@@ -629,7 +631,7 @@
   :after exwm
   :config
   (exwm-systemtray-enable)
-  (setq exwm-systemtray-height 25))
+  (setq exwm-systemtray-height 23))
 (use-package exwm-randr
   :ensure nil
   :config
