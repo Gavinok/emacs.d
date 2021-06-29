@@ -97,9 +97,15 @@
 	 (add-to-list 'term-file-aliases
 		      '("st-256color" . "xterm-256color"))
 	 (xterm-mouse-mode t))
-  (global-set-key (kbd "<mouse-4>") 'next-line)
-  (global-set-key (kbd "<mouse-5>") 'previous-line))
-;; END TERMINAL SETTINGS -------------------
+
+  (if gv/is-termux
+      (progn
+	(global-set-key (kbd "<mouse-4>") 'next-line)
+	(global-set-key (kbd "<mouse-5>") 'previous-line))
+    (progn
+      (global-set-key (kbd "<mouse-5>") 'next-line)
+      (global-set-key (kbd "<mouse-4>") 'previous-line)))
+  ;; END TERMINAL SETTINGS -------------------
 
 ;; COMPLETION -------------------------------------
 
