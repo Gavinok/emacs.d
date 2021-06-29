@@ -497,14 +497,15 @@
   (add-to-list 'mu4e-view-actions
 	       '("org-contact-add" . mu4e-action-add-org-contact) t))
  ;;End EMAIL ----------------------------------------------------------- 
-
+;; (use-package matrix-client
+;;   :quelpa (matrix-client :fetcher github :repo "alphapapa/matrix-client.el"
+;;                          :files (:defaults "logo.png" "matrix-client-standalone.el.sh")))
 ;;NON-ESSENTIAL PACKAGES
 (use-package beacon
   :init
   (beacon-mode 1))
 (use-package esh-autosuggest)
 
-;; (setq eshell-aliases-file "~/.emacs.d/aliases")
 ;https://github.com/politza/pdf-tools
 ; annotate pdfs with c-c c-a
 ; hl with c-c c-a h
