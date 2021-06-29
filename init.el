@@ -4,7 +4,10 @@
 	("org" . "https://orgmode.org/elpa/")
 	("elpa" . "https://elpa.gnu.org/packages/")))
 
-;; BOOTSTRAP USE-PACKAGE ------------------
+(setq gv/is-termux
+      (string-suffix-p "Android" (string-trim (shell-command-to-string "uname -a"))))
+
+;;; BOOTSTRAP USE-PACKAGE ------------------
 (package-initialize)
 ;;(package-refresh-contents)
 (setq use-package-always-ensure t)
