@@ -667,7 +667,9 @@
 
 ;; MODELINE --------------------------------------
 
-(require 'battery)
+
+(unless gv/is-termux
+  (require 'battery))
 (use-package mini-modeline
   :init
   (setq mini-modeline-r-format
