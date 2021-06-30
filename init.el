@@ -5,18 +5,18 @@
 	("org" . "https://orgmode.org/elpa/")
 	("elpa" . "https://elpa.gnu.org/packages/")))
 
-(setq gv/is-termux
-      (string-suffix-p "Android" (string-trim (shell-command-to-string "uname -a"))))
-
 ;;; BOOTSTRAP USE-PACKAGE ------------------
 (package-initialize)
 
 (setq use-package-always-ensure t)
 (unless (package-installed-p 'use-package)
-  (progn (package-refresh-contents)
-	 (package-install 'use-package)))
+  (package-refresh-contents)
+  (package-install 'use-package))
 (eval-when-compile (require 'use-package))
 ;; END BOOTSTRAP USE-PACKAGE ------------------
+(setq gv/is-termux
+      (string-suffix-p "Android" (string-trim (shell-command-to-string "uname -a"))))
+
 
 (defvar hexcolour-keywords
   '(("#[abcdef[:digit:]]\\{6\\}"
