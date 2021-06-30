@@ -57,21 +57,20 @@
     (evil-define-key 'normal 'global (kbd "<leader>b") 'consult-buffer)
     (evil-define-key 'normal 'global (kbd "<leader>t") 'capitalize-dwim)
     (evil-define-key 'visual 'global (kbd "<leader>t") 'capitalize-dwim)
-    (evil-define-key 'normal 'global (kbd "<backspace>") 'flyspell-check-previous-highlighted-word)
+    (evil-define-key 'normal 'global (kbd "<backspace>")
+      'flyspell-check-previous-highlighted-word)
     (global-set-key (kbd "<escape>") 'keyboard-escape-quit))
 
   ;; evil mode in other modes live viewing pdfs
   (use-package  evil-collection
     :config
     (evil-collection-init))
-  ;; enable evil
 
   ;; Enable Commentary
   (use-package evil-commentary
     :config
     (evil-commentary-mode 1))
   
-
   ;; Enable Surround
   (use-package evil-surround
     :config
@@ -81,18 +80,18 @@
   (use-package evil-lion
     :config
     (evil-lion-mode 1)
-    (define-key evil-normal-state-map (kbd "gl") (lambda () (interactive)
-						   (evil-lion-left)))
-    (define-key evil-normal-state-map (kbd "gL") (lambda () (interactive)
-						   (evil-lion-right))))
+    (define-key evil-normal-state-map (kbd "gl")
+      (lambda () (interactive)
+	(evil-lion-left)))
+    (define-key evil-normal-state-map (kbd "gL")
+      (lambda () (interactive)
+	(evil-lion-right))))
   ;; Cursor Shape
   (use-package evil-terminal-cursor-changer
     :config
     (unless (display-graphic-p)
       (evil-terminal-cursor-changer-activate))))
-;; END EVIL MODE ----------------------------------
-
-;; TERMINAL SETTINGS -------------------
+;; TERMINAL SETTINGS --------------------------
 (if (display-graphic-p)
     (set-face-background 'default "#000000")
   (progn (set-face-background 'default "undefinded")
@@ -101,11 +100,8 @@
 	 (xterm-mouse-mode t))
 	(global-set-key (kbd "<mouse-4>") 'next-line)
 	(global-set-key (kbd "<mouse-5>") 'previous-line))
-  ;; END TERMINAL SETTINGS -------------------
 
 ;; COMPLETION -------------------------------------
-
-;; Setup Ivy
 (use-package counsel
   :config
   (global-set-key (kbd "C-c v") 'ivy-push-view)
@@ -148,15 +144,12 @@
   (evil-define-key 'normal 'global (kbd "<leader>g") 'affe-grep)
   (evil-define-key 'normal 'global (kbd "<leader>f") 'affe-find))
 
-;; END COMPLETION -------------------------------------
-
 ;; Themeing
 (use-package badger-theme
   :config
   (load-theme 'badger t)
   (set-cursor-color "#dc322f")
   (set-face-attribute 'region nil :background "#666" :foreground "#ffffff"))
-
 
 ;; ORG -------------------------
 (use-package org
@@ -268,7 +261,7 @@
   :init
   (setq org-directory "~/Documents/org")
   (setq org-agenda-files (seq-filter (lambda (x) (not (string-match "completed.org" x)))
-       (directory-files-recursively org-directory "\\.org$")))
+				     (directory-files-recursively org-directory "\\.org$")))
   (setq-default org-download-screenshot-method "gnome-screenshot -a -f %s")
   (setq-default org-download-image-dir "./pic")
   (exwm-input-set-key (kbd "s-i") 'org-download-screenshot)
@@ -281,14 +274,16 @@
   :config
   (if (display-graphic-p)
       (add-hook 'org-mode-hook #'org-superstar-mode)))
+(use-package org-tempo
+  :ensure nil
+  :config
+  (add-to-list 'org-structure-template-alist '("sh" . "src sh"))
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+  (add-to-list 'org-structure-template-alist '("sc" . "src scheme"))
+  (add-to-list 'org-structure-template-alist '("ts" . "src typescript"))
+  (add-to-list 'org-structure-template-alist '("py" . "src python"))
+  (add-to-list 'org-structure-template-alist '("go" . "src go")))
 (require 'org-indent)
-(require 'org-tempo)
-(add-to-list 'org-structure-template-alist '("sh" . "src sh"))
-(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-(add-to-list 'org-structure-template-alist '("sc" . "src scheme"))
-(add-to-list 'org-structure-template-alist '("ts" . "src typescript"))
-(add-to-list 'org-structure-template-alist '("py" . "src python"))
-(add-to-list 'org-structure-template-alist '("go" . "src go"))
 
 ;;; Git
 (use-package magit
@@ -303,33 +298,36 @@
   (add-hook 'org-mode-hook 'company-mode) ;completion in org files
   (setq company-idle-delay 0.1
 	company-minimum-prefix-length 1))
-(use-package corfu
-  :bind (:map corfu-map
-	      ("TAB" . corfu-next)
-	      ("S-TAB" . corfu-previous))
-  :config (setq tab-always-indent 'complete)
-  :init
-  (corfu-global-mode))
-;; Dabbrev works with Corfu
-(use-package dabbrev
-  :ensure nil
-  ;; Swap M-/ and C-M-/
-  :bind (("M-/" . dabbrev-completion)
-	 ("C-M-/" . dabbrev-expand)))
-;; Langs ----------------------------------------------
+
+;; (use-package corfu
+;;   :bind (:map corfu-map
+;; 	      ("TAB" . corfu-next)
+;; 	      ("S-TAB" . corfu-previous))
+;;   :config (setq tab-always-indent 'complete)
+;;   :init
+;;   (corfu-global-mode))
+;; ;; Dabbrev works with Corfu
+;; (use-package dabbrev
+;;   :ensure nil
+;;   ;; Swap M-/ and C-M-/
+;;   :bind (("M-/" . dabbrev-completion)
+;; 	 ("C-M-/" . dabbrev-expand)))
+
+;;; Langs ----------------------------------------------
 ; better lisp bindings
-(define-key evil-normal-state-map (kbd "(") (lambda () (interactive)
-				       (evil-previous-open-paren)))
-(define-key evil-normal-state-map (kbd ")") (lambda () (interactive)
-				       (evil-next-close-paren)))
-(define-key evil-normal-state-map (kbd "(") (lambda () (interactive)
-				       (evil-previous-open-paren)))
-(define-key evil-operator-state-map (kbd "(") (lambda () (interactive)
-				       (evil-previous-open-paren)))
-(define-key evil-operator-state-map (kbd ")") (lambda () (interactive)
-					       (evil-next-close-paren)))
+(define-key evil-normal-state-map (kbd "(")
+  (lambda () (interactive) (evil-previous-open-paren)))
+(define-key evil-normal-state-map (kbd ")")
+  (lambda () (interactive) (evil-next-close-paren)))
+(define-key evil-normal-state-map (kbd "(")
+  (lambda () (interactive) (evil-previous-open-paren)))
+(define-key evil-operator-state-map (kbd "(")
+  (lambda () (interactive) (evil-previous-open-paren)))
+(define-key evil-operator-state-map (kbd ")")
+  (lambda () (interactive) (evil-next-close-paren)))
 (use-package fennel-mode)
 (use-package racket-mode)
+
 ;;; LSP using eglot
 (use-package eglot)
 
@@ -520,7 +518,6 @@
   :config
   ;; pdf auto refresh
   (add-hook 'doc-view-mode-hook 'auto-revert-mode))
-
 (use-package transmission)
 ;; EXWM ----------------
 (use-package exwm
@@ -668,7 +665,6 @@
 (start-process-shell-command "nm-applet" nil "nm-applet")
 
 ;; MODELINE --------------------------------------
-
 
 (unless gv/is-termux
   (require 'battery))
