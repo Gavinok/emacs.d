@@ -244,7 +244,12 @@
 					    "YouTube" "Video Ideas")
 	   "* %?\n%? %a\n")
 	  ("c" "Cool Thing" entry (file+datetree "~/Documents/org/archive.org")
-	   "* %?\nEntered on %U\n  %i\n  %a"))))
+	   "* %?\nEntered on %U\n  %i\n  %a")))
+  (setq org-refile-targets
+	'(("Work.org"    :maxlevel . 1)
+	  ("archive.org" :maxlevel . 1)
+	  ("mylife.org"  :maxlevel . 1)))
+  (advice-add 'org-refile :after 'org-save-all-org-buffers))
 (use-package org-contacts
   :ensure nil
   :after org
