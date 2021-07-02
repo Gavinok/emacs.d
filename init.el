@@ -677,10 +677,11 @@
 	   ([?\s-b] . consult-buffer)
 	   ([?\s-=] . (lambda ()
 			(interactive )
-			(start-process-shell-command "dmenu_connection_manager.sh" nil "dmenu_connection_manager.sh")))
+			(start-process-shell-command "Connections" nil
+						     "dmenu_connection_manager.sh")))
 	   ([?\s-p] . (lambda ()
 			(interactive)
-			(start-process-shell-command "clipmenu" nil "clipmenu")))
+			(start-process-shell-command "Clipmenu" nil "clipmenu")))
 	   ,@(mapcar (lambda (i)
 		       `(,(kbd (format "s-%d" i))
 			 (lambda ()
