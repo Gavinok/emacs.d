@@ -92,10 +92,6 @@
 	(global-set-key (kbd "<mouse-4>") 'next-line)
 	(global-set-key (kbd "<mouse-5>") 'previous-line))
 
-(use-package counsel
-  :config
-  (global-set-key (kbd "C-c v") 'ivy-push-view)
-  (global-set-key (kbd "C-c V") 'ivy-pop-view))
 ;;; COMPLETION 
 (use-package vertico
   :init
