@@ -139,6 +139,8 @@
 (use-package badger-theme
   :config
   (load-theme 'badger t)
+  (set-frame-parameter (selected-frame) 'alpha '(90 90))
+  (add-to-list 'default-frame-alist '(alpha 90 90))
   (set-cursor-color "#dc322f")
   (set-face-attribute 'region nil :background "#666" :foreground "#ffffff"))
 
@@ -357,8 +359,6 @@
 (use-package emacs
   :ensure nil
   :config
-  (set-frame-parameter (selected-frame) 'alpha '(90 90))
-  (add-to-list 'default-frame-alist '(alpha 90 90))
   (set-frame-font "RobotoMono Nerd Font 14" nil t)
   (setq backup-inhibited t)
   (setq make-backup-files nil)
