@@ -692,6 +692,9 @@
   (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
   (fringe-mode 1)
   (exwm-enable)
+  ;; start programs for exwm
+  (start-process-shell-command "blueman-applet" nil "blueman-applet")
+  (start-process-shell-command "nm-applet" nil "nm-applet")
   :init (setq mouse-autoselect-window t
 	      focus-follows-mouse t))
 (use-package exwm-systemtray
@@ -725,8 +728,6 @@
   (exwm-input-set-key (kbd "s-r") 'winner-redo)
   :init
   (winner-mode 1))
-(start-process-shell-command "blueman-applet" nil "blueman-applet")
-(start-process-shell-command "nm-applet" nil "nm-applet")
 
 (unless gv/is-termux
   (require 'battery))
