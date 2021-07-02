@@ -47,6 +47,7 @@
     (evil-define-key 'normal 'global (kbd "<leader>b") 'consult-buffer)
     (evil-define-key 'normal 'global (kbd "<leader>t") 'capitalize-dwim)
     (evil-define-key 'visual 'global (kbd "<leader>t") 'capitalize-dwim)
+    (evil-define-key 'insert 'global (kbd "M-n") 'hippie-expand)
     (evil-define-key 'normal 'global (kbd "<backspace>")
       'flyspell-check-previous-highlighted-word)
     (global-set-key (kbd "<escape>") 'keyboard-escape-quit))
