@@ -729,11 +729,11 @@
   :init
   (winner-mode 1))
 
-(unless gv/is-termux
-  (require 'battery))
 ;; MODELINE 
 (use-package mini-modeline
+  :if (not gv/is-termux)
   :init
+  (require 'battery)
   (setq mini-modeline-r-format
 	(list
 	 ;; value of `mode-name'
