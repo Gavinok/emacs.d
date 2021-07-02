@@ -618,7 +618,6 @@
 			   (exwm-workspace-switch-create ,i))))
 		     (number-sequence 1 9))))
 
-  ;; (exwm-input-set-key (kbd "s-<SPC>") 'edwina-clone-window)
   (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
   (fringe-mode 1)
   (exwm-enable)
