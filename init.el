@@ -303,6 +303,14 @@
 ;;   ;; Swap M-/ and C-M-/
 ;;   :bind (("M-/" . dabbrev-completion)
 ;; 	 ("C-M-/" . dabbrev-expand)))
+;;; VTERM AND ESHELL
+(use-package vterm
+  :commands vterm
+  :config
+  (setq vterm-max-scrollback 10000))
+
+(use-package esh-autosuggest);company for eshell
+(use-package xterm-color)
 
 ;;; Langs ----------------------------------------------
 ; better lisp bindings
@@ -383,6 +391,10 @@
   (setq scroll-step            1
 	scroll-conservatively  10000))
 ;;; dired
+;;; EXTRA UI
+(use-package beacon
+  :init
+  (beacon-mode 1))
 
 ;;; DIRED
 (use-package dired
@@ -507,11 +519,6 @@
 ;; (use-package matrix-client
 ;;   :quelpa (matrix-client :fetcher github :repo "alphapapa/matrix-client.el"
 ;;                          :files (:defaults "logo.png" "matrix-client-standalone.el.sh")))
-;;NON-ESSENTIAL PACKAGES
-(use-package beacon
-  :init
-  (beacon-mode 1))
-(use-package esh-autosuggest)
 
 ;;; BETTER PDFS
 ;https://github.com/politza/pdf-tools
