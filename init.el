@@ -614,16 +614,14 @@
 	   ([?\s-s] . edwina-dec-nmaster)
 	   ([?\s-a] . edwina-inc-nmaster)
 	   ([?\s-v] . edwina-zoom)
-	   (,(kbd "s-]")        . edwina-inc-mfact)
-	   (,(kbd "s-[")        . edwina-dec-mfact)
-	   (,(kbd "s-q")        . edwina-delete-window)
-	   (,(kbd "<s-backspace>")        . edwina-delete-window)
-	   (,(kbd "s-<return>") . edwina-clone-window)
+	   (,(kbd "s-]")           . edwina-inc-mfact)
+	   (,(kbd "s-[")           . edwina-dec-mfact)
+	   (,(kbd "s-q")           . edwina-delete-window)
+	   (,(kbd "<s-backspace>") . edwina-delete-window)
+	   (,(kbd "<s-return>")    . edwina-clone-window)
 	   ([?\s-g] . exwm-workspace-switch)
 	   ([?\s-f] . exwm-layout-set-fullscreen)
-
-					; closing windows
-	   ([?\s-q] . edwina-delete-window)
+	   ([?\s-q] . edwina-delete-window) ; closing windows
 	   ([?\s-c] . inferior-octave)
 	   ([?\s-C] . (lambda ()
 			(interactive)
