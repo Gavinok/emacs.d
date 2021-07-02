@@ -19,15 +19,6 @@
       (string-suffix-p
        "Android" (string-trim (shell-command-to-string "uname -a"))))
 
-(defvar hexcolour-keywords
-  '(("#[abcdef[:digit:]]\\{6\\}"
-     (0 (put-text-property (match-beginning 0)
-			   (match-end 0)
-			   'face (list :background
-				       (match-string-no-properties 0)))))))
-(defun hexcolour-add-to-font-lock ()
-  (font-lock-add-keywords nil hexcolour-keywords))
-(add-hook 'evil-mode-hook 'hexcolour-add-to-font-lock)
 (defun sudo-save ()
   (interactive)
   (if (not buffer-file-name)
@@ -143,6 +134,11 @@
   (consult-customize affe-grep :preview-key (kbd "M-."))
   (evil-define-key 'normal 'global (kbd "<leader>g") 'affe-grep)
   (evil-define-key 'normal 'global (kbd "<leader>f") 'affe-find))
+
+;;; DISPLAY HEX COLORS IN EMACS
+(use-package rainbow-mode
+  :init
+  (rainbow-mode t))
 
 ;; Themeing
 (use-package badger-theme
