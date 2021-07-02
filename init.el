@@ -593,10 +593,9 @@
 	   ([?\s-w] . (lambda ()
 			(interactive)
 			(start-process-shell-command "ducksearch" nil "ducksearch")))
-	   ([?\s-e] . (lambda ()
-			(interactive)
-			(progn (edwina-clone-window)
-			       (mu4e))))
+
+	   (,(kbd "s-E") . mu4e)
+	   (,(kbd "s-e") . eshell)
 	   ;;powermanager
 	   ([?\s-x] . (lambda ()
 			(interactive)
