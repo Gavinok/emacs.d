@@ -293,8 +293,9 @@
   (global-git-gutter-mode +1))
 ;;; Completion
 (use-package company
-  :config (global-company-mode t)
-  (add-hook 'org-mode-hook 'company-mode) ;completion in org files
+  :config (global-company-mode nil)
+  (add-hook 'org-mode-hook 'company-mode) ;org files
+  (add-hook 'mu4e-compose-mode-hook 'company-mode) ;email
   (setq company-idle-delay 0.1
 	company-minimum-prefix-length 1))
 
