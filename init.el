@@ -5,7 +5,7 @@
 	("org" . "https://orgmode.org/elpa/")
 	("elpa" . "https://elpa.gnu.org/packages/")))
 
-;;; BOOTSTRAP USE-PACKAGE ------------------
+;;; BOOTSTRAP USE-PACKAGE
 (package-initialize)
 
 (setq use-package-always-ensure t)
@@ -13,7 +13,6 @@
   (package-refresh-contents)
   (package-install 'use-package))
 (eval-when-compile (require 'use-package))
-;; END BOOTSTRAP USE-PACKAGE ------------------
 
 ;;; My Stuff
 (setq gv/is-termux
@@ -35,7 +34,7 @@
       (write-file (concat "/sudo:root@localhost:" (read-file-name "File:")))
     (write-file (concat "/sudo:root@localhost:" buffer-file-name))))
 
-;; EVIL MODE ----------------------------------
+;;; EVIL MODE 
 (progn
   ;; Vim style undo
   (use-package undo-fu)
@@ -91,7 +90,8 @@
     :config
     (unless (display-graphic-p)
       (evil-terminal-cursor-changer-activate))))
-;; TERMINAL SETTINGS --------------------------
+
+;;; TERMINAL SETTINGS 
 (if (display-graphic-p)
     (set-face-background 'default "#000000")
   (progn (set-face-background 'default "undefinded")
@@ -101,11 +101,11 @@
 	(global-set-key (kbd "<mouse-4>") 'next-line)
 	(global-set-key (kbd "<mouse-5>") 'previous-line))
 
-;; COMPLETION -------------------------------------
 (use-package counsel
   :config
   (global-set-key (kbd "C-c v") 'ivy-push-view)
   (global-set-key (kbd "C-c V") 'ivy-pop-view))
+;;; COMPLETION 
 (use-package vertico
   :init
   (vertico-mode))
@@ -151,7 +151,7 @@
   (set-cursor-color "#dc322f")
   (set-face-attribute 'region nil :background "#666" :foreground "#ffffff"))
 
-;; ORG -------------------------
+;;; ORG 
 (use-package org
   :ensure org-plus-contrib
   :config
@@ -346,7 +346,8 @@
       (and dotgit
 	   (cons 'transient (file-name-directory dotgit)))))
   (add-hook 'project-find-functions 'my-git-project-finder))
-;; Langs END ----------------------------------------------
+
+;;; DEFAULTS
 (use-package emacs
   :ensure nil
   :config
@@ -391,6 +392,8 @@
   (setq scroll-step            1
 	scroll-conservatively  10000))
 ;;; dired
+
+;;; DIRED
 (use-package dired
   :ensure nil
   :custom ((dired-listing-switches "-agho --group-directories-first"))
@@ -407,8 +410,7 @@
 				("mp4" . "mpv")
 				("mp3" . "mpv"))))
 
-;; EMAIL --------------------------------------------------------
-; where to find mu4e
+;; EMAIL 
 (unless gv/is-termux
   (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
   (use-package mu4e
@@ -510,6 +512,7 @@
   (beacon-mode 1))
 (use-package esh-autosuggest)
 
+;;; BETTER PDFS
 ;https://github.com/politza/pdf-tools
 ; annotate pdfs with c-c c-a
 ; hl with c-c c-a h
@@ -519,7 +522,7 @@
   ;; pdf auto refresh
   (add-hook 'doc-view-mode-hook 'auto-revert-mode))
 (use-package transmission)
-;; EXWM ----------------
+;; EXWM 
 (use-package exwm
   :if (not gv/is-termux)
   :config
@@ -664,10 +667,9 @@
 (start-process-shell-command "blueman-applet" nil "blueman-applet")
 (start-process-shell-command "nm-applet" nil "nm-applet")
 
-;; MODELINE --------------------------------------
-
 (unless gv/is-termux
   (require 'battery))
+;; MODELINE 
 (use-package mini-modeline
   :init
   (setq mini-modeline-r-format
