@@ -290,19 +290,6 @@
   (setq company-idle-delay 0.1
 	company-minimum-prefix-length 1))
 
-;; (use-package corfu
-;;   :bind (:map corfu-map
-;; 	      ("TAB" . corfu-next)
-;; 	      ("S-TAB" . corfu-previous))
-;;   :config (setq tab-always-indent 'complete)
-;;   :init
-;;   (corfu-global-mode))
-;; ;; Dabbrev works with Corfu
-;; (use-package dabbrev
-;;   :ensure nil
-;;   ;; Swap M-/ and C-M-/
-;;   :bind (("M-/" . dabbrev-completion)
-;; 	 ("C-M-/" . dabbrev-expand)))
 ;;; VTERM AND ESHELL
 (use-package vterm
   :commands vterm
@@ -311,6 +298,26 @@
 
 (use-package esh-autosuggest);company for eshell
 (use-package xterm-color)
+
+(use-package corfu
+  :custom
+  (corfu-auto t)
+  (corfu-quit-no-match t)
+  (completion-cycle-threshold 3)
+
+  :bind (:map corfu-map
+	      ("TAB" . corfu-next)
+	      ("S-TAB" . corfu-previous))
+  :config (setq tab-always-indent 'complete)
+  :init
+  (corfu-global-mode))
+
+;; Dabbrev works with Corfu
+(use-package dabbrev
+  :ensure nil
+  ;; Swap M-/ and C-M-/
+  :bind (("M-/" . dabbrev-completion)
+	 ("C-M-/" . dabbrev-expand)))
 
 ;;; Langs ----------------------------------------------
 ; better lisp bindings
