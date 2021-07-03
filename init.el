@@ -25,7 +25,7 @@
       (write-file (concat "/sudo:root@localhost:" (read-file-name "File:")))
     (write-file (concat "/sudo:root@localhost:" buffer-file-name))))
 
-;;; EVIL MODE 
+;;; EVIL MODE
 (progn
   ;; Vim style undo
   (use-package undo-fu)
@@ -33,6 +33,7 @@
     :after undo-fu
     :init
     (global-undo-fu-session-mode))
+
   (use-package  evil
     :after undo-fu
     :init
@@ -63,12 +64,10 @@
   (use-package evil-commentary
     :config
     (evil-commentary-mode 1))
-  
   ;; Enable Surround
   (use-package evil-surround
     :config
     (global-evil-surround-mode 1))
-
   ;; Enable Lion
   (use-package evil-lion
     :config
@@ -85,7 +84,7 @@
     (unless (display-graphic-p)
       (evil-terminal-cursor-changer-activate))))
 
-;;; TERMINAL SETTINGS 
+;;; TERMINAL SETTINGS
 (if (display-graphic-p)
     (set-face-background 'default "#000000")
   (progn (set-face-background 'default "undefinded")
@@ -95,7 +94,7 @@
 	(global-set-key (kbd "<mouse-4>") 'next-line)
 	(global-set-key (kbd "<mouse-5>") 'previous-line))
 
-;;; COMPLETION 
+;;; COMPLETION
 (use-package vertico
   :init
   (vertico-mode))
@@ -159,7 +158,7 @@
   (evil-define-key 'normal 'global (kbd "<backspace>")
     'flyspell-correct-previous))
 
-;;; ORG 
+;;; ORG
 (use-package org
   :ensure org-plus-contrib
   :config
@@ -277,6 +276,7 @@
 (use-package git-gutter
   :config
   (global-git-gutter-mode +1))
+
 ;;; Completion
 (use-package company
   :config (global-company-mode nil)
@@ -294,7 +294,7 @@
 (use-package esh-autosuggest);company for eshell
 (use-package xterm-color)
 
-;;; LANGS 
+;;; LANGS
 (use-package fennel-mode)
 (use-package racket-mode)
 
@@ -428,7 +428,7 @@
 				("mp4" . "mpv")
 				("mp3" . "mpv"))))
 
-;; EMAIL 
+;;; EMAIL
 (unless gv/is-termux
   (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e"))
 (use-package mu4e
@@ -460,7 +460,7 @@
 	send-mail-function 'smtpmail-send-it
 	message-sendmail-f-is-evil t
 	message-send-mail-function 'message-send-mail-with-sendmail)
-  
+
   ;;images in emails
   (setq mu4e-view-show-images t)
   (define-abbrev-table 'mu4e-compose-mode-abbrev-table
@@ -519,7 +519,7 @@
 	       '("org-contact-add" . mu4e-action-add-org-contact) t)
   (add-to-list 'mu4e-view-actions
 	       '("org-contact-add" . mu4e-action-add-org-contact) t)
-  
+
   (setq mu4e-bookmarks '((:name "To Handle"
 				:query "(flag:flagged OR flag:unread OR NOT flag:replied) AND date:3m..now" :key 116)
 			 (:name "Today's messages"
@@ -563,7 +563,7 @@
   ;; pdf auto refresh
   (add-hook 'doc-view-mode-hook 'auto-revert-mode))
 (use-package transmission)
-;; EXWM 
+;;; EXWM
 (use-package exwm
   :if (not gv/is-termux)
   :config
@@ -672,7 +672,6 @@
 			   (interactive)
 			   (exwm-workspace-switch-create ,i))))
 		     (number-sequence 1 9))))
-
   (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
   (fringe-mode 1)
   (exwm-enable)
@@ -713,7 +712,7 @@
   :init
   (winner-mode 1))
 
-;; MODELINE 
+;;; MODELINE
 (use-package mini-modeline
   :if (not gv/is-termux)
   :init
