@@ -473,7 +473,7 @@
   (evil-collection-define-key 'normal 'dired-mode-map
     "-" 'dired-up-directory)
   (define-key  evil-normal-state-map (kbd "-") (lambda () (interactive)
-						 (dired "."))))
+						 (dired ".")))) ; [built-in] file manager
 (use-package dired-open
   :config
   (if gv/is-termux
@@ -482,7 +482,7 @@
 				  ("ps"  . "zathura")
 				  ("mkv" . "mpv")
 				  ("mp4" . "mpv")
-				  ("mp3" . "mpv")))))
+				  ("mp3" . "mpv"))))) ; improved file opening for dired
 
 ;;; EMAIL
 (unless gv/is-termux
@@ -592,7 +592,7 @@
 			 (:name "Last 7 days"
 				:query "date:7d..now" :hide-unread t :key 119)
 			 (:name "Messages with images"
-				:query "mime:image/*" :key 112))))
+				:query "mime:image/*" :key 112)))) ; email client depends on mu command
 
 ;; (use-package quelpa-use-package)
 ;; (use-package matrix-client
@@ -628,6 +628,12 @@
   ;; pdf auto refresh
   (add-hook 'doc-view-mode-hook 'auto-revert-mode))
 (use-package transmission)
+(use-package proced
+  :ensure nil
+  :config
+  (setq proced-auto-update-flag t
+	proced-auto-update-interval 2
+	proced-decend t)) ; [built-in] htop alternative
 ;;; EXWM
 (use-package exwm
   :if (not gv/is-termux)
@@ -764,18 +770,18 @@
 (use-package exwm-mff
   :after exwm
   :config
-  (exwm-mff-mode t))
+  (exwm-mff-mode t)) ; mouse follows focus
 (use-package edwina
   :after exwm
   :config
-  (setq display-buffer-base-action '(display-buffer-below-selected)))
+  (setq display-buffer-base-action '(display-buffer-below-selected))) ; dwm style window managment
 (use-package winner
   :ensure nil
   :config
   (exwm-input-set-key (kbd "s-u") 'winner-undo)
   (exwm-input-set-key (kbd "s-r") 'winner-redo)
   :init
-  (winner-mode 1))
+  (winner-mode 1)) ; window managment undo
 
 ;;; MODELINE
 (use-package mini-modeline
