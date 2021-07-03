@@ -437,11 +437,13 @@
 						 (dired "."))))
 (use-package dired-open
   :config
-  (setq dired-open-extensions '(("pdf" . "zathura")
-				("ps"  . "zathura")
-				("mkv" . "mpv")
-				("mp4" . "mpv")
-				("mp3" . "mpv"))))
+  (if gv/is-termux
+      (add-to-list 'dired-open-functions #'dired-open-xdg t)
+    (setq dired-open-extensions '(("pdf" . "zathura")
+				  ("ps"  . "zathura")
+				  ("mkv" . "mpv")
+				  ("mp4" . "mpv")
+				  ("mp3" . "mpv")))))
 
 ;;; EMAIL
 (unless gv/is-termux
