@@ -147,11 +147,22 @@
   (set-cursor-color "#dc322f")
   (set-face-attribute 'region nil :background "#666" :foreground "#ffffff"))
 
+;;; WRITING
+(use-package writegood-mode
+  :config
+  (add-hook 'flyspell-mode-hook 'writegood-mode))
+(use-package flyspell-correct
+  :config
+  (add-hook 'org-mode-hook 'turn-on-flyspell) ;spell checking
+  (add-hook 'mu4e-compose-mode-hook 'turn-on-flyspell)
+  (add-hook 'mail-mode-hook 'turn-on-flyspell)
+  (evil-define-key 'normal 'global (kbd "<backspace>")
+    'flyspell-correct-previous))
+
 ;;; ORG 
 (use-package org
   :ensure org-plus-contrib
   :config
-  (add-hook 'org-mode-hook 'turn-on-flyspell) ;spell checking
   ;;archive completed tasks
   (defun my-org-archive-done-tasks ()
     (interactive)
@@ -455,9 +466,7 @@
   (define-abbrev-table 'mu4e-compose-mode-abbrev-table
     '(("sin" "Sincerely, \nGavin Jaeger-Freeborn" nil 1)))
   (add-hook 'mu4e-compose-mode-hook #'abbrev-mode)
-  (add-hook 'mu4e-compose-mode-hook 'flyspell-mode)
   (add-to-list 'auto-mode-alist '("^/tmp/neomutt.*\\'" . mail-mode))
-  (add-hook 'mail-mode-hook 'flyspell-mode)
 
   ;; something about ourselves
   (setq mu4e-contexts
