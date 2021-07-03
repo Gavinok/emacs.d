@@ -29,10 +29,13 @@
        "Android" (string-trim (shell-command-to-string "uname -a"))))
 
 (defun gv/read ()
+  "text to speech"
   (interactive)
   (async-shell-command
    (concat "tts.sh '" (x-get-clipboard)"'")))
+
 (defun sudo-save ()
+  "save this file as super user"
   (interactive)
   (if (not buffer-file-name)
       (write-file (concat "/sudo:root@localhost:" (read-file-name "File:")))
