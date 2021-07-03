@@ -169,6 +169,7 @@
 
   (setq org-ellipsis " ▾"
 	org-hide-emphasis-markers t
+        org-special-ctrl-a/e t
 	org-src-fontify-natively t
 	org-fontify-quote-and-verse-blocks t
 	org-src-tab-acts-natively t
