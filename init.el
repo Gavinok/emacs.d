@@ -424,13 +424,13 @@
   :custom ((dired-listing-switches "-aghoA --group-directories-first"))
   :config
   (add-hook 'dired-mode-hook 'dired-omit-mode)
+  (add-hook 'dired-mode-hook 'dired-hide-details-mode)
   ;; Hide . and .. in dired
   (setq dired-omit-files
 	(rx (or (seq bol (? ".") "#")
 		(seq bol "." eol)
 		(seq bol ".." eol))))
 
-  (setq dired-hide-details-mode t)
   (evil-collection-define-key 'normal 'dired-mode-map
     "-" 'dired-up-directory)
   (define-key  evil-normal-state-map (kbd "-") (lambda () (interactive)
