@@ -19,6 +19,10 @@
       (string-suffix-p
        "Android" (string-trim (shell-command-to-string "uname -a"))))
 
+(defun gv/read ()
+  (interactive)
+  (async-shell-command
+   (concat "tts.sh '" (x-get-clipboard)"'")))
 (defun sudo-save ()
   (interactive)
   (if (not buffer-file-name)
