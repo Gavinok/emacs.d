@@ -293,7 +293,23 @@
 (use-package racket-mode)
 
 ;;; LSP using eglot
-(use-package eglot)
+(use-package eglot
+  :commands eglot
+  :config
+  (defconst my/eclipse-jdt-home "/usr/share/java/jdtls/plugins/org.eclipse.equinox.launcher.gtk.linux.x86_64_1.2.200.v20210406-1409.jar")
+
+(defun my/eclipse-jdt-contact (interactive)
+  (let ((cp (getenv "CLASSPATH")))
+    (setenv "CLASSPATH" (concat cp ":" my/eclipse-jdt-home))
+    (unwind-protect
+        (eglot--eclipse-jdt-contact nil)
+      (setenv "CLASSPATH" cp))))
+
+(setcdr (assq 'java-mode eglot-server-programs) #'my/eclipse-jdt-contact)
+  (add-hook 'c-mode-common-hook 'eglot)
+  (add-hook 'java-mode-hook 'eglot)
+  (add-to-list 'eglot-server-programs '(c-mode . ("ccls")))
+  (add-to-list 'eglot-server-programs '(java-mode . ("jdtls"))))
 
 ;; As the built-in project.el support expects to use vc-mode hooks to
 ;; find the root of projects we need to provide something equivalent
