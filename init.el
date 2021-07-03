@@ -310,26 +310,6 @@
 (use-package esh-autosuggest);company for eshell
 (use-package xterm-color)
 
-(use-package corfu
-  :custom
-  (corfu-auto t)
-  (corfu-quit-no-match t)
-  (completion-cycle-threshold 3)
-
-  :bind (:map corfu-map
-	      ("TAB" . corfu-next)
-	      ("S-TAB" . corfu-previous))
-  :config (setq tab-always-indent 'complete)
-  :init
-  (corfu-global-mode))
-
-;; Dabbrev works with Corfu
-(use-package dabbrev
-  :ensure nil
-  ;; Swap M-/ and C-M-/
-  :bind (("M-/" . dabbrev-completion)
-	 ("C-M-/" . dabbrev-expand)))
-
 ;;; LANGS 
 (use-package fennel-mode)
 (use-package racket-mode)
