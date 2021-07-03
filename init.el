@@ -80,16 +80,19 @@
   (use-package evil-commentary
     :config
     (evil-commentary-mode 1))
+
   ;; Enable Surround
   (use-package evil-surround
     :config
     (global-evil-surround-mode 1))
+
   ;; Enable Lion
   (use-package evil-lion
     :config
     (evil-lion-mode 1)
     (evil-define-key 'normal 'global (kbd "gl") 'evil-lion-left)
     (evil-define-key 'normal 'global (kbd "gL") 'evil-lion-right))
+
   ;; Cursor Shape
   (use-package evil-terminal-cursor-changer
     :config
@@ -110,14 +113,17 @@
 (use-package vertico
   :init
   (vertico-mode))
+
 (use-package orderless
   :custom (completion-styles '(orderless)))
+
 (use-package marginalia
   :after vertico
   :custom
   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
   :init
   (marginalia-mode))
+
 (use-package consult
   :after vertico
   :bind (("C-s" . consult-line)
