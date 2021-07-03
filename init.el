@@ -75,12 +75,8 @@
   (use-package evil-lion
     :config
     (evil-lion-mode 1)
-    (define-key evil-normal-state-map (kbd "gl")
-      (lambda () (interactive)
-	(evil-lion-left)))
-    (define-key evil-normal-state-map (kbd "gL")
-      (lambda () (interactive)
-	(evil-lion-right))))
+    (evil-define-key 'normal 'global (kbd "gl") 'evil-lion-left)
+    (evil-define-key 'normal 'global (kbd "gL") 'evil-lion-right))
   ;; Cursor Shape
   (use-package evil-terminal-cursor-changer
     :config
