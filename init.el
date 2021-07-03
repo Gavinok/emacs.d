@@ -44,13 +44,15 @@
     :config
     (evil-mode 1)
     (evil-set-leader 'normal " ")
-    (evil-define-key 'normal 'global (kbd "<leader>b") 'consult-buffer)
-    (evil-define-key 'normal 'global (kbd "<leader>t") 'capitalize-dwim)
-    (evil-define-key 'visual 'global (kbd "<leader>t") 'capitalize-dwim)
-    (evil-define-key 'insert 'global (kbd "M-n") 'hippie-expand)
-    (evil-define-key 'normal 'global (kbd "<backspace>")
-      'flyspell-check-previous-highlighted-word)
-    (global-set-key (kbd "<escape>") 'keyboard-escape-quit))
+    (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+    (evil-define-key 'normal   'global (kbd "<leader>t") 'capitalize-dwim)
+    (evil-define-key 'visual   'global (kbd "<leader>t") 'capitalize-dwim)
+    (evil-define-key 'insert   'global (kbd "M-n")       'hippie-expand)
+    ;; Better lisp bindings
+    (evil-define-key 'normal   'global (kbd "(")         'evil-previous-open-paren)
+    (evil-define-key 'normal   'global (kbd ")")         'evil-next-close-paren)
+    (evil-define-key 'operator 'global (kbd "(")         'evil-previous-open-paren)
+    (evil-define-key 'operator 'global (kbd ")")         'evil-previous-close-paren))
 
   ;; evil mode in other modes live viewing pdfs
   (use-package  evil-collection
@@ -328,18 +330,7 @@
   :bind (("M-/" . dabbrev-completion)
 	 ("C-M-/" . dabbrev-expand)))
 
-;;; Langs ----------------------------------------------
-; better lisp bindings
-(define-key evil-normal-state-map (kbd "(")
-  (lambda () (interactive) (evil-previous-open-paren)))
-(define-key evil-normal-state-map (kbd ")")
-  (lambda () (interactive) (evil-next-close-paren)))
-(define-key evil-normal-state-map (kbd "(")
-  (lambda () (interactive) (evil-previous-open-paren)))
-(define-key evil-operator-state-map (kbd "(")
-  (lambda () (interactive) (evil-previous-open-paren)))
-(define-key evil-operator-state-map (kbd ")")
-  (lambda () (interactive) (evil-next-close-paren)))
+;;; LANGS 
 (use-package fennel-mode)
 (use-package racket-mode)
 
