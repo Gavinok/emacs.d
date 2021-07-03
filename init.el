@@ -468,6 +468,15 @@
   (setq mu4e-sent-messages-behavior 'delete)
   (setq message-kill-buffer-on-exit t)
 
+  (use-package message-attachment-reminder)
+
+  (use-package message-are-flowing
+    :config
+    (with-eval-after-load "mu4e"
+    (add-hook 'mu4e-compose-mode-hook 'messages-are-flowing-use-and-mark-hard-newlines))
+    (with-eval-after-load "message"
+      (add-hook 'message-mode-hook 'messages-are-flowing-use-and-mark-hard-newlines)))
+
   ;; allow for updating mail using 'U' in the main view:
   (setq mu4e-get-mail-command "mailsync"
 	sendmail-program "/usr/bin/msmtp"
