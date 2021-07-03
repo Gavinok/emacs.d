@@ -1,5 +1,4 @@
 ;; maybe try this theme outhttps://github.com/mclear-tools/bespoke-themes
-;; Set up package.el to work with MELPA (require 'package)
 (setq package-archives
       '(("melpa" . "https://melpa.org/packages/")
 	("org" . "https://orgmode.org/elpa/")
