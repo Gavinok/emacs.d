@@ -359,7 +359,7 @@
 		       (expand-file-name dir))))
       (and dotgit
 	   (cons 'transient (file-name-directory dotgit)))))
-  (add-hook 'project-find-functions 'my-git-project-finder))
+  (add-hook 'project-find-functions 'my-git-project-finder)) ; [built-in] Project Managment
 
 (use-package ibuffer
   :ensure nil
@@ -387,27 +387,33 @@
 		filename-and-process)))
 
   (define-key global-map (kbd "C-x C-b") #'ibuffer)
-  (add-hook 'ibuffer-mode-hook #'hl-line-mode))
+  (add-hook 'ibuffer-mode-hook #'hl-line-mode)) ; [built-in] Powerful interface for managing buffers
 
 ;;; DEFAULTS
 (use-package emacs
   :ensure nil
   :config
-  (set-frame-font "RobotoMono Nerd Font 14" nil t)
-  (setq delete-by-moving-to-trash t)
-  (setq backup-by-copying t)
-  (setq backup-inhibited t)
-  (setq make-backup-files nil)
-  (setq create-lockfiles nil)
-  (setq auto-save-default nil)
-  (setq inhibit-startup-screen t)
+  (set-frame-font "Liberation Mono 14" nil t)
+  ;;;; Backups
+  (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
+	vc-make-backup-files t
+	version-control t
+	kept-old-versions 0
+	kept-new-versions 10
+	delete-old-versions t
+	backup-by-copying t)
+  ;;;; Defaults
+  (setq delete-by-moving-to-trash t
+	create-lockfiles nil
+	auto-save-default nil
+	inhibit-startup-screen t
+	ring-bell-function 'ignore)
+  ;;;; Remove Extra Ui
   (blink-cursor-mode -1)
-  ;; Add border
   (menu-bar-mode -1)               ; To disable the menu bar, place the following line in your .emacs file:
   (unless gv/is-termux
     (scroll-bar-mode -1))             ; To disable the scroll bar, use the following line:
   (tool-bar-mode -1)               ; To disable the toolbar, use the following line:
-  (setq ring-bell-function 'ignore)
   (fset 'yes-or-no-p 'y-or-n-p)    ; don't ask to spell out "yes"
   (show-paren-mode 1)              ; Highlight parenthesis
   (setq x-select-enable-primary t) ; use primary as clipboard in emacs
