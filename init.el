@@ -147,7 +147,7 @@
 
   ;; Manual preview key for `affe-grep'
   (consult-customize affe-grep :preview-key (kbd "M-."))
-  (evil-define-key 'normal 'global (kbd "gO") '(lambda () (interactive)
+  (evil-define-key 'normal 'global (kbd "gO") (lambda () (interactive)
 						(affe-grep "~/Documents/org")))
   (evil-define-key 'normal 'global (kbd "<leader>g") 'affe-grep)
   (evil-define-key 'normal 'global (kbd "<leader>f") 'affe-find))
