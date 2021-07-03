@@ -12,6 +12,17 @@
   (package-install 'use-package))
 (eval-when-compile (require 'use-package))
 
+;;; async
+;;; asynchronous bytecode compilation and various other actions makes
+;;;; Emacs look SIGNIFICANTLY less often which is a good thing.
+(use-package async
+  :ensure t
+  :defer t
+  :init
+  (dired-async-mode 1)
+  (async-bytecomp-package-mode 1)
+  :custom (async-bytecomp-allowed-packages '(all)))
+
 ;;; My Stuff
 (setq gv/is-termux
       (string-suffix-p
