@@ -131,12 +131,7 @@
   (evil-define-key 'normal 'global (kbd "<leader>g") 'affe-grep)
   (evil-define-key 'normal 'global (kbd "<leader>f") 'affe-find))
 
-;;; DISPLAY HEX COLORS IN EMACS
-(use-package rainbow-mode
-  :init
-  (rainbow-mode t))
-
-;; Themeing
+;;; THEMEING
 (use-package badger-theme
   :config
   (load-theme 'badger t)
@@ -398,9 +393,12 @@
   (savehist-mode t))
 
 ;;; EXTRA UI
-(use-package beacon
+(use-package beacon ; Highlight cursor postion after movement
   :init
   (beacon-mode 1))
+(use-package rainbow-mode ; Display hex colors in emacs
+  :init
+  (rainbow-mode t))
 
 ;;; DIRED
 (use-package dired
