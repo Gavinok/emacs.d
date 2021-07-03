@@ -444,18 +444,18 @@
 	'(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
   ;; Enable recursive minibuffers
-  (setq enable-recursive-minibuffers t))
+  (setq enable-recursive-minibuffers t)) ; General emacs settings
 (use-package savehist
   :init
-  (savehist-mode t))
+  (savehist-mode t)) ; Save command history
 
 ;;; EXTRA UI
-(use-package beacon ; Highlight cursor postion after movement
+(use-package beacon 
   :init
-  (beacon-mode 1))
-(use-package rainbow-mode ; Display hex colors in emacs
+  (beacon-mode 1)); Highlight cursor postion after movement
+(use-package rainbow-mode
   :init
-  (rainbow-mode t))
+  (rainbow-mode t)) ; Display hex colors in emacs
 
 ;;; DIRED
 (use-package dired
