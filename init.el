@@ -313,6 +313,13 @@
   (setq vterm-max-scrollback 10000))
 
 (use-package esh-autosuggest);company for eshell
+(use-package em-alias
+  :ensure nil
+  :config
+  (add-hook 'eshell-mode-hook
+	    (lambda ()
+	      (eshell/alias "e" "find-file $1")
+	      (eshell/alias "ee" "find-file-other-window $1"))))
 (use-package xterm-color)
 
 ;;; LANGS
