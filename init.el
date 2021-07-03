@@ -352,7 +352,7 @@
 		(mode 16 16 :left :elide)
 		" "
 		filename-and-process)))
-  
+
   (define-key global-map (kbd "C-x C-b") #'ibuffer)
   (add-hook 'ibuffer-mode-hook #'hl-line-mode))
 
