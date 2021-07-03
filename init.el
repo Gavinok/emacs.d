@@ -152,14 +152,18 @@
   (evil-define-key 'normal 'global (kbd "<leader>g") 'affe-grep)
   (evil-define-key 'normal 'global (kbd "<leader>f") 'affe-find))
 
-;;; THEMEING
-(use-package badger-theme
-  :config
-  (load-theme 'badger t)
-  (set-frame-parameter (selected-frame) 'alpha '(90 90))
-  (add-to-list 'default-frame-alist '(alpha 90 90))
-  (set-cursor-color "#dc322f")
-  (set-face-attribute 'region nil :background "#666" :foreground "#ffffff"))
+;; THEMEING
+ (use-package ujelly-theme
+   :ensure nil
+   :config
+   (load-theme 'ujelly t)
+   (set-frame-parameter (selected-frame) 'alpha '(90 90))
+   (add-to-list 'default-frame-alist '(alpha 90 90))
+   (set-cursor-color "#dc322f")
+   (set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
+
+   ;; (set-face-attribute 'mode-line nil :foreground "#bdc3ce" :background "#000")
+   (set-face-attribute 'default nil :background "#000" :foreground "#eee"))
 
 ;;; WRITING
 (use-package writegood-mode
