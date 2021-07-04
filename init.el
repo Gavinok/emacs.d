@@ -184,9 +184,8 @@
   ;;archive completed tasks
   (defun my-org-archive-done-tasks ()
     (interactive)
-    (progn
       (org-map-entries 'org-archive-subtree "/DONE" 'file)
-      (org-map-entries 'org-archive-subtree "/CANCELLED" 'file)))
+      (org-map-entries 'org-archive-subtree "/CANCELLED" 'file))
 
   (evil-define-key 'normal 'global (kbd "<leader>y") 'org-store-link)
   (evil-define-key 'normal 'global (kbd "gA") 'org-agenda)
