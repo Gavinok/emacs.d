@@ -822,22 +822,3 @@
   :config
   (unless (server-running-p)
     (server-start)))
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   '("43f03c7bf52ec64cdf9f2c5956852be18c69b41c38ab5525d0bedfbd73619b6a" default))
- '(helm-minibuffer-history-key "M-p")
- '(org-agenda-files
-   '("/home/gavinok/Documents/org/Work.org" "/home/gavinok/Documents/org/today.org"))
- '(package-selected-packages
-   '(flymake-grammarly bespoke-themes beacon dired-open eglot literate-calc-mode calfw calfw-org ccls lsp-mode affe symon vertico consult org-notifications egg-timer org-plus-contrib volume ivy-youtube ytel esh-autosuggest pomidor ivy-clipmenu pdf-tools mini-modeline org-gcal org-alert edwina orderless corfu magit git-gutter org-download exwm-mff evil-mff evil-exwm-state typo-suggest type-suggest company helpful racket-mode fennel-mode undo-fu undo-fu-session org-bullets evil-collection ivy evil-lion evil-surround evil-commentary evil)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
