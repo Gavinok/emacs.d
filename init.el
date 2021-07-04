@@ -814,7 +814,7 @@
 	 '(:eval (propertize
 		  (battery-format "[%p]" (funcall battery-status-function))
 		  'face 'org-checkbox))
-	 "    "))
+	 "      "))
   :config
   (mini-modeline-mode t))
 (use-package server
