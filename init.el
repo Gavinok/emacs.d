@@ -313,7 +313,6 @@
   :commands vterm
   :config
   (setq vterm-max-scrollback 10000))
-
 (use-package esh-autosuggest);company for eshell
 (use-package em-alias
   :ensure nil
@@ -362,8 +361,10 @@
 	   (cons 'transient (file-name-directory dotgit)))))
   (add-hook 'project-find-functions 'my-git-project-finder)) ; [built-in] Project Managment
 
+;;; BUFFER MANAGMENT
 (use-package ibuffer
   :ensure nil
+  :hook (ibuffer-mode . hl-line-mode)
   :config
   (setq ibuffer-expert t)
   (setq ibuffer-show-empty-filter-groups nil)
