@@ -12,9 +12,11 @@
   (package-install 'use-package))
 (eval-when-compile (require 'use-package))
 
-;;; async
-;;; asynchronous bytecode compilation and various other actions makes
+;;; ASYNC
+
 ;;;; Emacs look SIGNIFICANTLY less often which is a good thing.
+;;;; asynchronous bytecode compilation and various other actions makes
+
 (use-package async
   :ensure t
   :defer t
