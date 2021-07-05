@@ -667,25 +667,29 @@
 	  (,(kbd "s-[")           . edwina-dec-mfact)
 	  (,(kbd "s-q")           . edwina-delete-window)
 	  (,(kbd "<s-backspace>") . edwina-delete-window)
-	  (,(kbd "<s-return>")    . edwina-clone-window)
-	  ([?\s-g] . exwm-workspace-switch)
-	  ([?\s-f] . exwm-layout-set-fullscreen)
-	  ([?\s-q] . edwina-delete-window) ; closing windows
-	  ([?\s-c] . inferior-octave)
-	  ([?\s-C] . (lambda ()
-		       (interactive)
-		       (progn (kill-buffer-and-window)
-			      (edwina-delete-window))))
-	  ;; reset exwm
-	  ([?\s-r] . (lambda ()
-		       (interactive)
-		       (progn (exwm-reset)
-			      (edwina-arrange))))
-	  ;; tile exwm
-	  ([?\s-t] . (lambda ()
-		       (interactive)
-		       (progn (exwm-reset)
-			      (edwina-arrange))))
+	  (,(kbd "<s-return>")    . (lambda ()
+				      (interactive)
+				      (edwina-clone-window)
+				      (balance-windows)
+				      (other-window 1)))
+	   ([?\s-g] . exwm-workspace-switch)
+	   ([?\s-f] . exwm-layout-set-fullscreen)
+	   ([?\s-q] . edwina-delete-window) ; closing windows
+	   ([?\s-c] . inferior-octave)
+	   ([?\s-C] . (lambda ()
+			(interactive)
+			(kill-buffer-and-window)
+			(edwina-delete-window)))
+	   ;; reset exwm
+	   ([?\s-r] . (lambda ()
+			(interactive)
+			(exwm-reset)
+			(edwina-arrange)))
+	   ;; tile exwm
+	   ([?\s-t] . (lambda ()
+			(interactive)
+			(exwm-reset)
+			(edwina-arrange)))
 
 	   ;; open a terminal
 	   (,(kbd "s-T") . (lambda ()
