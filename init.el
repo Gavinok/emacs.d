@@ -688,6 +688,8 @@
   (setq proced-auto-update-flag t
 	proced-auto-update-interval 2
 	proced-decend t)) ; [built-in] htop alternative
+;;; PASS
+(use-package password-store)
 ;;; EXWM
 (use-package exwm
   :if (not gv/is-termux)
