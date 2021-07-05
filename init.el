@@ -446,12 +446,7 @@
 	  try-expand-all-abbrevs
 	  try-expand-list
 	  try-expand-line))
-  (add-hook 'c-mode-common-hook   'hs-minor-mode)
-  (add-hook 'emacs-lisp-mode-hook 'hs-minor-mode)
-  (add-hook 'java-mode-hook       'hs-minor-mode)
-  (add-hook 'lisp-mode-hook       'hs-minor-mode)
-  (add-hook 'perl-mode-hook       'hs-minor-mode)
-  (add-hook 'sh-mode-hook         'hs-minor-mode)
+  (define-key (current-global-map) [remap dabbrev-expand] 'hippie-expand)
   (add-hook 'emacs-lisp-mode-hook 'prettify-symbols-mode)
   ;; Vim like scrolling
   (setq scroll-step            1
