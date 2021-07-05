@@ -523,6 +523,18 @@
     "-" 'dired-up-directory)
   (define-key  evil-normal-state-map (kbd "-") (lambda () (interactive)
 						 (dired ".")))
+;;;;; xdg-open integration
+  (require 'dired-x)
+  (defun gv/dired-xdg-open ()
+    "Open the file at point with xdg-open."
+    (interactive)
+    (let ((file (dired-get-filename nil t)))
+      (message "Opening %s..." file)
+      (call-process "xdg-open" nil 0 nil file)
+      (message "Opening %s done" file)))
+  (evil-collection-define-key 'normal 'dired-mode-map "O" 'gv/dired-xdg-open)
+  (define-key dired-mode-map (kbd "O") 'gv/dired-xdg-open)
+  )
 
 ;;; EMAIL
 (unless gv/is-termux
