@@ -788,6 +788,10 @@
   (exwm-input-set-key (kbd "s-r") 'winner-redo)
   :init
   (winner-mode 1)) ; window managment undo
+(use-package vlf
+  
+  :ensure t
+  :defer t) ; help emacs handle large files to avoid exwm from locking
 
 ;;; MODELINE
 (use-package mini-modeline
