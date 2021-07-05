@@ -713,6 +713,7 @@
 		("libreoffice-writer" (exwm-workspace-rename-buffer (format "Writer: %s" exwm-title)))
 		("libreoffice-calc" (exwm-workspace-rename-buffer (format "Calc: %s" exwm-title)))
 		("St" (exwm-workspace-rename-buffer (format "%s" exwm-title))))))
+;;;; Global Key Bindings
   (setq exwm-input-global-keys
 	`(([?\s-h] . windmove-left)
 	  ([?\s-l] . windmove-right)
@@ -731,13 +732,12 @@
 				      (edwina-clone-window)
 				      (balance-windows)
 				      (other-window 1)))
-	   ([?\s-g] . exwm-workspace-switch)
 	   ([?\s-f] . exwm-layout-set-fullscreen)
 	   ([?\s-q] . edwina-delete-window) ; closing windows
 	   ([?\s-c] . inferior-octave)
 	   ([?\s-C] . (lambda ()
 			(interactive)
-			(kill-buffer-and-window)
+			(kill-this-buffer)
 			(edwina-delete-window)))
 	   ;; reset exwm
 	   ([?\s-r] . (lambda ()
@@ -787,6 +787,7 @@
 			(interactive "reminder?")
 			(egg-timer-do-schedule 3 reminder)))
 	   ([?\s-b] . consult-buffer)
+	   (,(kbd "C-x C-b") . ibuffer)
 	   (,(kbd "s-B") . ibuffer)
 	   ([?\s-=] . (lambda ()
 			(interactive )
@@ -795,6 +796,8 @@
 	   ([?\s-p] . (lambda ()
 			(interactive)
 			(start-process-shell-command "Clipmenu" nil "clipmenu")))
+;;;; Workspaces
+	   ([?\s-g] . exwm-workspace-switch)
 	   ,@(mapcar (lambda (i)
 		       `(,(kbd (format "s-%d" i))
 			 (lambda ()
@@ -803,10 +806,12 @@
 		     (number-sequence 1 9))))
   (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
   (fringe-mode 1)
+;;;; Start EXWM
   (exwm-enable)
-  ;; start programs for exwm
+;;;; Start Programs For EXWM
   (start-process-shell-command "blueman-applet" nil "blueman-applet")
   (start-process-shell-command "nm-applet" nil "nm-applet")
+;;;; Window Divider
   (setq window-divider-default-right-width 3)
   (let ((color (face-background 'mode-line)))
     (dolist (face '(window-divider-first-pixel
@@ -815,6 +820,7 @@
       (set-face-foreground face color)))
 
   (window-divider-mode 1)
+;;;; Mouse Settings
   :init (setq mouse-autoselect-window t
 	      focus-follows-mouse t))
 (use-package exwm-systemtray
