@@ -467,6 +467,34 @@
   :init
   (savehist-mode t)) ; Save command history
 
+;;; FOLDING
+;;;; Cycle Headings With Bicycle
+(use-package outline
+  :ensure nil
+  :config
+  (let ((map outline-minor-mode-map))
+    (define-key map (kbd "C-<tab>") #'outline-cycle)
+    (define-key map (kbd "<backtab>") #'outline-cycle-buffer) ; S-TAB
+    (define-key map (kbd "C-c C-n") #'outline-next-visible-heading)
+    (define-key map (kbd "C-c C-p") #'outline-previous-visible-heading)
+    (define-key map (kbd "C-c C-f") #'outline-forward-same-level)
+    (define-key map (kbd "C-c C-b") #'outline-backward-same-level)
+    (define-key map (kbd "C-c C-a") #'outline-show-all)
+    (define-key map (kbd "C-c C-o") #'outline-hide-other)
+    (define-key map (kbd "C-c C-u") #'outline-up-heading)))
+(use-package bicycle
+  :after outline
+  :config
+  (evil-define-minor-mode-key 'normal 'outline-minor-mode (kbd "<tab>") 'bicycle-cycle)
+  (evil-define-minor-mode-key 'normal 'outline-minor-mode (kbd "<backtab>") 'bicycle-cycle-global))
+
+;;;; Setup Folding For Programming
+(use-package prog-mode
+  :ensure nil
+  :config
+  (add-hook 'prog-mode-hook 'outline-minor-mode)
+  (add-hook 'prog-mode-hook 'hs-minor-mode))
+
 ;;; EXTRA UI
 (use-package beacon 
   :init
