@@ -755,6 +755,14 @@
   ;; start programs for exwm
   (start-process-shell-command "blueman-applet" nil "blueman-applet")
   (start-process-shell-command "nm-applet" nil "nm-applet")
+  (setq window-divider-default-right-width 3)
+  (let ((color (face-background 'mode-line)))
+    (dolist (face '(window-divider-first-pixel
+		    window-divider-last-pixel
+		    window-divider))
+      (set-face-foreground face color)))
+
+  (window-divider-mode 1)
   :init (setq mouse-autoselect-window t
 	      focus-follows-mouse t))
 (use-package exwm-systemtray
