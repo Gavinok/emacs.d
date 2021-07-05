@@ -690,8 +690,8 @@
 	   ;; open a terminal
 	   (,(kbd "s-T") . (lambda ()
 			     (interactive)
-			     (progn (edwina-clone-window)
-				    (vterm))))
+			     (edwina-clone-window)
+				    (vterm)))
 	   ;; launch any program
 	   ([?\s-d] . (lambda (command)
 			(interactive (list (read-shell-command "λ ")))
