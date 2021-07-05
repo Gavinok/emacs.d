@@ -496,12 +496,14 @@
   (add-hook 'prog-mode-hook 'hs-minor-mode))
 
 ;;; EXTRA UI
+;;;; Beacon
 (use-package beacon 
   :init
   (beacon-mode 1)); Highlight cursor postion after movement
+;;;; Display hex colors in emacs
 (use-package rainbow-mode
   :init
-  (rainbow-mode t)) ; Display hex colors in emacs
+  (rainbow-mode t))
 
 ;;; DIRED
 (use-package dired
