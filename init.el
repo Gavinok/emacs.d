@@ -417,6 +417,14 @@
 	auto-save-default nil
 	inhibit-startup-screen t
 	ring-bell-function 'ignore)
+  ;;;; UTF-8
+  (prefer-coding-system 'utf-8)
+  (setq locale-coding-system 'utf-8)
+  (set-language-environment "UTF-8")
+  (set-default-coding-systems 'utf-8)
+  (set-terminal-coding-system 'utf-8)
+  (set-keyboard-coding-system 'utf-8)
+  (set-selection-coding-system 'utf-8)
   ;;;; Remove Extra Ui
   (blink-cursor-mode -1)
   (menu-bar-mode -1)               ; To disable the menu bar, place the following line in your .emacs file:
