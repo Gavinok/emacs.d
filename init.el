@@ -42,62 +42,61 @@
     (write-file (concat "/sudo:root@localhost:" buffer-file-name))))
 
 ;;; EVIL MODE
-(progn
-  ;; Vim style undo
-  (use-package undo-fu)
-  (use-package undo-fu-session
-    :after undo-fu
-    :init
-    (global-undo-fu-session-mode))
+;; Vim style undo
+(use-package undo-fu)
+(use-package undo-fu-session
+  :after undo-fu
+  :init
+  (global-undo-fu-session-mode))
 
-  (use-package  evil
-    :after undo-fu
-    :init
-    (setq evil-want-Y-yank-to-eol t)
-    (setq evil-want-keybinding nil)
-    (setq evil-split-window-below t)
-    (setq evil-split-window-right t)
-    (setq evil-undo-system 'undo-fu)
-    :config
-    (evil-mode 1)
-    (evil-set-leader 'normal " ")
-    (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-    (evil-define-key 'normal   'global (kbd "<leader>t") 'capitalize-dwim)
-    (evil-define-key 'visual   'global (kbd "<leader>t") 'capitalize-dwim)
-    (evil-define-key 'insert   'global (kbd "M-n")       'hippie-expand)
-    ;; Better lisp bindings
-    (evil-define-key 'normal   'global (kbd "(")         'evil-previous-open-paren)
-    (evil-define-key 'normal   'global (kbd ")")         'evil-next-close-paren)
-    (evil-define-key 'operator 'global (kbd "(")         'evil-previous-open-paren)
-    (evil-define-key 'operator 'global (kbd ")")         'evil-previous-close-paren))
+(use-package  evil
+  :after undo-fu
+  :init
+  (setq evil-want-Y-yank-to-eol t)
+  (setq evil-want-keybinding nil)
+  (setq evil-split-window-below t)
+  (setq evil-split-window-right t)
+  (setq evil-undo-system 'undo-fu)
+  :config
+  (evil-mode 1)
+  (evil-set-leader 'normal " ")
+  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+  (evil-define-key 'normal   'global (kbd "<leader>t") 'capitalize-dwim)
+  (evil-define-key 'visual   'global (kbd "<leader>t") 'capitalize-dwim)
+  (evil-define-key 'insert   'global (kbd "M-n")       'hippie-expand)
+  ;; Better lisp bindings
+  (evil-define-key 'normal   'global (kbd "(")         'evil-previous-open-paren)
+  (evil-define-key 'normal   'global (kbd ")")         'evil-next-close-paren)
+  (evil-define-key 'operator 'global (kbd "(")         'evil-previous-open-paren)
+  (evil-define-key 'operator 'global (kbd ")")         'evil-previous-close-paren))
 
-  ;; evil mode in other modes live viewing pdfs
-  (use-package  evil-collection
-    :config
-    (evil-collection-init))
+;; evil mode in other modes live viewing pdfs
+(use-package  evil-collection
+  :config
+  (evil-collection-init))
 
-  ;; Enable Commentary
-  (use-package evil-commentary
-    :config
-    (evil-commentary-mode 1))
+;; Enable Commentary
+(use-package evil-commentary
+  :config
+  (evil-commentary-mode 1))
 
-  ;; Enable Surround
-  (use-package evil-surround
-    :config
-    (global-evil-surround-mode 1))
+;; Enable Surround
+(use-package evil-surround
+  :config
+  (global-evil-surround-mode 1))
 
-  ;; Enable Lion
-  (use-package evil-lion
-    :config
-    (evil-lion-mode 1)
-    (evil-define-key 'normal 'global (kbd "gl") 'evil-lion-left)
-    (evil-define-key 'normal 'global (kbd "gL") 'evil-lion-right))
+;; Enable Lion
+(use-package evil-lion
+  :config
+  (evil-lion-mode 1)
+  (evil-define-key 'normal 'global (kbd "gl") 'evil-lion-left)
+  (evil-define-key 'normal 'global (kbd "gL") 'evil-lion-right))
 
-  ;; Cursor Shape
-  (use-package evil-terminal-cursor-changer
-    :config
-    (unless (display-graphic-p)
-      (evil-terminal-cursor-changer-activate))))
+;; Cursor Shape
+(use-package evil-terminal-cursor-changer
+  :config
+  (unless (display-graphic-p)
+    (evil-terminal-cursor-changer-activate)))
 
 ;;; TERMINAL SETTINGS
 (if (display-graphic-p)
@@ -181,16 +180,16 @@
 (use-package org
   :ensure org-plus-contrib
   :config
-  ;;archive completed tasks
+;;;; Archive Completed Tasks
   (defun my-org-archive-done-tasks ()
     (interactive)
       (org-map-entries 'org-archive-subtree "/DONE" 'file)
       (org-map-entries 'org-archive-subtree "/CANCELLED" 'file))
-
+;;;; Bindings
   (evil-define-key 'normal 'global (kbd "<leader>y") 'org-store-link)
   (evil-define-key 'normal 'global (kbd "gA") 'org-agenda)
   (evil-define-key 'normal 'global (kbd "gC") 'org-capture)
-
+;;;; Better defaults 
   (setq org-ellipsis " ▾"
 	org-hide-emphasis-markers t
         org-special-ctrl-a/e t
@@ -203,14 +202,13 @@
 	org-startup-folded 'content
 	org-cycle-separator-lines 2)
 
-  (setq org-default-notes-file (concat org-directory "/refile.org"))
   (setq org-log-done 'time)
   (setq org-log-into-drawer t)
   (setq org-todo-keywords
 	'((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
-	  (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANCELLED(k@)")))
+	  (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "CANCELLED(c)")))
 
-  ;; Configure custom agenda views
+;;;; Agenda Views
   (setq org-agenda-custom-commands
 	'(("d" "Today's Tasks"
 	   ((agenda "" ((org-agenda-span 1)
@@ -225,7 +223,6 @@
 	   ((todo "NEXT"
 		  ((org-agenda-overriding-header "Next Tasks")))))
 
-
 	  ("W" "Work Tasks" tags-todo "+work")
 
 	  ;; Low-effort next actions
@@ -233,11 +230,12 @@
 	   ((org-agenda-overriding-header "Low Effort Tasks")
 	    (org-agenda-max-todos 20)
 	    (org-agenda-files org-agenda-files)))))
-
+;;;; Capture
+  (setq org-default-notes-file (concat org-directory "/refile.org"))
   (setq org-capture-templates
 	'(("t" "Todo" entry (file "~/Documents/org/refile.org")
 	   "* TODO %?\nDEADLINE: %T\n  %a")
-	  ("m" "Meeting" entry (file+headline "~/Documents/org/mylife.org" "Meetings")
+	  ("m" "Meeting" entry (file+headline "~/Documents/org/Work.org" "Meetings")
 	   "* Meeting with  %?\nSCHEDULED: %T\n")
 	  ("r" "Refund" entry (file+olp "~/Documents/org/Work.org"
 					"Work" "Refunds")
@@ -250,17 +248,27 @@
 	   "* %?\n%? %a\n")
 	  ("c" "Cool Thing" entry (file+datetree "~/Documents/org/archive.org")
 	   "* %?\nEntered on %U\n  %i\n  %a")))
+;;;; Refile targets
   (setq org-refile-targets
-	'(("Work.org"    :maxlevel . 1)
-	  ("archive.org" :maxlevel . 1)
-	  ("mylife.org"  :maxlevel . 1)))
-  (advice-add 'org-refile :after 'org-save-all-org-buffers))
+	'(("Work.org"    :maxlevel . 3)
+	  ("archive.org" :maxlevel . 3)
+	  ("mylife.org"  :maxlevel . 3)))
+  (advice-add 'org-refile :after 'org-save-all-org-buffers)
+;;;; Font Sizes
+  (dolist (face '((org-level-1 . 1.05)
+		  (org-level-2 . 1.05)
+		  (org-level-3 . 1.05)
+		  (org-level-4 . 1.05)))
+    (set-face-attribute (car face) nil :font "Liberation Mono" :weight 'medium :height (cdr face))))
+;;;; Contacts
 (use-package org-contacts
   :ensure nil
   :after org
   :custom (org-contacts-files '("~/Documents/org/contacts.org")))
+;;;; Drag And Drop
 (use-package org-download
   :if (not gv/is-termux)
+  :hook (dired-mode . org-download-enable)
   :init
   (setq org-directory "~/Documents/org")
   (setq org-agenda-files (seq-filter (lambda (x) (not (string-match "completed.org" x)))
@@ -268,21 +276,20 @@
   (setq-default org-download-screenshot-method "gnome-screenshot -a -f %s")
   (setq-default org-download-image-dir "./pic")
   (exwm-input-set-key (kbd "s-i") 'org-download-screenshot)
-  :after org
-  :config
-  (add-hook 'dired-mode-hook 'org-download-enable))
+  :after org)
+;;;; Better Looking Bullets
 (use-package org-superstar
-  :if (not gv/is-termux)
+  :if (display-graphic-p)
   :after org
-  :config
-  (if (display-graphic-p)
-      (add-hook 'org-mode-hook #'org-superstar-mode)))
+  :hook (org-mode . org-superstar-mode))
+;;;; Templates
 (use-package org-tempo
   :ensure nil
   :config
   (add-to-list 'org-structure-template-alist '("sh"  . "src sh"))
   (add-to-list 'org-structure-template-alist '("el"  . "src emacs-lisp"))
   (add-to-list 'org-structure-template-alist '("vim"  . "src vim")))
+;;;; Indentation
 (require 'org-indent)
 
 ;;; Git
@@ -295,9 +302,9 @@
 
 ;;; Completion
 (use-package company
-  :config (global-company-mode nil)
-  (add-hook 'org-mode-hook 'company-mode) ;org files
-  (add-hook 'mu4e-compose-mode-hook 'company-mode) ;email
+  :hook ((mu4e-compose-mode org-mode) . company-mode) ;org files
+  :config
+  (global-company-mode nil)
   (setq company-idle-delay 0.1
 	company-minimum-prefix-length 1))
 
@@ -321,9 +328,10 @@
 (use-package fennel-mode)
 (use-package racket-mode)
 
-;;; LSP using eglot
+;;; LSP
 (use-package eglot
   :commands eglot
+  :hook ((java-mode c-mode-common) . eglot-ensure)
   :config
   (defconst my/eclipse-jdt-home "/usr/share/java/jdtls/plugins/org.eclipse.equinox.launcher.gtk.linux.x86_64_1.2.200.v20210406-1409.jar")
 
@@ -335,8 +343,6 @@
       (setenv "CLASSPATH" cp))))
 
 (setcdr (assq 'java-mode eglot-server-programs) #'my/eclipse-jdt-contact)
-  (add-hook 'c-mode-common-hook 'eglot)
-  (add-hook 'java-mode-hook 'eglot)
   (add-to-list 'eglot-server-programs '(c-mode . ("ccls")))
   (add-to-list 'eglot-server-programs '(java-mode . ("jdtls"))))
 
@@ -504,6 +510,7 @@
   (setq mu4e-sent-messages-behavior 'delete)
   (setq message-kill-buffer-on-exit t)
 
+;;;; Attachment reminders
   (use-package message-attachment-reminder)
 
   ;; (use-package message-are-flowing
