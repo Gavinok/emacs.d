@@ -390,6 +390,14 @@
   (define-key global-map (kbd "C-x C-b") #'ibuffer)
   ) ; [built-in] Powerful interface for managing buffers
 
+(use-package uniquify
+  :ensure nil
+  :config
+  (setq uniquify-buffer-name-style 'post-forward-angle-brackets
+	uniquify-separator " * "
+	uniquify-after-kill-buffer-p t
+	uniquify-strip-common-suffix t
+	uniquify-ignore-buffers-re "^\\*")) ; [built-in] make buffers unique with filename rather than <num>
 ;;; DEFAULTS
 (use-package emacs
   :ensure nil
@@ -445,7 +453,13 @@
 	'(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
   ;; Enable recursive minibuffers
-  (setq enable-recursive-minibuffers t)) ; General emacs settings
+  (setq enable-recursive-minibuffers t)
+  ;;;; Show All These In The Same Window
+  (add-to-list 'same-window-buffer-names "*SQL*")
+  (add-to-list 'same-window-buffer-names "*Help*")
+  (add-to-list 'same-window-buffer-names "*Apropos*")
+  (add-to-list 'same-window-buffer-names "*Process List*")) ; General emacs settings
+
 (use-package savehist
   :init
   (savehist-mode t)) ; Save command history
