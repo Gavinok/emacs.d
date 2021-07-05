@@ -648,46 +648,6 @@
 			 (:name "Messages with images"
 				:query "mime:image/*" :key 112)))) ; email client depends on mu command
 
-;; (use-package quelpa-use-package)
-;; (use-package matrix-client
-;;   :if (not gv/is-termux)
-;;   :quelpa (matrix-client :fetcher github :repo "alphapapa/matrix-client.el"
-;;                          :files (:defaults "logo.png" "matrix-client-standalone.el.sh")))
-;; (use-package eaf
-;;   :if (not gv/is-termux)
-;;   :load-path "~/.emacs.d/site-lisp/emacs-application-framework" ; Set to "/usr/share/emacs/site-lisp/eaf" if installed from AUR
-;;   :init
-;;   (use-package epc :defer t :ensure t)
-;;   (use-package ctable :defer t :ensure t)
-;;   (use-package deferred :defer t :ensure t)
-;;   (use-package s :defer t :ensure t)
-;;   (use-package eaf-evil :ensure nil)
-;;   :custom
-;;   (eaf-browser-continue-where-left-off t)
-;;   :config
-;;   (eaf-setq eaf-browser-default-search-engine "duckduckgo")
-;;   (eaf-setq eaf-browser-enable-adblocker "true")
-;;   (eaf-bind-key scroll_up "C-n" eaf-pdf-viewer-keybinding)
-;;   (eaf-bind-key scroll_down "C-p" eaf-pdf-viewer-keybinding)
-;;   (eaf-bind-key take_photo "p" eaf-camera-keybinding)
-;;   (eaf-bind-key nil "M-q" eaf-browser-keybinding))
-
-;;; BETTER PDFS
-;https://github.com/politza/pdf-tools
-; annotate pdfs with c-c c-a
-; hl with c-c c-a h
-; for help M-x pdf-tools-help RET
-(use-package pdf-tools
-  :config
-  ;; pdf auto refresh
-  (add-hook 'doc-view-mode-hook 'auto-revert-mode))
-(use-package transmission)
-(use-package proced
-  :ensure nil
-  :config
-  (setq proced-auto-update-flag t
-	proced-auto-update-interval 2
-	proced-decend t)) ; [built-in] htop alternative
 ;;; PASS
 (use-package password-store)
 ;;; EXWM
@@ -863,41 +823,154 @@
   :defer t) ; help emacs handle large files to avoid exwm from locking
 
 ;;; MODELINE
-(use-package mini-modeline
-  :if (not gv/is-termux)
-  :init
-  (require 'battery)
-  (setq mini-modeline-r-format
-	(list
-	 ;; value of `mode-name'
-	 ;; value of current buffer name
-	 '(:eval (propertize "%b, " 'face 'font-lock-variable-name-face))
-	 '(:eval (propertize (if (eq 'emacs evil-state) "  " "  ")
-			     'face 'epa-validity-high))
+;; (use-package mini-modeline
+;;   :if (not gv/is-termux)
+;;   :init
+;;   (require 'battery)
+;;   (setq mini-modeline-r-format
+;; 	(list
+;; 	 ;; value of `mode-name'
+;; 	 ;; value of current buffer name
+;; 	 '(:eval (propertize "%b, " 'face 'font-lock-variable-name-face))
+;; 	 '(:eval (propertize (if (eq 'emacs evil-state) "  " "  ")
+;; 			     'face 'epa-validity-high))
 
-	 ;; value of current line number
-	 '(:eval (propertize " %l,%c" 'face 'font-lock-comment-face))
-	 '(:eval (propertize " %p" 'face 'font-lock-comment-face))
-	 " "
-	 ;; major mode
-	 '(:eval (propertize " (%m) " 'face 'font-lock-comment-face))
-	 ;; ;; spaces to align right
-	 ;; '(:eval (propertize
-	 ;; 		" " 'display
-	 ;; 		`((space :align-to (- (+ right right-fringe right-margin)
-	 ;; 				      ,(+ 10 (string-width mode-name)))))))
-	 '(:eval (propertize
-		  (format-time-string "%a, %b %d %I:%M%p")
-		  'face 'change-log-list))
-	 " "
-	 '(:eval (propertize
-		  (battery-format "[%p]" (funcall battery-status-function))
-		  'face 'org-checkbox))
-	 "      "))
-  :config
-  (mini-modeline-mode t))
+;; 	 ;; value of current line number
+;; 	 '(:eval (propertize " %l,%c" 'face 'font-lock-comment-face))
+;; 	 '(:eval (propertize " %p" 'face 'font-lock-comment-face))
+;; 	 " "
+;; 	 ;; major mode
+;; 	 '(:eval (propertize " (%m) " 'face 'font-lock-comment-face))
+;; 	 ;; ;; spaces to align right
+;; 	 ;; '(:eval (propertize
+;; 	 ;; 		" " 'display
+;; 	 ;; 		`((space :align-to (- (+ right right-fringe right-margin)
+;; 	 ;; 				      ,(+ 10 (string-width mode-name)))))))
+;; 	 '(:eval (propertize
+;; 		  (format-time-string "%a, %b %d %I:%M%p")
+;; 		  'face 'change-log-list))
+;; 	 " "
+;; 	 '(:eval (propertize
+;; 		  (battery-format "[%p]" (funcall battery-status-function))
+;; 		  'face 'org-checkbox))
+;; 	 "      "))
+;;   :config
+;;   (mini-modeline-mode t))
+
+(require 'battery)
+;; (setq-default mode-line-format
+;; 	(list
+;; 	 ;; value of `mode-name'
+;; 	 ;; value of current buffer name
+;; 	 " "
+;; 	 '(:eval (propertize "%b, " 'face 'font-lock-variable-name-face))
+;; 	 '(:eval (propertize (if (eq 'emacs evil-state) "  " "  ")
+;; 			     'face 'epa-validity-high))
+
+;; 	 ;; value of current line number
+;; 	 '(:eval (propertize " %l,%c" 'face 'font-lock-comment-face))
+;; 	 '(:eval (propertize " %p" 'face 'font-lock-comment-face))
+;; 	 " "
+;; 	 ;; major mode
+;; 	 '(:eval (propertize " (%m) " 'face 'font-lock-comment-face))
+;; 	 ;; spaces to align right
+;; 	 '(:eval (propertize
+;; 			" " 'display
+;; 			`((space :align-to (- (+ right right-fringe right-margin)
+;; 					      ,(+ 17 (string-width mode-name)))))))
+;; 	 '(:eval (propertize
+;; 		  (format-time-string "%a, %b %d %I:%M%p")
+;; 		  'face 'change-log-list))
+;; 	 " "
+;; 	 '(:eval (propertize
+;; 		  (battery-format "[%p]" (funcall battery-status-function))
+;; 		  'face 'org-checkbox))
+;; 	 ))
+(setq-default mode-line-format
+	      (list
+	       ;; value of `mode-name'
+	       ;; value of current buffer name
+	       " "
+	       "%b, "
+	       '(:eval (if (eq 'emacs evil-state) "  " "  "))
+	       'mode-line-buffer-identification
+	       ;; value of current line number
+	       " %l,%c"
+	       " %p"
+	       " "
+	       ;; major mode
+	       " (%m) "
+	       ;; spaces to align right
+	       '(:eval (propertize
+			" " 'display
+			`((space :align-to (- (+ right right-fringe right-margin)
+					      ,(+ 17 (string-width mode-name)))))))
+	       '(:eval (format-time-string "%a, %b %d %I:%M%p"))
+	       " "
+	       '(:eval (battery-format "[%p]" (funcall battery-status-function)))))
+;;; Server Setup
 (use-package server
   :ensure nil
   :config
   (unless (server-running-p)
     (server-start)))
+;;; Extras
+;; (use-package quelpa-use-package)
+;; (use-package matrix-client
+;;   :if (not gv/is-termux)
+;;   :quelpa (matrix-client :fetcher github :repo "alphapapa/matrix-client.el"
+;;                          :files (:defaults "logo.png" "matrix-client-standalone.el.sh")))
+;; (use-package eaf
+;;   :if (not gv/is-termux)
+;;   :load-path "~/.emacs.d/site-lisp/emacs-application-framework" ; Set to "/usr/share/emacs/site-lisp/eaf" if installed from AUR
+;;   :init
+;;   (use-package epc :defer t :ensure t)
+;;   (use-package ctable :defer t :ensure t)
+;;   (use-package deferred :defer t :ensure t)
+;;   (use-package s :defer t :ensure t)
+;;   (use-package eaf-evil :ensure nil)
+;;   :custom
+;;   (eaf-browser-continue-where-left-off t)
+;;   :config
+;;   (eaf-setq eaf-browser-default-search-engine "duckduckgo")
+;;   (eaf-setq eaf-browser-enable-adblocker "true")
+;;   (eaf-bind-key scroll_up "C-n" eaf-pdf-viewer-keybinding)
+;;   (eaf-bind-key scroll_down "C-p" eaf-pdf-viewer-keybinding)
+;;   (eaf-bind-key take_photo "p" eaf-camera-keybinding)
+;;   (eaf-bind-key nil "M-q" eaf-browser-keybinding))
+
+;;;; Better PDFs
+;https://github.com/politza/pdf-tools
+; annotate pdfs with c-c c-a
+; hl with c-c c-a h
+; for help M-x pdf-tools-help RET
+(use-package pdf-tools
+  :config
+  ;; pdf auto refresh
+  (add-hook 'doc-view-mode-hook 'auto-revert-mode))
+(use-package transmission)
+;;;; proced [built-in] htop alternative
+(use-package proced
+  :ensure nil
+  :config
+  (setq proced-auto-update-flag t
+	proced-auto-update-interval 2
+	proced-decend t))
+;;;; stuff to ignore
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   '("3a9f65e0004068ecf4cf31f4e68ba49af56993c20258f3a49e06638c825fbfb6" "2b502f6e3bf0cba42fe7bf83a000f2d358a7020a7780a8682fcfed0c9dbffb5f" default))
+ '(org-agenda-files
+   '("/home/gavinok/Documents/org/2021_canoekids_waitlist.org" "/home/gavinok/Documents/org/2021_flatwaternorth_executive_meeting.org" "/home/gavinok/Documents/org/2021_june_flatwaternorth_executive_meeting.org" "/home/gavinok/Documents/org/2021_may_flatwaternorth_executive_meeting.org" "/home/gavinok/Documents/org/Athletes.org" "/home/gavinok/Documents/org/Practices.org" "/home/gavinok/Documents/org/Work.org" "/home/gavinok/Documents/org/archive.org" "/home/gavinok/Documents/org/backlog.org" "/home/gavinok/Documents/org/c.org" "/home/gavinok/Documents/org/contacts.org" "/home/gavinok/Documents/org/divisionals_meeting.org" "/home/gavinok/Documents/org/elm.org" "/home/gavinok/Documents/org/fennel.org" "/home/gavinok/Documents/org/guile.org" "/home/gavinok/Documents/org/hy.org" "/home/gavinok/Documents/org/interviews_flatwaternorth.org" "/home/gavinok/Documents/org/janet.org" "/home/gavinok/Documents/org/joker.org" "/home/gavinok/Documents/org/june_ptso.org" "/home/gavinok/Documents/org/mylife.org" "/home/gavinok/Documents/org/nationals_prep.org" "/home/gavinok/Documents/org/parents_meeting.org" "/home/gavinok/Documents/org/racket.org" "/home/gavinok/Documents/org/rec.org" "/home/gavinok/Documents/org/refile.org" "/home/gavinok/Documents/org/reminders.org" "/home/gavinok/Documents/org/results.org" "/home/gavinok/Documents/org/roadshow.org" "/home/gavinok/Documents/org/staff_orientation.org" "/home/gavinok/Documents/org/staff_orientation_day.org" "/home/gavinok/Documents/org/today.org" "/home/gavinok/Documents/org/youtube.org" "/home/gavinok/Documents/org/yukon_river_quest.org"))
+ '(package-selected-packages
+   '(bicycle password-store vlf system-packages popwin exwm-edit forecast xterm-color writegood-mode vterm vs-dark-theme volume vimrc-mode vertico undo-fu-session undo-fu ujelly-theme tron-legacy-theme transmission symon rainbow-mode racket-mode quelpa-use-package quasi-monochrome-theme pdf-tools org-superstar org-plus-contrib org-download org-alert orderless modus-themes mini-modeline message-attachment-reminder matrix-client marginalia magit lua-mode keycast git-gutter flyspell-correct fennel-mode exwm-mff exwm evil-terminal-cursor-changer evil-surround evil-lion evil-commentary evil-collection esh-autosuggest epc eglot edwina eaf dired-open beacon all-the-icons affe ace-window)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
