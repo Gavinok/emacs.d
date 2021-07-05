@@ -389,7 +389,7 @@
 		filename-and-process)))
 
   (define-key global-map (kbd "C-x C-b") #'ibuffer)
-  (add-hook 'ibuffer-mode-hook #'hl-line-mode)) ; [built-in] Powerful interface for managing buffers
+  ) ; [built-in] Powerful interface for managing buffers
 
 ;;; DEFAULTS
 (use-package emacs
