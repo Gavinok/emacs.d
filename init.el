@@ -571,7 +571,7 @@
   ;;   (with-eval-after-load "message"
   ;;     (add-hook 'message-mode-hook 'messages-are-flowing-use-and-mark-hard-newlines)))
 
-  ;; allow for updating mail using 'U' in the main view:
+;;;; mbsync and msmtp setup
   (setq mu4e-get-mail-command "mailsync"
 	sendmail-program "/usr/bin/msmtp"
 	message-sendmail-extra-arguments '("--read-envelope-from")
@@ -581,12 +581,13 @@
 
   ;;images in emails
   (setq mu4e-view-show-images t)
+;;;; abbreviations 
   (define-abbrev-table 'mu4e-compose-mode-abbrev-table
     '(("sin" "Sincerely, \nGavin Jaeger-Freeborn" nil 1)))
   (add-hook 'mu4e-compose-mode-hook #'abbrev-mode)
   (add-to-list 'auto-mode-alist '("^/tmp/neomutt.*\\'" . mail-mode))
 
-  ;; something about ourselves
+;;;; Accounts
   (setq mu4e-contexts
 	(list
 	 ;; Personal account
@@ -630,14 +631,14 @@
 		  (mu4e-sent-folder                 . "/coach/[Gmail].Sent Mail")
 		  (mu4e-refile-folder               . "/coach/[Gmail].All Mail")
 		  (mu4e-trash-folder                . "/coach/[Gmail].Trash")))))
-  ;; Contacts
+;;;; Contacts
   (setq mail-personal-alias-file  "~/.config/mutt/aliases")
   (setq mu4e-org-contacts-file  "~/Documents/org/contacts.org")
   (add-to-list 'mu4e-headers-actions
 	       '("org-contact-add" . mu4e-action-add-org-contact) t)
   (add-to-list 'mu4e-view-actions
 	       '("org-contact-add" . mu4e-action-add-org-contact) t)
-
+;;;; Bookmarks
   (setq mu4e-bookmarks '((:name "To Handle"
 				:query "(flag:flagged OR flag:unread OR NOT flag:replied) AND date:3m..now" :key 116)
 			 (:name "Today's messages"
