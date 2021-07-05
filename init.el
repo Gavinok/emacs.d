@@ -538,7 +538,7 @@
 
 ;;; EMAIL
 (unless gv/is-termux
-  (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e"))
+  (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")) ; add mu4e to be loaded
 (use-package mu4e
   :if (not gv/is-termux)
   :ensure nil
