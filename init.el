@@ -694,6 +694,7 @@
 (use-package exwm
   :if (not gv/is-termux)
   :config
+;;;; Hooks
   (add-hook 'exwm-update-class-hook
 	    (lambda ()
 	      (exwm-workspace-rename-buffer exwm-class-name)))
