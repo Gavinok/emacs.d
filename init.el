@@ -401,14 +401,14 @@
   :config
   (setq ibuffer-expert t)
   (setq ibuffer-show-empty-filter-groups nil)
-;; Use human readable Size column instead of original one
-(define-ibuffer-column size-h
-  (:name "Size" :inline t)
-  (cond
-   ((> (buffer-size) 1000000) (format "%7.1fM" (/ (buffer-size) 1000000.0)))
-   ((> (buffer-size) 100000) (format "%7.0fk" (/ (buffer-size) 1000.0)))
-   ((> (buffer-size) 1000) (format "%7.1fk" (/ (buffer-size) 1000.0)))
-   (t (format "%8d" (buffer-size)))))
+  ;; Use human readable Size column instead of original one
+  (define-ibuffer-column size-h
+    (:name "Size" :inline t)
+    (cond
+     ((> (buffer-size) 1000000) (format "%7.1fM" (/ (buffer-size) 1000000.0)))
+     ((> (buffer-size) 100000) (format "%7.0fk" (/ (buffer-size) 1000.0)))
+     ((> (buffer-size) 1000) (format "%7.1fk" (/ (buffer-size) 1000.0)))
+     (t (format "%8d" (buffer-size)))))
 
 ;; Modify the default ibuffer-formats
   (setq ibuffer-formats
@@ -419,10 +419,7 @@
 		" "
 		(mode 16 16 :left :elide)
 		" "
-		filename-and-process)))
-
-  (define-key global-map (kbd "C-x C-b") #'ibuffer)
-  ) ; [built-in] Powerful interface for managing buffers
+		filename-and-process)))) ; [built-in] Powerful interface for managing buffers
 
 (use-package uniquify
   :ensure nil
@@ -507,8 +504,6 @@
   :ensure nil
   :config
   (let ((map outline-minor-mode-map))
-    (define-key map (kbd "C-<tab>") #'outline-cycle)
-    (define-key map (kbd "<backtab>") #'outline-cycle-buffer) ; S-TAB
     (define-key map (kbd "C-c C-n") #'outline-next-visible-heading)
     (define-key map (kbd "C-c C-p") #'outline-previous-visible-heading)
     (define-key map (kbd "C-c C-f") #'outline-forward-same-level)
