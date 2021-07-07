@@ -333,15 +333,25 @@
   :commands vterm
   :config
   (setq vterm-max-scrollback 10000))
-(use-package esh-autosuggest);company for eshell
+
+(use-package esh-autosuggest
+  :after eshell) ;company for eshell
+
 (use-package em-alias
   :ensure nil
+  :after eshell
   :config
   (add-hook 'eshell-mode-hook
 	    (lambda ()
 	      (eshell/alias "e" "find-file $1")
 	      (eshell/alias "ee" "find-file-other-window $1"))))
-(use-package xterm-color)
+
+(use-package fish-completion
+  :after eshell
+  :if (executable-find "fish")
+  :config
+  (global-fish-completion-mode))
+
 
 ;;; LANGS
 (use-package fennel-mode)
