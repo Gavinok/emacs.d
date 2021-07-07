@@ -195,6 +195,7 @@
     (setq org-directory "~/storage/shared/Documents/org")
   (setq org-directory "~/Documents/org"))
 (use-package org
+  :pin org
   :ensure org-plus-contrib
   :commands (org-capture org-agenda)
   :bind (("C-c y" . org-store-link)
