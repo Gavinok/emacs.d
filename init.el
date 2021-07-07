@@ -396,6 +396,7 @@
 ;;; BUFFER MANAGMENT
 (use-package ibuffer
   :ensure nil
+  :bind ("C-x C-b" . ibuffer)
   :hook (ibuffer-mode . hl-line-mode)
   :config
   (setq ibuffer-expert t)
