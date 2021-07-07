@@ -545,11 +545,6 @@
 
   (add-hook 'dired-mode-hook 'dired-omit-mode)
   (add-hook 'dired-mode-hook 'dired-hide-details-mode)
-;;;;; vim vinigar style
-  (evil-collection-define-key 'normal 'dired-mode-map
-    "-" 'dired-up-directory)
-  (define-key  evil-normal-state-map (kbd "-") (lambda () (interactive)
-						 (dired ".")))
 ;;;;; xdg-open integration
   (require 'dired-x)
   (defun gv/dired-xdg-open ()
