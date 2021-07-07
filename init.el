@@ -354,8 +354,10 @@
 
 
 ;;; LANGS
-(use-package fennel-mode)
-(use-package racket-mode)
+(use-package fennel-mode
+  :mode "\\.fnl\\'")
+(use-package racket-mode
+  :mode "\\.rkt\\'")
 
 ;;; LSP
 (use-package eglot
