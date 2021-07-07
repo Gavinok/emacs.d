@@ -81,12 +81,18 @@
   (evil-define-key 'normal   'global (kbd "(")         'evil-previous-open-paren)
   (evil-define-key 'normal   'global (kbd ")")         'evil-next-close-paren)
   (evil-define-key 'operator 'global (kbd "(")         'evil-previous-open-paren)
-  (evil-define-key 'operator 'global (kbd ")")         'evil-previous-close-paren))
+  (evil-define-key 'operator 'global (kbd ")")         'evil-previous-close-paren)
+;;;;; vim vinigar style
+  (define-key  evil-normal-state-map (kbd "-") (lambda () (interactive)
+						 (dired ".")))
+  )
 
-;; evil mode in other modes live viewing pdfs
-(use-package  evil-collection
+(use-package evil-collection
   :config
-  (evil-collection-init))
+  (evil-collection-init)
+  ;; Dired
+  (evil-collection-define-key 'normal 'dired-mode-map
+    "-" 'dired-up-directory))
 
 ;; Enable Commentary
 (use-package evil-commentary
