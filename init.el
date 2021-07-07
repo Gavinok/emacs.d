@@ -196,16 +196,16 @@
   (setq org-directory "~/Documents/org"))
 (use-package org
   :ensure org-plus-contrib
+  :commands (org-capture org-agenda)
+  :bind (("C-c y" . org-store-link)
+	 ("C-c c" . org-capture)
+	 ("C-c a" . org-agenda))
   :config
 ;;;; Archive Completed Tasks
   (defun my-org-archive-done-tasks ()
     (interactive)
       (org-map-entries 'org-archive-subtree "/DONE" 'file)
       (org-map-entries 'org-archive-subtree "/CANCELLED" 'file))
-;;;; Bindings
-  (evil-define-key 'normal 'global (kbd "<leader>y") 'org-store-link)
-  (evil-define-key 'normal 'global (kbd "gA") 'org-agenda)
-  (evil-define-key 'normal 'global (kbd "gC") 'org-capture)
 ;;;; Better defaults 
   (setq org-ellipsis " ▾"
 	org-hide-emphasis-markers t
