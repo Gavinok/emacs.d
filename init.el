@@ -54,7 +54,10 @@
 
 ;;; EVIL MODE
 ;; Vim style undo
-(use-package undo-fu)
+(use-package undo-fu
+  :init (global-unset-key (kbd "C-/"))
+  :bind (( "C-/" . undo-fu-only-undo)
+	 ("C-?" . undo-fu-only-redo)))
 (use-package undo-fu-session
   :after undo-fu
   :init
