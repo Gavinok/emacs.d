@@ -251,20 +251,20 @@
 ;;;; Capture
   (setq org-default-notes-file (concat org-directory "/refile.org"))
   (setq org-capture-templates
-	'(("t" "Todo" entry (file (concat org-directory "/refile.org"))
+	'(("t" "Todo" entry (file (lambda () (concat org-directory "/refile.org")))
 	   "* TODO %?\nDEADLINE: %T\n  %a")
-	  ("m" "Meeting" entry (file+headline (concat org-directory "/Work.org") "Meetings")
+	  ("m" "Meeting" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
 	   "* Meeting with  %?\nSCHEDULED: %T\n")
-	  ("r" "Refund" entry (file+olp (concat org-directory "/Work.org")
+	  ("r" "Refund" entry (file+olp (lambda () (concat org-directory "/Work.org"))
 					"Work" "Refunds")
 	   "* TODO Refund %?\n%?  %a\n")
-	  ("w" "Waitlist" entry (file+olp (concat org-directory "/Work.org")
+	  ("w" "Waitlist" entry (file+olp (lambda () (concat org-directory "/Work.org"))
 					  "Work" "Waitlist")
 	   "* %?\n%? %a\n")
-	  ("v" "Video Idea" entry (file+olp (concat org-directory "/youtube.org")
+	  ("v" "Video Idea" entry (file+olp (lambda () (concat org-directory "/youtube.org"))
 					    "YouTube" "Video Ideas")
 	   "* %?\n%? %a\n")
-	  ("c" "Cool Thing" entry (file+datetree (concat org-directory "/archive.org"))
+	  ("c" "Cool Thing" entry (file+datetree (lambda () (concat org-directory "/archive.org")))
 	   "* %?\nEntered on %U\n  %i\n  %a")))
 ;;;; Refile targets
   (setq org-refile-targets
