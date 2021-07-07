@@ -314,8 +314,8 @@
 
 ;;; Git
 (use-package magit
-  :config
-  (evil-define-key 'normal 'global (kbd "Q") 'magit))
+  :bind ("C-c m" . magit)
+  :commands magit)
 (use-package git-gutter
   :config
   (global-git-gutter-mode +1))
