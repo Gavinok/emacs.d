@@ -143,8 +143,7 @@
   (marginalia-mode))
 
 (use-package consult
-  :after vertico
-  :bind (("C-s" . consult-line)
+  :bind (("C-c C-s" . consult-line)
 	 ("C-M-l" . consult-imenu)
 	 ("C-M-j" . persp-switch-to-buffer*)
 	 :map minibuffer-local-map)
