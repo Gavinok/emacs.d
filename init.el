@@ -153,6 +153,10 @@
   (add-hook 'completion-setup-hook #'hl-line-mode))
 (use-package affe
   :after orderless
+  :bind (("C-c o" . gv/notegrep)
+	 ("C-c f" . affe-find)
+	 ("C-c g" . affe-grep))
+  :commands (affe-grep affe-find)
   :config
   ;; only exclude git files
   (setq affe-find-command "find  -not -path '*/\\.nnn*' -not -path '*/\\.git*' -type f")
@@ -164,10 +168,7 @@
   (consult-customize affe-grep :preview-key (kbd "M-."))
   (defun gv/notegrep ()
     (interactive)
-    (affe-grep org-directory))
-  (evil-define-key 'normal 'global (kbd "gO") 'gv/notegrep)
-  (evil-define-key 'normal 'global (kbd "<leader>g") 'affe-grep)
-  (evil-define-key 'normal 'global (kbd "<leader>f") 'affe-find))
+    (affe-grep org-directory)))
 
 ;; THEMEING
  (use-package ujelly-theme
