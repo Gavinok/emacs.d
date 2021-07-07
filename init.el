@@ -187,10 +187,8 @@
 (use-package writegood-mode
   :hook (flyspell-mode . writegood-mode))
 (use-package flyspell-correct
-  :hook ((org-mode mu4e-compose-mode mail-mode git-commit-mode) . turn-on-flyspell)
-  :config
-  (evil-define-key 'normal 'global (kbd "<backspace>")
-    'flyspell-correct-previous))
+  :bind ("C-c DEL" . flyspell-correct-previous)
+  :hook ((org-mode mu4e-compose-mode mail-mode git-commit-mode) . turn-on-flyspell))
 
 ;;; ORG
 (use-package org
