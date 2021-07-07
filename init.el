@@ -515,6 +515,9 @@
   :bind (("C-<tab>" . bicycle-cycle)
 	 ("<backtab>" . bicycle-cycle-global)))
 
+(use-package outline-minor-faces
+  :hook (outline-minor-mode . outline-minor-faces-add-font-lock-keywords))
+
 ;;;; Setup Folding For Programming
 (use-package prog-mode
   :ensure nil
