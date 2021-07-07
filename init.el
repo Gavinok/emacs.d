@@ -297,17 +297,20 @@
 ;;;; Better Looking Bullets
 (use-package org-superstar
   :if (display-graphic-p)
-  :after org
   :hook (org-mode . org-superstar-mode))
+
 ;;;; Templates
 (use-package org-tempo
   :ensure nil
+  :after org
   :config
   (add-to-list 'org-structure-template-alist '("sh"  . "src sh"))
   (add-to-list 'org-structure-template-alist '("el"  . "src emacs-lisp"))
   (add-to-list 'org-structure-template-alist '("vim"  . "src vim")))
 ;;;; Indentation
-(require 'org-indent)
+(use-package org-indent
+  :ensure nil
+  :after org)
 
 ;;; Git
 (use-package magit
