@@ -512,10 +512,8 @@
     (define-key map (kbd "C-c C-o") #'outline-hide-other)
     (define-key map (kbd "C-c C-u") #'outline-up-heading)))
 (use-package bicycle
-  :after outline
-  :config
-  (evil-define-minor-mode-key 'normal 'outline-minor-mode (kbd "<tab>") 'bicycle-cycle)
-  (evil-define-minor-mode-key 'normal 'outline-minor-mode (kbd "<backtab>") 'bicycle-cycle-global))
+  :bind (("C-<tab>" . bicycle-cycle)
+	 ("<backtab>" . bicycle-cycle-global)))
 
 ;;;; Setup Folding For Programming
 (use-package prog-mode
