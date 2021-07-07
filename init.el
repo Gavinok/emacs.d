@@ -191,6 +191,9 @@
   :hook ((org-mode mu4e-compose-mode mail-mode git-commit-mode) . turn-on-flyspell))
 
 ;;; ORG
+(if gv/is-termux
+    (setq org-directory "~/storage/shared/Documents/org")
+  (setq org-directory "~/Documents/org"))
 (use-package org
   :ensure org-plus-contrib
   :config
@@ -247,20 +250,20 @@
 ;;;; Capture
   (setq org-default-notes-file (concat org-directory "/refile.org"))
   (setq org-capture-templates
-	'(("t" "Todo" entry (file "~/Documents/org/refile.org")
+	'(("t" "Todo" entry (file (concat org-directory "/refile.org"))
 	   "* TODO %?\nDEADLINE: %T\n  %a")
-	  ("m" "Meeting" entry (file+headline "~/Documents/org/Work.org" "Meetings")
+	  ("m" "Meeting" entry (file+headline (concat org-directory "/Work.org") "Meetings")
 	   "* Meeting with  %?\nSCHEDULED: %T\n")
-	  ("r" "Refund" entry (file+olp "~/Documents/org/Work.org"
+	  ("r" "Refund" entry (file+olp (concat org-directory "/Work.org")
 					"Work" "Refunds")
 	   "* TODO Refund %?\n%?  %a\n")
-	  ("w" "Waitlist" entry (file+olp "~/Documents/org/Work.org"
+	  ("w" "Waitlist" entry (file+olp (concat org-directory "/Work.org")
 					  "Work" "Waitlist")
 	   "* %?\n%? %a\n")
-	  ("v" "Video Idea" entry (file+olp "~/Documents/org/youtube.org"
+	  ("v" "Video Idea" entry (file+olp (concat org-directory "/youtube.org")
 					    "YouTube" "Video Ideas")
 	   "* %?\n%? %a\n")
-	  ("c" "Cool Thing" entry (file+datetree "~/Documents/org/archive.org")
+	  ("c" "Cool Thing" entry (file+datetree (concat org-directory "/archive.org"))
 	   "* %?\nEntered on %U\n  %i\n  %a")))
 ;;;; Refile targets
   (setq org-refile-targets
@@ -278,13 +281,12 @@
 (use-package org-contacts
   :ensure nil
   :after org
-  :custom (org-contacts-files '("~/Documents/org/contacts.org")))
+  :custom (org-contacts-files '((concat org-directory "/contacts.org"))))
 ;;;; Drag And Drop
 (use-package org-download
   :if (not gv/is-termux)
   :hook (dired-mode . org-download-enable)
   :init
-  (setq org-directory "~/Documents/org")
   (setq org-agenda-files (seq-filter (lambda (x) (not (string-match "completed.org" x)))
 				     (directory-files-recursively org-directory "\\.org$")))
   (setq-default org-download-screenshot-method "gnome-screenshot -a -f %s")
@@ -648,7 +650,7 @@
 		  (mu4e-trash-folder                . "/coach/[Gmail].Trash")))))
 ;;;; Contacts
   (setq mail-personal-alias-file  "~/.config/mutt/aliases")
-  (setq mu4e-org-contacts-file  "~/Documents/org/contacts.org")
+  (setq mu4e-org-contacts-file  (concat org-directory "/contacts.org"))
   (add-to-list 'mu4e-headers-actions
 	       '("org-contact-add" . mu4e-action-add-org-contact) t)
   (add-to-list 'mu4e-view-actions
