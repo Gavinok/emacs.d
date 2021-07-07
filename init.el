@@ -64,10 +64,9 @@
   (global-undo-fu-session-mode))
 
 (use-package  evil
-  :after undo-fu
   :init
-  (setq evil-want-Y-yank-to-eol t)
   (setq evil-want-keybinding nil)
+  (setq evil-want-Y-yank-to-eol t)
   (setq evil-split-window-below t)
   (setq evil-split-window-right t)
   (setq evil-undo-system 'undo-fu)
