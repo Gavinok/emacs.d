@@ -150,9 +150,7 @@
   :custom
   (completion-in-region-function #'consult-completion-in-region)
   :config
-  (add-hook 'completion-setup-hook #'hl-line-mode)
-  (evil-define-key 'normal 'global (kbd "<leader>j") 'consult-imenu))
-
+  (add-hook 'completion-setup-hook #'hl-line-mode))
 (use-package affe
   :after orderless
   :config
