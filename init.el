@@ -34,7 +34,7 @@
   (async-bytecomp-package-mode 1)
   :custom (async-bytecomp-allowed-packages '(all)))
 
-;;; My Stuff
+;;; MY STUFF
 (setq gv/is-termux
       (string-suffix-p
        "Android" (string-trim (shell-command-to-string "uname -a"))))
