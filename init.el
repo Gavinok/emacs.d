@@ -566,6 +566,7 @@
   (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")) ; add mu4e to be loaded
 (use-package mu4e
   :if (not gv/is-termux)
+  :commands mu4e
   :ensure nil
   :config
   ;; This is set to 't' to avoid mail syncing issues when using mbsync
