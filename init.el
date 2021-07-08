@@ -559,9 +559,7 @@
       (message "Opening %s..." file)
       (call-process "xdg-open" nil 0 nil file)
       (message "Opening %s done" file)))
-  (evil-collection-define-key 'normal 'dired-mode-map "O" 'gv/dired-xdg-open)
-  (define-key dired-mode-map (kbd "O") 'gv/dired-xdg-open)
-  )
+  (define-key dired-mode-map (kbd "O") 'gv/dired-xdg-open))
 
 ;;; EMAIL
 (unless gv/is-termux
