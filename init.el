@@ -192,7 +192,7 @@
 
 ;;; ORG
 (if gv/is-termux
-    (setq org-directory "~/storage/shared/Documents/org")
+    (setq org-directory "~/storage/shared/Dropbox/Documents/org")
   (setq org-directory "~/Documents/org"))
 (use-package org
   :pin org
