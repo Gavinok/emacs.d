@@ -916,7 +916,6 @@
 	       ;; value of `mode-name'
 	       ;; value of current buffer name
 	       " "
-	       "%b, "
 	       '(:eval (if (eq 'emacs evil-state) "  " "  "))
 	       'mode-line-buffer-identification
 	       ;; value of current line number
