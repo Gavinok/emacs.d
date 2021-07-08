@@ -528,10 +528,12 @@
 ;;; EXTRA UI
 ;;;; Beacon
 (use-package beacon 
+  :defer t
   :init
   (beacon-mode 1)); Highlight cursor postion after movement
 ;;;; Display hex colors in emacs
 (use-package rainbow-mode
+  :defer t
   :init
   (rainbow-mode t))
 
