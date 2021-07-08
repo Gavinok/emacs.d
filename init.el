@@ -911,9 +911,9 @@
 ;; 		  (battery-format "[%p]" (funcall battery-status-function))
 ;; 		  'face 'org-checkbox))
 ;; 	 ))
+
 (setq-default mode-line-format
 	      (list
-	       ;; value of `mode-name'
 	       ;; value of current buffer name
 	       " "
 	       '(:eval (if (eq 'emacs evil-state) "  " "  "))
