@@ -926,10 +926,10 @@
 	       ;; major mode
 	       " (%m) "
 	       ;; spaces to align right
-	       '(:eval (propertize
-			" " 'display
-			`((space :align-to (- (+ right right-fringe right-margin)
-					      ,(+ 17 (string-width mode-name)))))))
+	       ;; '(:eval (propertize
+	       ;; 		" " 'display
+	       ;; 		`((space :align-to (- (+ right right-fringe right-margin)
+	       ;; 				      ,(+ 17 (string-width mode-name)))))))
 	       '(:eval (format-time-string "%a, %b %d %I:%M%p"))
 	       " "
 	       '(:eval (battery-format "[%p]" (funcall battery-status-function)))))
