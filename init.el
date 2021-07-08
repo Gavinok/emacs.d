@@ -977,6 +977,8 @@
 ;;;; proced [built-in] htop alternative
 (use-package proced
   :ensure nil
+  :defer t
+  :commands proced
   :config
   (setq proced-auto-update-flag t
 	proced-auto-update-interval 2
