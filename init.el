@@ -438,16 +438,32 @@
 		" "
 		(mode 16 16 :left :elide)
 		" "
-		filename-and-process)))) ; [built-in] Powerful interface for managing buffers
+		filename-and-process)))
+  (setq ibuffer-saved-filter-groups
+      '(("home"
+	 ("Qutebrowser" (name . "qutebrowser"))
+	 ("emacs-config" (or (filename . ".emacs.d")
+			     (filename . "emacs-config")))
+	 ("Org" (or (mode . org-mode)
+		    (filename . "OrgMode")))
+	 ("Web Dev" (or (mode . html-mode)
+			(mode . css-mode)))
+	 ("Magit" (name . "\*magit"))
+	 ("Help" (or (name . "\*Help\*")
+		     (name . "\*Apropos\*")
+		     (name . "\*info\*"))))))
+  (add-hook 'ibuffer-mode-hook
+	  '(lambda ()
+	     (ibuffer-switch-to-saved-filter-groups "home")))) ; [built-in] Powerful interface for managing buffers
 
-(use-package uniquify
-  :ensure nil
-  :config
-  (setq uniquify-buffer-name-style 'post-forward-angle-brackets
-	uniquify-separator " * "
-	uniquify-after-kill-buffer-p t
-	uniquify-strip-common-suffix t
-	uniquify-ignore-buffers-re "^\\*")) ; [built-in] make buffers unique with filename rather than <num>
+;; (use-package uniquify
+;;   :ensure nil
+;;   :config
+;;   (setq uniquify-buffer-name-style 'post-forward-angle-brackets
+;; 	uniquify-separator " * "
+;; 	uniquify-after-kill-buffer-p t
+;; 	uniquify-strip-common-suffix t
+;; 	uniquify-ignore-buffers-re "^\\*")) ; [built-in] make buffers unique with filename rather than <num>
 ;;; DEFAULTS
 (use-package emacs
   :ensure nil
