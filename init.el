@@ -931,6 +931,7 @@
 ; hl with c-c c-a h
 ; for help M-x pdf-tools-help RET
 (use-package pdf-tools
+  :mode "\\.pdf\\'"
   :config
   ;; pdf auto refresh
   (add-hook 'doc-view-mode-hook 'auto-revert-mode))
