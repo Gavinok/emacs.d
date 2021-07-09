@@ -82,40 +82,37 @@
   (evil-define-key 'normal   'global (kbd ")")         'evil-next-close-paren)
   (evil-define-key 'operator 'global (kbd "(")         'evil-previous-open-paren)
   (evil-define-key 'operator 'global (kbd ")")         'evil-previous-close-paren)
-;;;;; vim vinigar style
+ ;;;;; vim vinigar style
   (define-key  evil-normal-state-map (kbd "-") (lambda () (interactive)
 						 (dired ".")))
-  )
+  (use-package evil-collection
+    :config
+    (evil-collection-init)
+    ;; Dired
+    (evil-collection-define-key 'normal 'dired-mode-map
+      "-" 'dired-up-directory))
 
-(use-package evil-collection
-  :config
-  (evil-collection-init)
-  ;; Dired
-  (evil-collection-define-key 'normal 'dired-mode-map
-    "-" 'dired-up-directory))
+  ;; Enable Commentary
+  (use-package evil-commentary
+    :bind (:map evil-normal-state-map
+		("gc" . evil-commentary)))
 
-;; Enable Commentary
-(use-package evil-commentary
-  :config
-  (evil-commentary-mode 1))
+  ;; Enable Surround
+  (use-package evil-surround
+    :config
+    (global-evil-surround-mode 1))
 
-;; Enable Surround
-(use-package evil-surround
-  :config
-  (global-evil-surround-mode 1))
+  ;; Enable Lion
+  (use-package evil-lion
+    :bind (:map evil-normal-state-map
+		("gl" . evil-lion-left)
+		("gL" . evil-lion-right)))
 
-;; Enable Lion
-(use-package evil-lion
-  :config
-  (evil-lion-mode 1)
-  (evil-define-key 'normal 'global (kbd "gl") 'evil-lion-left)
-  (evil-define-key 'normal 'global (kbd "gL") 'evil-lion-right))
-
-;; Cursor Shape
-(use-package evil-terminal-cursor-changer
-  :config
-  (unless (display-graphic-p)
-    (evil-terminal-cursor-changer-activate)))
+  ;; Cursor Shape
+  (use-package evil-terminal-cursor-changer
+    :config
+    (unless (display-graphic-p)
+      (evil-terminal-cursor-changer-activate))))
 
 ;;; TERMINAL SETTINGS
 (if (display-graphic-p)
