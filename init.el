@@ -902,10 +902,6 @@
     (server-start)))
 ;;; Extras
 ;; (use-package quelpa-use-package)
-;; (use-package matrix-client
-;;   :if (not gv/is-termux)
-;;   :quelpa (matrix-client :fetcher github :repo "alphapapa/matrix-client.el"
-;;                          :files (:defaults "logo.png" "matrix-client-standalone.el.sh")))
 ;; (use-package eaf
 ;;   :unless gv/is-termux
 ;;   :load-path "~/.emacs.d/site-lisp/emacs-application-framework" ; Set to "/usr/share/emacs/site-lisp/eaf" if installed from AUR
