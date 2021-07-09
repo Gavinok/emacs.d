@@ -351,8 +351,7 @@
 ;;; VTERM AND ESHELL
 (use-package vterm
   :commands vterm
-  :config
-  (setq vterm-max-scrollback 10000))
+  :custom (vterm-max-scrollback 10000))
 
 (use-package esh-autosuggest
   :after eshell) ;company for eshell
