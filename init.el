@@ -306,7 +306,7 @@
   :custom (org-contacts-files '((concat org-directory "/contacts.org"))))
 ;;;; Drag And Drop
 (use-package org-download
-  :if (not gv/is-termux)
+  :unless gv/is-termux
   :hook (dired-mode . org-download-enable)
   :init
   (setq org-agenda-files (seq-filter (lambda (x) (not (string-match "completed.org" x)))
@@ -576,11 +576,9 @@
   (define-key dired-mode-map (kbd "O") 'gv/dired-xdg-open))
 
 ;;; EMAIL
-(unless gv/is-termux
-  (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")) ; add mu4e to be loaded
 (use-package mu4e
-  :if (not gv/is-termux)
-  :commands mu4e
+  :unless gv/is-termux
+  :load-path "/usr/share/emacs/site-lisp/mu4e"
   :ensure nil
   :config
   ;; This is set to 't' to avoid mail syncing issues when using mbsync
@@ -692,7 +690,7 @@
 (use-package password-store)
 ;;; EXWM
 (use-package exwm
-  :if (not gv/is-termux)
+  :unless gv/is-termux
   :config
 ;;;; Hooks
   (add-hook 'exwm-update-class-hook
@@ -959,7 +957,7 @@
 ;;   :quelpa (matrix-client :fetcher github :repo "alphapapa/matrix-client.el"
 ;;                          :files (:defaults "logo.png" "matrix-client-standalone.el.sh")))
 ;; (use-package eaf
-;;   :if (not gv/is-termux)
+;;   :unless gv/is-termux
 ;;   :load-path "~/.emacs.d/site-lisp/emacs-application-framework" ; Set to "/usr/share/emacs/site-lisp/eaf" if installed from AUR
 ;;   :init
 ;;   (use-package epc :defer t :ensure t)
