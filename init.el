@@ -517,21 +517,24 @@
 ;;;; Cycle Headings With Bicycle
 (use-package outline
   :ensure nil
-  :config
-  (let ((map outline-minor-mode-map))
-    (define-key map (kbd "C-c C-n") #'outline-next-visible-heading)
-    (define-key map (kbd "C-c C-p") #'outline-previous-visible-heading)
-    (define-key map (kbd "C-c C-f") #'outline-forward-same-level)
-    (define-key map (kbd "C-c C-b") #'outline-backward-same-level)
-    (define-key map (kbd "C-c C-a") #'outline-show-all)
-    (define-key map (kbd "C-c C-o") #'outline-hide-other)
-    (define-key map (kbd "C-c C-u") #'outline-up-heading)))
+  :bind (:map outline-minor-mode-map
+	      ("C-c C-n" . outline-next-visible-heading)
+	      ("C-c C-p" . outline-previous-visible-heading)
+	      ("C-c C-f" . outline-forward-same-level)
+	      ("C-c C-b" . outline-backward-same-level)
+	      ("C-c C-a" . outline-show-all)
+	      ("C-c C-o" . outline-hide-other)
+	      ("C-c C-u" . outline-up-heading)))
+
 (use-package bicycle
-  :bind (("C-<tab>" . bicycle-cycle)
-	 ("<backtab>" . bicycle-cycle-global)))
+  :bind (:map outline-minor-mode-map
+	      ("C-<tab>" . bicycle-cycle)
+	      ("<backtab>" . bicycle-cycle-global)
+	      (:map evil-normal-state-map
+		    ("<tab>" . bicycle-cycle))))
 
 (use-package outline-minor-faces
-  :hook (outline-minor-mode . outline-minor-faces-add-font-lock-keywords))
+  :hook (emacs-lisp-mode . outline-minor-faces-add-font-lock-keywords))
 
 ;;;; Setup Folding For Programming
 (use-package prog-mode
