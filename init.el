@@ -688,7 +688,7 @@
 	       '("org-contact-add" . mu4e-action-add-org-contact) t)
 ;;;; Bookmarks
   (setq mu4e-bookmarks '((:name "To Handle"
-				:query "(flag:flagged OR flag:unread OR NOT flag:replied) AND date:3m..now" :key 116)
+				:query "((flag:flagged AND (NOT flag:replied)) OR (NOT flag:seen)) AND (NOT groff)" :key 116)
 			 (:name "Today's messages"
 				:query "date:today..now" :key 118)
 			 (:name "Last 7 days"
