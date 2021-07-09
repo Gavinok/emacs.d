@@ -569,8 +569,8 @@
 ;;; DIRED
 (use-package dired
   :ensure nil
-  :custom ((dired-listing-switches "-aghoA --group-directories-first"))
   :config
+  (setq dired-listing-switches "-aghoA --group-directories-first")
 ;;;;; Hide . and .. in dired
   (setq dired-omit-files
 	(rx (or (seq bol (? ".") "#")
