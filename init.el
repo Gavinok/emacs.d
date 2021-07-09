@@ -896,6 +896,7 @@
 ;;; Server Setup
 (use-package server
   :ensure nil
+  :defer t
   :config
   (unless (server-running-p)
     (server-start)))
