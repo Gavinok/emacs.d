@@ -303,7 +303,7 @@
 (use-package org-contacts
   :ensure nil
   :after org
-  :custom (org-contacts-files '((concat org-directory "/contacts.org"))))
+  :custom (org-contacts-files (list (concat org-directory "/contacts.org"))))
 ;;;; Drag And Drop
 (use-package org-download
   :unless gv/is-termux
