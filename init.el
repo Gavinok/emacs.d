@@ -155,19 +155,17 @@
   (setq enable-recursive-minibuffers t))
 (use-package orderless
   :custom (completion-styles '(orderless)))
-
 (use-package marginalia
   :after vertico
   :custom
   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
   :init
   (marginalia-mode))
-
 (use-package consult
   :bind (("C-c C-s" . consult-line)
-	 ("C-M-l" . consult-imenu)
-	 ("C-M-j" . persp-switch-to-buffer*)
-	 :map minibuffer-local-map)
+	 ("C-M-l"   . consult-imenu)
+	 ("C-M-j"   . persp-switch-to-buffer)
+	 ("C-c h"   . consult-outline))
   :custom
   (completion-in-region-function #'consult-completion-in-region)
   :config
