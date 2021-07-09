@@ -619,13 +619,6 @@
 ;;;; Attachment reminders
   (use-package message-attachment-reminder)
 
-  ;; (use-package message-are-flowing
-  ;;   :config
-  ;;   (with-eval-after-load "mu4e"
-  ;;   (add-hook 'mu4e-compose-mode-hook 'messages-are-flowing-use-and-mark-hard-newlines))
-  ;;   (with-eval-after-load "message"
-  ;;     (add-hook 'message-mode-hook 'messages-are-flowing-use-and-mark-hard-newlines)))
-
 ;;;; mbsync and msmtp setup
   (setq mu4e-get-mail-command "mailsync"
 	sendmail-program "/usr/bin/msmtp"
