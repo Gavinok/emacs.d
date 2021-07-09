@@ -871,75 +871,13 @@
   :defer t) ; help emacs handle large files to avoid exwm from locking
 
 ;;; MODELINE
-;; (use-package mini-modeline
-;;   :if (not gv/is-termux)
-;;   :init
-;;   (require 'battery)
-;;   (setq mini-modeline-r-format
-;; 	(list
-;; 	 ;; value of `mode-name'
-;; 	 ;; value of current buffer name
-;; 	 '(:eval (propertize "%b, " 'face 'font-lock-variable-name-face))
-;; 	 '(:eval (propertize (if (eq 'emacs evil-state) "  " "  ")
-;; 			     'face 'epa-validity-high))
-
-;; 	 ;; value of current line number
-;; 	 '(:eval (propertize " %l,%c" 'face 'font-lock-comment-face))
-;; 	 '(:eval (propertize " %p" 'face 'font-lock-comment-face))
-;; 	 " "
-;; 	 ;; major mode
-;; 	 '(:eval (propertize " (%m) " 'face 'font-lock-comment-face))
-;; 	 ;; ;; spaces to align right
-;; 	 ;; '(:eval (propertize
-;; 	 ;; 		" " 'display
-;; 	 ;; 		`((space :align-to (- (+ right right-fringe right-margin)
-;; 	 ;; 				      ,(+ 10 (string-width mode-name)))))))
-;; 	 '(:eval (propertize
-;; 		  (format-time-string "%a, %b %d %I:%M%p")
-;; 		  'face 'change-log-list))
-;; 	 " "
-;; 	 '(:eval (propertize
-;; 		  (battery-format "[%p]" (funcall battery-status-function))
-;; 		  'face 'org-checkbox))
-;; 	 "      "))
-;;   :config
-;;   (mini-modeline-mode t))
-
-(require 'battery)
-;; (setq-default mode-line-format
-;; 	(list
-;; 	 ;; value of `mode-name'
-;; 	 ;; value of current buffer name
-;; 	 " "
-;; 	 '(:eval (propertize "%b, " 'face 'font-lock-variable-name-face))
-;; 	 '(:eval (propertize (if (eq 'emacs evil-state) "  " "  ")
-;; 			     'face 'epa-validity-high))
-
-;; 	 ;; value of current line number
-;; 	 '(:eval (propertize " %l,%c" 'face 'font-lock-comment-face))
-;; 	 '(:eval (propertize " %p" 'face 'font-lock-comment-face))
-;; 	 " "
-;; 	 ;; major mode
-;; 	 '(:eval (propertize " (%m) " 'face 'font-lock-comment-face))
-;; 	 ;; spaces to align right
-;; 	 '(:eval (propertize
-;; 			" " 'display
-;; 			`((space :align-to (- (+ right right-fringe right-margin)
-;; 					      ,(+ 17 (string-width mode-name)))))))
-;; 	 '(:eval (propertize
-;; 		  (format-time-string "%a, %b %d %I:%M%p")
-;; 		  'face 'change-log-list))
-;; 	 " "
-;; 	 '(:eval (propertize
-;; 		  (battery-format "[%p]" (funcall battery-status-function))
-;; 		  'face 'org-checkbox))
-;; 	 ))
-
+(unless gv/is-termux
+  (require 'battery)
 (setq-default mode-line-format
 	      (list
 	       ;; value of current buffer name
 	       " "
-	       '(:eval (if (eq 'emacs evil-state) "  " "  "))
+	       ;; '(:eval (if (eq 'emacs evil-state) "  " "  "))
 	       'mode-line-buffer-identification
 	       ;; value of current line number
 	       " %l,%c"
@@ -954,7 +892,7 @@
 	       ;; 				      ,(+ 17 (string-width mode-name)))))))
 	       '(:eval (format-time-string "%a, %b %d %I:%M%p"))
 	       " "
-	       '(:eval (battery-format "[%p]" (funcall battery-status-function)))))
+	       '(:eval (battery-format "[%p]" (funcall battery-status-function))))))
 ;;; Server Setup
 (use-package server
   :ensure nil
