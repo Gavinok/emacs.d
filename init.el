@@ -337,10 +337,9 @@
 (use-package magit
   :bind ("C-c m" . magit)
   :commands magit)
-(use-package git-gutter
-  :config
-  (global-git-gutter-mode +1))
-
+(use-package diff-hl
+  :defer t
+  :init (global-diff-hl-mode))
 ;;; Completion
 (use-package company
   :defer t
