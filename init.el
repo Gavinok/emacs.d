@@ -802,7 +802,7 @@
 	   (,(kbd "C-x C-b") . ibuffer)
 	   (,(kbd "s-B") . ibuffer)
 	   ([?\s-=] . (lambda ()
-			(interactive )
+			(interactive)
 			(start-process-shell-command "Connections" nil
 						     "dmenu_connection_manager.sh")))
 	   ([?\s-p] . (lambda ()
