@@ -369,10 +369,8 @@
 
 (use-package fish-completion
   :after eshell
-  :if (executable-find "fish")
-  :config
-  (global-fish-completion-mode))
-
+  :when (executable-find "fish")
+  :config (global-fish-completion-mode))
 
 ;;; LANGS
 (use-package fennel-mode
