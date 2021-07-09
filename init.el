@@ -190,17 +190,17 @@
     (affe-grep org-directory)))
 
 ;; THEMEING
- (use-package ujelly-theme
-   :ensure nil
-   :config
-   (load-theme 'ujelly t)
-   (set-frame-parameter (selected-frame) 'alpha '(90 90))
-   (add-to-list 'default-frame-alist '(alpha 90 90))
-   (set-cursor-color "#dc322f")
-   (set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
+(use-package ujelly-theme
+  :ensure nil
+  :config
+  (load-theme 'ujelly t)
+  (set-frame-parameter (selected-frame) 'alpha '(90 90))
+  (add-to-list 'default-frame-alist '(alpha 90 90))
+  (set-cursor-color "#dc322f")
+  (set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
 
-   ;; (set-face-attribute 'mode-line nil :foreground "#bdc3ce" :background "#000")
-   (set-face-attribute 'default nil :background "#000" :foreground "#eee"))
+  ;; (set-face-attribute 'mode-line nil :foreground "#bdc3ce" :background "#000")
+  (set-face-attribute 'default nil :background "#000" :foreground "#eee"))
 
 ;;; WRITING
 (use-package writegood-mode
