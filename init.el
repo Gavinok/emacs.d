@@ -63,7 +63,25 @@
   :init
   (global-undo-fu-session-mode))
 
-(use-package  evil
+(use-package crux
+  :bind ("C-c C-e" . crux-eval-and-replace))
+
+;; (use-package god-mode
+;;   :bind (("<escape>" . god-local-mode))
+;;   :config
+;;   (defun my-god-mode-update-cursor-type ()
+;;     (setq cursor-type (if (or god-local-mode buffer-read-only) 'box 'bar)))
+;;   (add-hook 'post-command-hook #'my-god-mode-update-cursor-type))
+
+;; (use-package ciel
+;;   :bind (("C-c C-i" . ciel-ci)
+;; 	 ("C-c C-a" . ciel-co)))
+
+;; (use-package jumplist
+;;   :bind (("C-<" . jumplist-previous)
+;; 	 ("C->" . jumplist-next)))
+
+(use-package evil
   :init
   (setq evil-want-keybinding nil)
   (setq evil-want-Y-yank-to-eol t)
