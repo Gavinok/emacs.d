@@ -405,6 +405,8 @@
   ;; Cannot use :hook because 'project-find-functions does not end in -hook
   ;; Cannot use :init (must use :config) because otherwise
   ;; project-find-functions is not yet initialized.
+  :ensure nil
+  :defer t
   :config
   (defun my-git-project-finder (dir)
     "Integrate .git project roots."
