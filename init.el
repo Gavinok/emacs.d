@@ -317,7 +317,7 @@
   :after org)
 ;;;; Better Looking Bullets
 (use-package org-superstar
-  :if (display-graphic-p)
+  :when (display-graphic-p)
   :hook (org-mode . org-superstar-mode))
 
 ;;;; Templates
