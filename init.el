@@ -935,7 +935,8 @@
   :config
   ;; pdf auto refresh
   (add-hook 'doc-view-mode-hook 'auto-revert-mode))
-(use-package transmission)
+(use-package transmission
+  :defer t)
 ;;;; proced [built-in] htop alternative
 (use-package proced
   :ensure nil
