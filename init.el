@@ -272,6 +272,8 @@
   (setq org-capture-templates
 	'(("t" "Todo" entry (file (lambda () (concat org-directory "/refile.org")))
 	   "* TODO %?\nDEADLINE: %T\n  %a")
+	  ("M" "movie" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
+	   "* Meeting with  %?\nSCHEDULED: %T\n")
 	  ("m" "Meeting" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
 	   "* Meeting with  %?\nSCHEDULED: %T\n")
 	  ("r" "Refund" entry (file+olp (lambda () (concat org-directory "/Work.org"))
