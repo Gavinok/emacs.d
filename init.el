@@ -697,7 +697,8 @@
 				:query "mime:image/*" :key 112)))) ; email client depends on mu command
 
 ;;; PASS
-(use-package password-store)
+(use-package password-store
+  :defer t)
 ;;; EXWM
 (use-package exwm
   :unless gv/is-termux
