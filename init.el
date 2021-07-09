@@ -343,7 +343,7 @@
 
 ;;; Completion
 (use-package company
-  :hook ((mu4e-compose-mode org-mode) . company-mode) ;org files
+  :defer t
   :config
   (global-company-mode nil)
   (setq company-idle-delay 0.1
