@@ -946,20 +946,3 @@
 	proced-auto-update-interval 2
 	proced-decend t))
 ;;;; stuff to ignore
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   '("3a9f65e0004068ecf4cf31f4e68ba49af56993c20258f3a49e06638c825fbfb6" "2b502f6e3bf0cba42fe7bf83a000f2d358a7020a7780a8682fcfed0c9dbffb5f" default))
- '(org-agenda-files
-   '("/home/gavinok/Documents/org/2021_canoekids_waitlist.org" "/home/gavinok/Documents/org/2021_flatwaternorth_executive_meeting.org" "/home/gavinok/Documents/org/2021_june_flatwaternorth_executive_meeting.org" "/home/gavinok/Documents/org/2021_may_flatwaternorth_executive_meeting.org" "/home/gavinok/Documents/org/Athletes.org" "/home/gavinok/Documents/org/Practices.org" "/home/gavinok/Documents/org/Work.org" "/home/gavinok/Documents/org/archive.org" "/home/gavinok/Documents/org/backlog.org" "/home/gavinok/Documents/org/c.org" "/home/gavinok/Documents/org/contacts.org" "/home/gavinok/Documents/org/divisionals_meeting.org" "/home/gavinok/Documents/org/elm.org" "/home/gavinok/Documents/org/fennel.org" "/home/gavinok/Documents/org/guile.org" "/home/gavinok/Documents/org/hy.org" "/home/gavinok/Documents/org/interviews_flatwaternorth.org" "/home/gavinok/Documents/org/janet.org" "/home/gavinok/Documents/org/joker.org" "/home/gavinok/Documents/org/june_ptso.org" "/home/gavinok/Documents/org/mylife.org" "/home/gavinok/Documents/org/nationals_prep.org" "/home/gavinok/Documents/org/parents_meeting.org" "/home/gavinok/Documents/org/racket.org" "/home/gavinok/Documents/org/rec.org" "/home/gavinok/Documents/org/refile.org" "/home/gavinok/Documents/org/reminders.org" "/home/gavinok/Documents/org/results.org" "/home/gavinok/Documents/org/roadshow.org" "/home/gavinok/Documents/org/staff_orientation.org" "/home/gavinok/Documents/org/staff_orientation_day.org" "/home/gavinok/Documents/org/today.org" "/home/gavinok/Documents/org/youtube.org" "/home/gavinok/Documents/org/yukon_river_quest.org"))
- '(package-selected-packages
-   '(bicycle password-store vlf system-packages popwin exwm-edit forecast xterm-color writegood-mode vterm vs-dark-theme volume vimrc-mode vertico undo-fu-session undo-fu ujelly-theme tron-legacy-theme transmission symon rainbow-mode racket-mode quelpa-use-package quasi-monochrome-theme pdf-tools org-superstar org-plus-contrib org-download org-alert orderless modus-themes mini-modeline message-attachment-reminder matrix-client marginalia magit lua-mode keycast git-gutter flyspell-correct fennel-mode exwm-mff exwm evil-terminal-cursor-changer evil-surround evil-lion evil-commentary evil-collection esh-autosuggest epc eglot edwina eaf dired-open beacon all-the-icons affe ace-window)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
