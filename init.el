@@ -510,8 +510,7 @@
   (add-to-list 'same-window-buffer-names "*Process List*")) ; General emacs settings
 
 (use-package savehist
-  :init
-  (savehist-mode t)) ; Save command history
+  :init (savehist-mode t)) ; Save command history
 
 ;;; FOLDING
 ;;;; Cycle Headings With Bicycle
@@ -547,13 +546,11 @@
 ;;;; Beacon
 (use-package beacon 
   :defer t
-  :init
-  (beacon-mode 1)); Highlight cursor postion after movement
+  :init (beacon-mode 1)); Highlight cursor postion after movement
 ;;;; Display hex colors in emacs
 (use-package rainbow-mode
   :defer t
-  :init
-  (rainbow-mode t))
+  :init (rainbow-mode t))
 
 ;;; DIRED
 (use-package dired
