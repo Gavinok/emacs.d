@@ -178,7 +178,10 @@
   :init
   (marginalia-mode))
 (use-package consult
-  :bind (("C-c C-s" . consult-line)
+
+
+  :bind (("C-s"     . consult-isearch)
+	 ("C-S-S"   . consult-line)
 	 ("C-M-l"   . consult-imenu)
 	 ("C-M-j"   . persp-switch-to-buffer)
 	 ("C-c h"   . consult-outline))
