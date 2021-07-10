@@ -488,7 +488,7 @@
   :ensure nil
   :config
   (set-frame-font "Liberation Mono 14" nil t)
-  ;;;; Backups
+;;;; Backups
   (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
 	vc-make-backup-files t
 	version-control t
@@ -496,13 +496,13 @@
 	kept-new-versions 10
 	delete-old-versions t
 	backup-by-copying t)
-  ;;;; Defaults
+;;;; Defaults
   (setq delete-by-moving-to-trash t
 	create-lockfiles nil
 	auto-save-default nil
 	inhibit-startup-screen t
 	ring-bell-function 'ignore)
-  ;;;; UTF-8
+;;;; UTF-8
   (prefer-coding-system 'utf-8)
   (setq locale-coding-system 'utf-8)
   (set-language-environment "UTF-8")
@@ -510,7 +510,7 @@
   (set-terminal-coding-system 'utf-8)
   (set-keyboard-coding-system 'utf-8)
   (set-selection-coding-system 'utf-8)
-  ;;;; Remove Extra Ui
+;;;; Remove Extra Ui
   (blink-cursor-mode -1)
   (menu-bar-mode -1)               ; To disable the menu bar, place the following line in your .emacs file:
   (unless gv/is-termux
@@ -533,10 +533,11 @@
 	  try-expand-line))
   (define-key (current-global-map) [remap dabbrev-expand] 'hippie-expand)
   (add-hook 'emacs-lisp-mode-hook 'prettify-symbols-mode)
-  ;; Vim like scrolling
+;;;; Vim like scrolling
   (setq scroll-step            1
 	scroll-conservatively  10000)
   ;;;; Show All These In The Same Window
+;;;; Show All These In The Same Window
   (add-to-list 'same-window-buffer-names "*SQL*")
   (add-to-list 'same-window-buffer-names "*Help*")
   (add-to-list 'same-window-buffer-names "*Apropos*")
