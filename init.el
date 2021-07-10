@@ -45,7 +45,8 @@
   (async-shell-command
    (concat "tts.sh '" (x-get-clipboard)"'")))
 
-(defun sudo-save ()
+
+(defun gv/sudo-save ()
   "save this file as super user"
   (interactive)
   (if (not buffer-file-name)
