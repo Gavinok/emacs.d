@@ -862,6 +862,8 @@
 (use-package winner
   :ensure nil
   :config
+  (exwm-input-set-key (kbd "s-/") 'winner-undo)
+  (exwm-input-set-key (kbd "s-?") 'winner-redo)
   (exwm-input-set-key (kbd "s-u") 'winner-undo)
   (exwm-input-set-key (kbd "s-r") 'winner-redo)
   :init
