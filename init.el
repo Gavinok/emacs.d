@@ -77,64 +77,76 @@
     (setq cursor-type (if (or god-local-mode buffer-read-only) 'box 'bar)))
   (add-hook 'post-command-hook #'my-god-mode-update-cursor-type))
 
-;; (use-package ciel
-;;   :bind (("C-c C-i" . ciel-ci)
-;; 	 ("C-c C-a" . ciel-co)))
+(use-package ciel
+  :bind (("C-c C-i" . ciel-ci)
+	 ("C-c C-y" . ciel-co)))
 
-;; (use-package jumplist
-;;   :bind (("C-<" . jumplist-previous)
-;; 	 ("C->" . jumplist-next)))
+(use-package multiple-cursors
+  :bind (("C-c p" . mc/mark-previous-like-this)
+	 ("C-c n" . mc/mark-next-like-this)))
 
-(use-package evil
-  :init
-  (setq evil-want-keybinding nil)
-  (setq evil-want-Y-yank-to-eol t)
-  (setq evil-split-window-below t)
-  (setq evil-split-window-right t)
-  (setq evil-undo-system 'undo-fu)
+(use-package jumplist
+  :bind (("C-<" . jumplist-previous)
+	 ("C->" . jumplist-next))
   :config
-  (evil-mode 1)
-  (evil-set-leader 'normal " ")
-  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-  (evil-define-key 'normal   'global (kbd "<leader>t") 'capitalize-dwim)
-  (evil-define-key 'visual   'global (kbd "<leader>t") 'capitalize-dwim)
-  (evil-define-key 'insert   'global (kbd "M-n")       'hippie-expand)
-  ;; Better lisp bindings
-  (evil-define-key 'normal   'global (kbd "(")         'evil-previous-open-paren)
-  (evil-define-key 'normal   'global (kbd ")")         'evil-next-close-paren)
-  (evil-define-key 'operator 'global (kbd "(")         'evil-previous-open-paren)
-  (evil-define-key 'operator 'global (kbd ")")         'evil-previous-close-paren)
- ;;;;; vim vinigar style
-  (define-key  evil-normal-state-map (kbd "-") (lambda () (interactive)
-						 (dired ".")))
-  (use-package evil-collection
-    :config
-    (evil-collection-init)
-    ;; Dired
-    (evil-collection-define-key 'normal 'dired-mode-map
-      "-" 'dired-up-directory))
+  (custom-set-variables
+    '(jumplist-hook-commands
+      '(consult-line consult-isearch consult-buffer
+		   dired dired-jump
+		   isearch-forward end-of-buffer beginning-of-buffer
+		   god-local-mode
+		   find-file))))
 
-  ;; Enable Commentary
-  (use-package evil-commentary
-    :bind (:map evil-normal-state-map
-		("gc" . evil-commentary)))
+;; (use-package evil
+;;   :init
+;;   (setq evil-want-keybinding nil)
+;;   (setq evil-want-Y-yank-to-eol t)
+;;   (setq evil-split-window-below t)
+;;   (setq evil-split-window-right t)
+;;   (setq evil-undo-system 'undo-fu)
+;;   :config
+;;   (evil-mode 1)
+;;   (evil-set-leader 'normal " ")
+;;   (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+;;   (evil-define-key 'normal   'global (kbd "<leader>t") 'capitalize-dwim)
+;;   (evil-define-key 'visual   'global (kbd "<leader>t") 'capitalize-dwim)
+;;   (evil-define-key 'insert   'global (kbd "M-n")       'hippie-expand)
+;;   ;; Better lisp bindings
+;;   (evil-define-key 'normal   'global (kbd "(")         'evil-previous-open-paren)
+;;   (evil-define-key 'normal   'global (kbd ")")         'evil-next-close-paren)
+;;   (evil-define-key 'operator 'global (kbd "(")         'evil-previous-open-paren)
+;;   (evil-define-key 'operator 'global (kbd ")")         'evil-previous-close-paren)
+;;  ;;;;; vim vinigar style
+;;   (define-key  evil-normal-state-map (kbd "-") (lambda () (interactive)
+;; 						 (dired ".")))
+;;   (use-package evil-collection
+;;     :config
+;;     (evil-collection-init)
+;;     ;; Dired
+;;     (evil-collection-define-key 'normal 'dired-mode-map
+;;       "-" 'dired-up-directory))
 
-  ;; Enable Surround
-  (use-package evil-surround
-    :config
-    (global-evil-surround-mode 1))
+;;   ;; Enable Commentary
+;;   (use-package evil-commentary
+;;     :bind (:map evil-normal-state-map
+;; 		("gc" . evil-commentary)))
 
-  ;; Enable Lion
-  (use-package evil-lion
-    :bind (:map evil-normal-state-map
-		("gl" . evil-lion-left)
-		("gL" . evil-lion-right)))
+;;   ;; Enable Surround
+;;   (use-package evil-surround
+;;     :config
+;;     (global-evil-surround-mode 1))
 
-  ;; Cursor Shape
-  (use-package evil-terminal-cursor-changer
-    :config
-    (unless (display-graphic-p)
-      (evil-terminal-cursor-changer-activate))))
+;;   ;; Enable Lion
+;;   (use-package evil-lion
+;;     :bind (:map evil-normal-state-map
+;; 		("gl" . evil-lion-left)
+;; 		("gL" . evil-lion-right)))
+
+;;   ;; Cursor Shape
+;;   (use-package evil-terminal-cursor-changer
+;;     :config
+;;     (unless (display-graphic-p)
+;;       (evil-terminal-cursor-changer-activate))))
 
 ;;; TERMINAL SETTINGS
 (if (display-graphic-p)
