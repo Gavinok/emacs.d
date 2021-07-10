@@ -747,6 +747,25 @@
 		("libreoffice-writer" (exwm-workspace-rename-buffer (format "Writer: %s" exwm-title)))
 		("libreoffice-calc" (exwm-workspace-rename-buffer (format "Calc: %s" exwm-title)))
 		("St" (exwm-workspace-rename-buffer (format "%s" exwm-title))))))
+;;;; Funcs
+(defun gv/switch-to-scratch-and-back ()
+    "Toggle between *scratch* buffer and the current buffer.
+     If the *scratch* buffer does not exist, create it."
+    (interactive)
+    (let ((scratch-buffer-name (get-buffer-create "*scratch*")))
+        (if (equal (current-buffer) scratch-buffer-name)
+            (switch-to-buffer (other-buffer))
+            (switch-to-buffer scratch-buffer-name (lisp-interaction-mode)))))
+
+;Just disallow killing of scratch buffer
+(defun gv/unkillable-scratch-buffer ()
+	(if (equal (buffer-name (current-buffer)) "*scratch*")
+	    (progn
+	      (delete-region (point-min) (point-max))
+	      nil)
+	  t))
+
+(add-hook 'kill-buffer-query-functions 'gv/unkillable-scratch-buffer)
 ;;;; Global Key Bindings
   (setq exwm-input-global-keys
 	`(([?\s-h] . windmove-left)
