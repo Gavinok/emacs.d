@@ -67,12 +67,15 @@
 (use-package crux
   :bind ("C-c C-e" . crux-eval-and-replace))
 
-;; (use-package god-mode
-;;   :bind (("<escape>" . god-local-mode))
-;;   :config
-;;   (defun my-god-mode-update-cursor-type ()
-;;     (setq cursor-type (if (or god-local-mode buffer-read-only) 'box 'bar)))
-;;   (add-hook 'post-command-hook #'my-god-mode-update-cursor-type))
+(use-package god-mode
+  :bind (("<escape>" . god-local-mode)
+	 :map god-local-mode-map
+	 ("]" . forward-paragraph)
+	 ("[" . backward-paragraph))
+  :config
+  (defun my-god-mode-update-cursor-type ()
+    (setq cursor-type (if (or god-local-mode buffer-read-only) 'box 'bar)))
+  (add-hook 'post-command-hook #'my-god-mode-update-cursor-type))
 
 ;; (use-package ciel
 ;;   :bind (("C-c C-i" . ciel-ci)
