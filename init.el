@@ -97,14 +97,15 @@
 	 ("C-c n" . mc/mark-next-like-this)))
 
 (use-package jumplist
-  :bind (("C-<" . jumplist-previous)
-	 ("C->" . jumplist-next))
+  :bind (("M-[" . jumplist-previous)
+	 ("M-]" . jumplist-next))
   :config
   (custom-set-variables
     '(jumplist-hook-commands
-      '(consult-line consult-isearch consult-buffer
+      '(consult-line consult-buffer consult-buffer consult-outline
 		   dired dired-jump
-		   isearch-forward end-of-buffer beginning-of-buffer
+		   isearch-forward isearch-backward
+		   end-of-buffer beginning-of-buffer
 		   god-local-mode
 		   find-file))))
 
