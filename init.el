@@ -194,9 +194,10 @@
   :init
   (marginalia-mode))
 (use-package consult
-  :bind (("C-S-S"   . consult-line)
-	 ("C-M-l"   . consult-imenu)
-	 ("C-c h"   . consult-outline))
+  :bind (("C-S-S"	. consult-line)
+	 ("C-M-l"	. consult-imenu)
+	 ("C-c h"	. consult-outline)
+	 ("C-x C-k C-k" . consult-kmacro))
   :custom
   (completion-in-region-function #'consult-completion-in-region)
   :config
