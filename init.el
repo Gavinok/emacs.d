@@ -189,7 +189,8 @@
 (use-package marginalia
   :after vertico
   :custom
-  (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
+  (marginalia-annotators
+   '(marginalia-annotators-heavy marginalia-annotators-light nil))
   :init
   (marginalia-mode))
 (use-package consult
