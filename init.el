@@ -53,7 +53,7 @@
       (write-file (concat "/sudo:root@localhost:" (read-file-name "File:")))
     (write-file (concat "/sudo:root@localhost:" buffer-file-name))))
 
-;;; EVIL MODE
+;;; Modal Bindings
 ;; Vim style undo
 (use-package undo-fu
   :init (global-unset-key (kbd "C-/"))
