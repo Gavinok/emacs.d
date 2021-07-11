@@ -190,12 +190,8 @@
   :init
   (marginalia-mode))
 (use-package consult
-
-
-  :bind (("C-s"     . consult-isearch)
-	 ("C-S-S"   . consult-line)
+  :bind (("C-S-S"   . consult-line)
 	 ("C-M-l"   . consult-imenu)
-	 ("C-M-j"   . persp-switch-to-buffer)
 	 ("C-c h"   . consult-outline))
   :custom
   (completion-in-region-function #'consult-completion-in-region)
