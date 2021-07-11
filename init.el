@@ -607,13 +607,13 @@
 	      ("C-c C-u" . outline-up-heading)))
 
 (use-package bicycle
+  :demand t
+  :hook outline-minor-mode-hook
   :bind (:map outline-minor-mode-map
-	      ("C-<tab>" . bicycle-cycle)
-	      ("<backtab>" . bicycle-cycle-global)
-	      (:map god-local-mode-map
-		    ("<tab>" . bicycle-cycle))
-	      (:map evil-normal-state-map
-		    ("<tab>" . bicycle-cycle))))
+	 ("C-<tab>" . bicycle-cycle)
+	 ("<backtab>" . bicycle-cycle-global)
+	 :map god-local-mode-map
+	 ("<tab>" . bicycle-cycle)))
 
 (use-package outline-minor-faces
   :hook (emacs-lisp-mode . outline-minor-faces-add-font-lock-keywords))
