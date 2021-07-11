@@ -949,8 +949,8 @@
 	      (list
 	       ;; value of current buffer name
 	       " "
-	       ;; '(:eval (if (eq 'emacs evil-state) "  " "  "))
 	       'mode-line-buffer-identification
+       	       '(:eval (if god-local-mode " 😇 " "  "))
 	       ;; value of current line number
 	       " %l,%c"
 	       " %p"
