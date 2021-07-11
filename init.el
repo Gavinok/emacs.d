@@ -614,7 +614,7 @@
 	      ("C-c C-u" . outline-up-heading)))
 
 (use-package bicycle
-  :demand t
+  :after god-mode
   :hook outline-minor-mode-hook
   :bind (:map outline-minor-mode-map
 	 ("C-<tab>" . bicycle-cycle)
