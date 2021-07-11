@@ -210,7 +210,10 @@
   :commands (affe-grep affe-find)
   :config
   ;; only exclude git files
-  (setq affe-find-command "find  -not -path '*/\\.nnn*' -not -path '*/\\.git*' -type f")
+  (setq affe-find-command
+	(concat "find  "
+		"-not -path '*/\\.nnn*' -not -path '*/\\.git*' "
+		"-type f"))
   ;; Configure Orderless
   (setq affe-regexp-function #'orderless-pattern-compiler
 	affe-highlight-function #'orderless--highlight)
