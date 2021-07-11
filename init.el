@@ -58,8 +58,6 @@
 (use-package undo-fu
   :init (global-unset-key (kbd "C-/"))
   :bind (;; I hate it when I accidentl
-	 ("C-z" . undo-fu-only-undo)
-	 ("C-S-z" . undo-fu-only-redo)
 	 ("C-/" . undo-fu-only-undo)
 	 ("C-?" . undo-fu-only-redo)))
 (use-package undo-fu-session
@@ -78,6 +76,7 @@
 
 (use-package god-mode
   :bind (("<escape>" . god-local-mode)
+	 ("C-z" . repeat)
 	 :map god-local-mode-map
 	 ("f" . forward-word) ; move FASTER
 	 ("b" . backward-word)
