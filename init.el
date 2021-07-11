@@ -77,9 +77,12 @@
 ;; TODO look into `repeat-mode' in emacs 28
 ;; for visual selection style use C-x SPC
 (use-package god-mode
+  :demand t
   :bind (("<escape>" . god-local-mode)
-	 ("C-c C-d" . cd)
-	 ("C-z" . repeat)
+	 ("C-x ["    . previous-buffer)
+	 ("C-x ]"    . next-buffer)
+	 ("C-c C-d"  . cd)
+	 ("C-z"      . repeat)
 	 :map god-local-mode-map
 	 ("f" . forward-word) ; move FASTER
 	 ("b" . backward-word)
@@ -393,7 +396,7 @@
               (("C-c r I" . org-roam-insert-immediate))))
 ;;; Git
 (use-package magit
-  :bind ("C-c m" . magit)
+  :bind ("C-x g" . magit-status)
   :commands magit)
 (use-package diff-hl
   :defer t
