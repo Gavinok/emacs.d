@@ -593,9 +593,9 @@
 	      ("C-<tab>" . bicycle-cycle)
 	      ("<backtab>" . bicycle-cycle-global)
 	      (:map god-local-mode-map
-		    ("<tab>" . bicycle-cycle)
+		    ("<tab>" . bicycle-cycle))
 	      (:map evil-normal-state-map
-		    ("<tab>" . bicycle-cycle)))))
+		    ("<tab>" . bicycle-cycle))))
 
 (use-package outline-minor-faces
   :hook (emacs-lisp-mode . outline-minor-faces-add-font-lock-keywords))
