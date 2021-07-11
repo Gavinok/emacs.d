@@ -483,14 +483,6 @@
 	  '(lambda ()
 	     (ibuffer-switch-to-saved-filter-groups "home")))) ; [built-in] Powerful interface for managing buffers
 
-;; (use-package uniquify
-;;   :ensure nil
-;;   :config
-;;   (setq uniquify-buffer-name-style 'post-forward-angle-brackets
-;; 	uniquify-separator " * "
-;; 	uniquify-after-kill-buffer-p t
-;; 	uniquify-strip-common-suffix t
-;; 	uniquify-ignore-buffers-re "^\\*")) ; [built-in] make buffers unique with filename rather than <num>
 ;;; DEFAULTS
 (use-package emacs
   :ensure nil
