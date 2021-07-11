@@ -402,10 +402,11 @@
 (use-package magit
   :bind ("C-x g" . magit-status)
   :commands magit)
-(use-package diff-hl
-  :unless gv/is-termux
-  :defer t
-  :init (global-diff-hl-mode))
+
+;; (use-package diff-hl
+;;   :unless gv/is-termux
+;;   :defer t
+;;   :init (global-diff-hl-mode))
 ;;; Completion
 (use-package company
   :defer t
