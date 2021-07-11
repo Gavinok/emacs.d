@@ -627,6 +627,7 @@
   :ensure nil
   :config
   (setq dired-listing-switches "-aghoA --group-directories-first")
+  (add-hook 'dired-mode-hook #'hl-line-mode)
 ;;;;; Hide . and .. in dired
   (setq dired-omit-files
 	(rx (or (seq bol (? ".") "#")
