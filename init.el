@@ -386,6 +386,7 @@
   :after org)
 
 (use-package org-roam
+  :unless gv/is-termux
   :hook
   (after-init . org-roam-mode)
   :custom
