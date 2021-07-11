@@ -74,6 +74,8 @@
 	 ("C-S-o" . crux-smart-open-line-above)
 	 ("C-o" . crux-smart-open-line)))
 
+;; TODO look into `repeat-mode' in emacs 28
+;; for visual selection style use C-x SPC
 (use-package god-mode
   :bind (("<escape>" . god-local-mode)
 	 ("C-c C-d" . cd)
