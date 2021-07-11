@@ -575,8 +575,7 @@
 	  ;; Distance in pixel-resolution to scroll each mouse wheel event.
 	  mouse-wheel-scroll-amount '(1)
 	  ;; Progressive speed is too fast for me.
-	  mouse-wheel-progressive-speed nil)
-    )
+	  mouse-wheel-progressive-speed nil))
 ;;;; Show All These In The Same Window
   (add-to-list 'same-window-buffer-names "*SQL*")
   (add-to-list 'same-window-buffer-names "*Help*")
