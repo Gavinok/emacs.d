@@ -574,7 +574,8 @@
 ;;;; Vim like scrolling
   (setq scroll-step            1
 	scroll-conservatively  10000)
-
+  ;; move by logical lines rather than visual lines (better for macros)
+  (setq line-move-visual nil)
 ;;;; Mouse Scrolling
 ;; Good speed and allow scrolling through large images (pixel-scroll).
 ;; Note: Scroll lags when point must be moved but increasing the number
