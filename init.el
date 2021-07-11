@@ -244,7 +244,8 @@
   :hook (flyspell-mode . writegood-mode))
 (use-package flyspell-correct
   :bind ("C-c DEL" . flyspell-correct-previous)
-  :hook ((org-mode mu4e-compose-mode mail-mode git-commit-mode) . turn-on-flyspell))
+  :hook ((org-mode mu4e-compose-mode mail-mode git-commit-mode)
+	 . turn-on-flyspell))
 
 ;;; ORG
 (if gv/is-termux
