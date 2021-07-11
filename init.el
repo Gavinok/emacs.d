@@ -76,9 +76,14 @@
 (use-package god-mode
   :bind (("<escape>" . god-local-mode)
 	 :map god-local-mode-map
+	 ("f" . forward-word) ; move FASTER
+	 ("b" . backward-word)
 	 ("]" . forward-paragraph)
-	 ("[" . backward-paragraph))
-  :config
+	 ("[" . backward-paragraph)
+	 :map minibuffer-local-map
+	 ;; I don't use god-mode in the minibuffer
+	 ("<escape>" . 'keyboard-escape-quit))
+  :confign
   (defun my-god-mode-update-cursor-type ()
     (setq cursor-type (if (or god-local-mode buffer-read-only) 'box 'bar)))
   (add-hook 'post-command-hook #'my-god-mode-update-cursor-type))
