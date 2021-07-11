@@ -826,8 +826,8 @@
 	`(([?\s-h] . windmove-left)
 	  ([?\s-l] . windmove-right)
 	  ;; Window Managment
-	  ([?\s-j] . edwina-select-next-window)
-	  ([?\s-k] . edwina-select-previous-window)
+	  (,(kbd "<s-tab>") . edwina-select-next-window)
+	  (,(kbd "<s-iso-lefttab>") . edwina-select-previous-window)
 	  ([?\s-s] . edwina-dec-nmaster)
 	  ([?\s-a] . edwina-inc-nmaster)
 	  ([?\s-v] . edwina-zoom)
