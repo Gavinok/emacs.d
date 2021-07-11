@@ -236,7 +236,9 @@
 
   ;; (set-face-attribute 'mode-line nil :foreground "#bdc3ce" :background "#000")
   (set-face-attribute 'default nil :background "#000" :foreground "#eee"))
-
+(use-package align
+  :ensure nil
+  :bind ("C-x C-a" . align-regexp))
 ;;; WRITING
 (use-package writegood-mode
   :hook (flyspell-mode . writegood-mode))
