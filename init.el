@@ -76,6 +76,7 @@
 
 (use-package god-mode
   :bind (("<escape>" . god-local-mode)
+	 ("C-c C-d" . cd)
 	 ("C-z" . repeat)
 	 :map god-local-mode-map
 	 ("f" . forward-word) ; move FASTER
