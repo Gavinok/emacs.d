@@ -526,12 +526,13 @@
   (blink-cursor-mode -1)
   (menu-bar-mode -1)               ; To disable the menu bar, place the following line in your .emacs file:
   (unless gv/is-termux
-    (scroll-bar-mode -1))             ; To disable the scroll bar, use the following line:
+    (scroll-bar-mode -1))          ; To disable the scroll bar, use the following line:
   (tool-bar-mode -1)               ; To disable the toolbar, use the following line:
   (fset 'yes-or-no-p 'y-or-n-p)    ; don't ask to spell out "yes"
   (show-paren-mode 1)              ; Highlight parenthesis
   (setq x-select-enable-primary t) ; use primary as clipboard in emacs
   (global-auto-revert-mode t)
+
   (setq hippie-expand-try-functions-list
 	'(try-expand-dabbrev
 	  try-expand-dabbrev-all-buffers
