@@ -402,6 +402,7 @@
   :bind ("C-x g" . magit-status)
   :commands magit)
 (use-package diff-hl
+  :unless gv/is-termux
   :defer t
   :init (global-diff-hl-mode))
 ;;; Completion
