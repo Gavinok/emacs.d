@@ -65,7 +65,13 @@
   (global-undo-fu-session-mode))
 
 (use-package crux
-  :bind ("C-c C-e" . crux-eval-and-replace))
+  :bind (("C-a" . crux-move-beginning-of-line)
+	 ;; Remove whitespace when killing at the end of a line
+	 ("C-k" . crux-kill-and-join-forward)
+	 ("C-c C-e" . crux-eval-and-replace)
+	 ;; Since C-j is so similar
+	 ("C-S-o" . crux-smart-open-line-above)
+	 ("C-o" . crux-smart-open-line)))
 
 (use-package god-mode
   :bind (("<escape>" . god-local-mode)
