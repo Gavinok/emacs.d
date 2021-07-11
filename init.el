@@ -123,21 +123,22 @@
   :bind (("C-<" . mc/mark-previous-like-this)
 	 ("C->" . mc/mark-next-like-this)))
 
+;; current bindings Cause issues with termux
 ;; TODO figure out how to force loading at startup
-(use-package jumplist
-  :after god-mode
-  :bind (("M-[" . jumplist-previous)
-	 ("M-]" . jumplist-next))
-  :config
-  (custom-set-variables
-   '(jumplist-hook-commands
-     '(consult-line consult-buffer consult-buffer consult-outline
-		    dired dired-jump
-		    previous-buffer next-buffer
-		    isearch-forward isearch-backward
-		    end-of-buffer beginning-of-buffer
-		    god-local-mode
-		    find-file))))
+;; (use-package jumplist
+;;   :after god-mode
+;;   :bind (("M-[" . jumplist-previous)
+;; 	 ("M-]" . jumplist-next))
+;;   :config
+;;   (custom-set-variables
+;;    '(jumplist-hook-commands
+;;      '(consult-line consult-buffer consult-buffer consult-outline
+;; 		    dired dired-jump
+;; 		    previous-buffer next-buffer
+;; 		    isearch-forward isearch-backward
+;; 		    end-of-buffer beginning-of-buffer
+;; 		    god-local-mode
+;; 		    find-file))))
 
 ;; (use-package evil
 ;;   :init
