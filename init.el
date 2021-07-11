@@ -95,10 +95,9 @@
 (use-package ciel
   :bind (("C-c C-i" . ciel-ci)
 	 ("C-c C-y" . ciel-co)))
-
 (use-package multiple-cursors
-  :bind (("C-c p" . mc/mark-previous-like-this)
-	 ("C-c n" . mc/mark-next-like-this)))
+  :bind (("C-<" . mc/mark-previous-like-this)
+	 ("C->" . mc/mark-next-like-this)))
 
 (use-package jumplist
   :bind (("M-[" . jumplist-previous)
