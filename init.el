@@ -83,7 +83,7 @@
 	 :map minibuffer-local-map
 	 ;; I don't use god-mode in the minibuffer
 	 ("<escape>" . 'keyboard-escape-quit))
-  :confign
+  :config
   (defun my-god-mode-update-cursor-type ()
     (setq cursor-type (if (or god-local-mode buffer-read-only) 'box 'bar)))
   (add-hook 'post-command-hook #'my-god-mode-update-cursor-type))
