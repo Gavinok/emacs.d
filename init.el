@@ -83,6 +83,7 @@
 	 ("b" . backward-word)
 	 ("]" . forward-paragraph)
 	 ("[" . backward-paragraph)
+	 ("v" . set-mark-command)
 	 :map minibuffer-local-map
 	 ;; I don't use god-mode in the minibuffer
 	 ("<escape>" . 'keyboard-escape-quit))
