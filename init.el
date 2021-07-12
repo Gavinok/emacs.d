@@ -93,28 +93,33 @@
 	 ;; I don't use god-mode in the minibuffer
 	 ("<escape>" . 'keyboard-escape-quit))
   :config
+;;;; Cursor shape
   (defun my-god-mode-update-cursor-type ()
     (setq cursor-type (if (or god-local-mode buffer-read-only) 'box 'bar)))
   (add-hook 'post-command-hook #'my-god-mode-update-cursor-type)
+;;;; Fix terminal escape
+  ;; For whatever reason terminals have trouble recognizing escape
+  ;; form emacs properly. Found this solution at
+  ;; https://github.com/emacsorphanage/god-mode/issues/43
   (defvar personal/fast-keyseq-timeout 200)
 
-(defun personal/-tty-ESC-filter (map)
-  (if (and (equal (this-single-command-keys) [?\e])
-           (sit-for (/ personal/fast-keyseq-timeout 1000.0)))
-      [escape] map))
+  (defun personal/-tty-ESC-filter (map)
+    (if (and (equal (this-single-command-keys) [?\e])
+             (sit-for (/ personal/fast-keyseq-timeout 1000.0)))
+	[escape] map))
 
-(defun personal/-lookup-key (map key)
-  (catch 'found
-    (map-keymap (lambda (k b) (if (equal key k) (throw 'found b))) map)))
+  (defun personal/-lookup-key (map key)
+    (catch 'found
+      (map-keymap (lambda (k b) (if (equal key k) (throw 'found b))) map)))
 
-(defun personal/catch-tty-ESC ()
-  "Setup key mappings of current terminal to turn a tty's ESC into `escape'."
-  (when (memq (terminal-live-p (frame-terminal)) '(t pc))
-    (let ((esc-binding (personal/-lookup-key input-decode-map ?\e)))
-      (define-key input-decode-map
-        [?\e] `(menu-item "" ,esc-binding :filter personal/-tty-ESC-filter)))))
+  (defun personal/catch-tty-ESC ()
+    "Setup key mappings of current terminal to turn a tty's ESC into `escape'."
+    (when (memq (terminal-live-p (frame-terminal)) '(t pc))
+      (let ((esc-binding (personal/-lookup-key input-decode-map ?\e)))
+	(define-key input-decode-map
+          [?\e] `(menu-item "" ,esc-binding :filter personal/-tty-ESC-filter)))))
 
-(personal/catch-tty-ESC))
+  (personal/catch-tty-ESC))
 
 (use-package ciel
   :bind (("C-c C-i" . ciel-ci)
