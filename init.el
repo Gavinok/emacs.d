@@ -998,7 +998,7 @@
 
 ;;; MODELINE
 (unless gv/is-termux
-  (require 'battery)
+  (require 'battery))
 (setq-default mode-line-format
 	      (list
 	       ;; value of current buffer name
@@ -1018,7 +1018,7 @@
 	       ;; 				      ,(+ 17 (string-width mode-name)))))))
 	       '(:eval (format-time-string "%a, %b %d %I:%M%p"))
 	       " "
-	       '(:eval (battery-format "[%p]" (funcall battery-status-function))))))
+	       '(:eval (unless gv/is-termux (battery-format "[%p]" (funcall battery-status-function))))))
 ;;; Server Setup
 (use-package server
   :ensure nil
