@@ -4,8 +4,8 @@
 
 ;; Lower threshold back to 8 MiB (default is 800kB)
 (add-hook 'emacs-startup-hook
-          (lambda ()
-            (setq gc-cons-threshold (expt 2 23))))
+	  (lambda ()
+	    (setq gc-cons-threshold (expt 2 23))))
 ;;; PACKAGE LIST
 (setq package-archives
       '(("melpa" . "https://melpa.org/packages/")
