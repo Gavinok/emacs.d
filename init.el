@@ -379,7 +379,7 @@
 ;;;; Indentation
 (use-package org-indent
   :ensure nil
-  :after org)
+  :defer t)
 
 (use-package org-roam
   :unless gv/is-termux
