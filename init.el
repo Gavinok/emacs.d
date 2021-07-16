@@ -593,6 +593,7 @@
 	mouse-wheel-progressive-speed nil))
 
 (use-package savehist
+  :defer t
   :init (savehist-mode t)) ; Save command history
 
 (use-package hippie-exp
