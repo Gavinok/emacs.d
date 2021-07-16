@@ -810,26 +810,42 @@
 ;;; MODELINE
 (unless gv/is-termux
   (require 'battery))
-(setq-default mode-line-format
-	      (list
-	       ;; value of current buffer name
-	       " "
-	       'mode-line-buffer-identification
-       	       '(:eval (if god-local-mode " 😇 " "  "))
-	       ;; value of current line number
-	       " %l,%c"
-	       " %p"
-	       " "
-	       ;; major mode
-	       " (%m) "
-	       ;; spaces to align right
-	       ;; '(:eval (propertize
-	       ;; 		" " 'display
-	       ;; 		`((space :align-to (- (+ right right-fringe right-margin)
-	       ;; 				      ,(+ 17 (string-width mode-name)))))))
-	       '(:eval (format-time-string "%a, %b %d %I:%M%p"))
-	       " "
-	       '(:eval (unless gv/is-termux (battery-format "[%p]" (funcall battery-status-function))))))
+(defun simple-mode-line-render (left right)
+  "Return a string of `window-width' length.
+Containing LEFT, and RIGHT aligned respectively."
+  (let ((available-width
+	 (- (window-total-width)
+	    (+ (length (format-mode-line left))
+	       (length (format-mode-line right))))))
+    (append left
+	    (list (format (format "%%%ds" available-width) " "))
+	    right)))
+(set-face-attribute 'header-line nil
+		    :box '(:line-width 10 :color "#000"))
+(set-face-attribute 'header-line nil
+		    :background  "#0F0F0F")
+(setq-default mode-line-format nil)
+(setq-default left-margin-width 2)
+(setq-default right-margin-width 2)
+(set-window-buffer nil (current-buffer))
+(setq-default header-line-format
+      '((:eval
+	 (format-mode-line
+	  (simple-mode-line-render
+	  ;; Left
+	  '(" "
+	    (:eval (propertize (if (buffer-modified-p) "● " "  " ) 'face 'error))
+	    " %b"
+	    ;; value of current line number
+	    " %l:%c"
+	    (:eval (propertize (concat " %p" " " (if god-local-mode " 😇 " "  ") " (%m) ") 'face 'shadow))
+	    )
+	  ;; Right
+	  '((:eval (propertize (format-time-string "%a, %b %d %I:%M%p")'face 'font-lock-keyword-face))
+	    " "
+	    (:eval (unless gv/is-termux (battery-format "[%p]" (funcall battery-status-function))) )
+	    "    "))))))
+
 ;;; Server Setup
 (use-package server
   :ensure nil
