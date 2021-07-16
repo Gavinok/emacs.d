@@ -338,7 +338,7 @@
 	  ("v" "Video Idea" entry (file+olp (lambda () (concat org-directory "/youtube.org"))
 					    "YouTube" "Video Ideas")
 	   "* %?\n%? %a\n")
-	  ("c" "Cool Thing" entry (file+datetree (lambda () (concat org-directory "/archive.org")))
+	  ("c" "Cool Thing" entry (file+opl+datetree (lambda () (concat org-directory "/archive.org")))
 	   "* %?\nEntered on %U\n  %i\n  %a")))
 ;;;; Refile targets
   (setq org-refile-targets
