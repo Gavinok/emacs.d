@@ -306,7 +306,7 @@
 	  ;; ("d" "Dashboard"
 	  ;;  ((agenda "" ((org-deadline-warning-days 7)))
 	  ;;   (todo "NEXT"
-	  ;; 	  ((org-agenda-overriding-header "Next Tasks")))
+	  ;;	  ((org-agenda-overriding-header "Next Tasks")))
 	  ;;   (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
 
 	  ("n" "Next Tasks"
