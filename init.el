@@ -523,10 +523,28 @@
 (use-package emacs
   :ensure nil
   :config
-  (push '(truncation nil nil) ;; no truncation indicators
-        fringe-indicator-alist)
-  (set-frame-font "Liberation Mono 14" nil t)
+  ;; change truncation indicators
+(define-fringe-bitmap 'right-curly-arrow
+  [#b00000000
+   #b00000000
+   #b00000000
+   #b00000000
+   #b01110000
+   #b00010000
+   #b00010000
+   #b00000000])
+(define-fringe-bitmap 'left-curly-arrow
+  [#b00000000
+   #b00001000
+   #b00001000
+   #b00001110
+   #b00000000
+   #b00000000
+   #b00000000
+   #b00000000])
   (set-frame-font "RobotoMono Nerd Font 14" nil t)
+  ;; Replace selection on insert
+  (delete-selection-mode 1)
 ;;;; Backups
   (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
 	vc-make-backup-files t
