@@ -490,9 +490,7 @@
 ;; Modify the default ibuffer-formats
   (setq ibuffer-formats
 	'((mark modified read-only " "
-		(name 18 18 :left :elide)
-		" "
-		(size-h 9 -1 :right)
+		(name 40 40 :left :elide)
 		" "
 		(mode 16 16 :left :elide)
 		" "
