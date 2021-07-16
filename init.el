@@ -125,25 +125,25 @@
   ;; For whatever reason terminals have trouble recognizing escape
   ;; form emacs properly. Found this solution at
   ;; https://github.com/emacsorphanage/god-mode/issues/43
-  (defvar personal/fast-keyseq-timeout 200)
+  (defvar gv/fast-keyseq-timeout 200)
 
-  (defun personal/-tty-ESC-filter (map)
+  (defun gv/-tty-ESC-filter (map)
     (if (and (equal (this-single-command-keys) [?\e])
-             (sit-for (/ personal/fast-keyseq-timeout 1000.0)))
+	     (sit-for (/ gv/fast-keyseq-timeout 1000.0)))
 	[escape] map))
 
-  (defun personal/-lookup-key (map key)
+  (defun gv/-lookup-key (map key)
     (catch 'found
       (map-keymap (lambda (k b) (if (equal key k) (throw 'found b))) map)))
 
-  (defun personal/catch-tty-ESC ()
+  (defun gv/catch-tty-ESC ()
     "Setup key mappings of current terminal to turn a tty's ESC into `escape'."
     (when (memq (terminal-live-p (frame-terminal)) '(t pc))
-      (let ((esc-binding (personal/-lookup-key input-decode-map ?\e)))
+      (let ((esc-binding (gv/-lookup-key input-decode-map ?\e)))
 	(define-key input-decode-map
-          [?\e] `(menu-item "" ,esc-binding :filter personal/-tty-ESC-filter)))))
+	  [?\e] `(menu-item "" ,esc-binding :filter gv/-tty-ESC-filter)))))
 
-  (personal/catch-tty-ESC))
+  (gv/catch-tty-ESC))
 
 (use-package ciel
   :bind (("C-c C-i" . ciel-ci)
