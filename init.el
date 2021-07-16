@@ -559,7 +559,6 @@
   (fset 'yes-or-no-p 'y-or-n-p)    ; don't ask to spell out "yes"
   (show-paren-mode 1)              ; Highlight parenthesis
   (setq x-select-enable-primary t) ; use primary as clipboard in emacs
-  (global-auto-revert-mode t)
 
   (define-key (current-global-map) [remap dabbrev-expand] 'hippie-expand)
   (add-hook 'emacs-lisp-mode-hook 'prettify-symbols-mode)
@@ -569,6 +568,11 @@
   ;; move by logical lines rather than visual lines (better for macros)
   (setq line-move-visual nil)
 ;;;; Mouse Scrolling
+(use-package autorevert
+  :ensure nil
+  :defer t
+  :init (global-auto-revert-mode t))
+
 ;; Good speed and allow scrolling through large images (pixel-scroll).
 ;; Note: Scroll lags when point must be moved but increasing the number
 ;;       of lines that point moves in pixel-scroll.el ruins large image
