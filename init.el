@@ -788,9 +788,15 @@
 
 ;;; PASS
 (use-package password-store
-  :defer t)
+  :commands (password-store-copy
+	     password-store-insert
+	     password-store-generate))
 
+;; Authenticte with auth-source-pass
+(use-package auth-source-pass
+  :after password-store
   :config
+  (auth-source-pass-enable))
 (use-package winner
   :ensure nil
   :config
