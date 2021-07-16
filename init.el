@@ -685,7 +685,7 @@
   :unless gv/is-termux
   :load-path "/usr/share/emacs/site-lisp/mu4e"
   :ensure nil
-  :commands mu4e
+  :commands (mu4e mu4e-compose-new)
   :bind ("C-x m" . mu4e-compose-new)
   :config
   ;; This is set to 't' to avoid mail syncing issues when using mbsync
