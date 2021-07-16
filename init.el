@@ -565,8 +565,8 @@
   (setq scroll-step            1
 	scroll-conservatively  10000)
   ;; move by logical lines rather than visual lines (better for macros)
-  (setq line-move-visual nil)
-;;;; Mouse Scrolling
+  (setq line-move-visual nil))
+
 (use-package autorevert
   :ensure nil
   :defer t
