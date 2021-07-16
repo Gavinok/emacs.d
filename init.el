@@ -860,8 +860,10 @@ Containing LEFT, and RIGHT aligned respectively."
     (server-start)))
 ;;; Extras
 (use-package quelpa-use-package)
+;; Don't forget to run M-x eaf-install-dependencies
 (use-package eaf
   :unless gv/is-termux
+  :bind (("C-c w" . eaf-open-browser-with-history))
   :defer t
   :load-path "~/.emacs.d/site-lisp/emacs-application-framework" ; Set to "/usr/share/emacs/site-lisp/eaf" if installed from AUR
   :init
