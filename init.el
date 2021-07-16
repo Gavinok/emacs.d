@@ -120,6 +120,7 @@
   (defun my-god-mode-update-cursor-type ()
     (setq cursor-type (if (or god-local-mode buffer-read-only) 'box 'bar)))
   (add-hook 'post-command-hook #'my-god-mode-update-cursor-type)
+  (add-to-list 'god-exempt-major-modes 'exwm-mode)
 ;;;; Fix terminal escape
   ;; For whatever reason terminals have trouble recognizing escape
   ;; form emacs properly. Found this solution at
