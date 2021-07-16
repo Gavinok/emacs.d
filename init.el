@@ -351,7 +351,7 @@
 		  (org-level-2 . 1.05)
 		  (org-level-3 . 1.05)
 		  (org-level-4 . 1.05)))
-    (set-face-attribute (car face) nil :font "Liberation Mono" :weight 'medium :height (cdr face))))
+    (set-face-attribute (car face) nil :font "RobotoMono Nerd Font" :weight 'medium :height (cdr face))))
 
 ;;;; Drag And Drop
 (use-package org-download
@@ -528,6 +528,7 @@
   (push '(truncation nil nil) ;; no truncation indicators
         fringe-indicator-alist)
   (set-frame-font "Liberation Mono 14" nil t)
+  (set-frame-font "RobotoMono Nerd Font 14" nil t)
 ;;;; Backups
   (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
 	vc-make-backup-files t
