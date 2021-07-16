@@ -559,9 +559,6 @@
   (fset 'yes-or-no-p 'y-or-n-p)    ; don't ask to spell out "yes"
   (show-paren-mode 1)              ; Highlight parenthesis
   (setq x-select-enable-primary t) ; use primary as clipboard in emacs
-
-  (define-key (current-global-map) [remap dabbrev-expand] 'hippie-expand)
-  (add-hook 'emacs-lisp-mode-hook 'prettify-symbols-mode)
 ;;;; Vim like scrolling
   (setq scroll-step            1
 	scroll-conservatively  10000)
