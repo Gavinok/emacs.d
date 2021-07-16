@@ -854,7 +854,7 @@ Containing LEFT, and RIGHT aligned respectively."
 ;;; Server Setup
 (use-package server
   :ensure nil
-  :defer t
+  :defer 1
   :config
   (unless (server-running-p)
     (server-start)))
