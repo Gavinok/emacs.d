@@ -80,18 +80,21 @@
 	 ("C-c C-e" . crux-eval-and-replace)
 	 ;; Since C-j is so similar
 	 ("C-S-o" . crux-smart-open-line-above)
-	 ("C-o" . crux-smart-open-line)))
+	 ("C-o" . crux-smart-open-line)
+	 ("C-c v" . crux-swap-windows)))
 
 ;; TODO look into `repeat-mode' in emacs 28
 ;; for visual selection style use C-x SPC
 (use-package god-mode
-  :demand t
+  :defer t
   :bind (("<escape>" . god-local-mode)
 	 ("C-x ["    . previous-buffer)
 	 ("C-x ]"    . next-buffer)
 	 ("C-c C-d"  . cd)
 	 ("C-z"      . repeat)
 	 :map god-local-mode-map
+	 ("{" . pop-global-mark)
+	 ("}" . unpop-to-mark-command)
 	 ("f" . forward-word) ; move FASTER
 	 ("b" . backward-word)
 	 ("]" . forward-paragraph)
