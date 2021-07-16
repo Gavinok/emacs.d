@@ -561,17 +561,6 @@
   (setq x-select-enable-primary t) ; use primary as clipboard in emacs
   (global-auto-revert-mode t)
 
-  (setq hippie-expand-try-functions-list
-	'(try-expand-dabbrev
-	  try-expand-dabbrev-all-buffers
-	  try-expand-dabbrev-from-kill
-	  try-complete-lisp-symbol-partially
-	  try-complete-lisp-symbol
-	  try-complete-file-name-partially
-	  try-complete-file-name
-	  try-expand-all-abbrevs
-	  try-expand-list
-	  try-expand-line))
   (define-key (current-global-map) [remap dabbrev-expand] 'hippie-expand)
   (add-hook 'emacs-lisp-mode-hook 'prettify-symbols-mode)
 ;;;; Vim like scrolling
@@ -602,6 +591,22 @@
 
 (use-package savehist
   :init (savehist-mode t)) ; Save command history
+
+(use-package hippie-exp
+  :bind ([remap dabbrev-expand] . hippie-expand)
+  :commands (hippie-expand)
+  :config
+  (setq hippie-expand-try-functions-list
+	'(try-expand-dabbrev
+	  try-expand-dabbrev-all-buffers
+	  try-expand-dabbrev-from-kill
+	  try-complete-lisp-symbol-partially
+	  try-complete-lisp-symbol
+	  try-complete-file-name-partially
+	  try-complete-file-name
+	  try-expand-all-abbrevs
+	  try-expand-list
+	  try-expand-line)))
 
 ;;; FOLDING
 ;;;; Cycle Headings With Bicycle
