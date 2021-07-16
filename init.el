@@ -52,7 +52,15 @@
   (if (not buffer-file-name)
       (write-file (concat "/sudo:root@localhost:" (read-file-name "File:")))
     (write-file (concat "/sudo:root@localhost:" buffer-file-name))))
+(defun gv/emoji ()
+  "prompt user to select an emoji and place it in clipboard"
+  (interactive)
+  (start-process-shell-command "Emoji" nil "dmenuemoji"))
 
+(defun gv/stars ()
+  "prompt user on of my github stars or my repos"
+  (interactive)
+  (start-process-shell-command "Stars" nil "stars"))
 ;;; Modal Bindings
 ;; Vim style undo
 (use-package undo-fu
