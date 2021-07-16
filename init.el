@@ -869,9 +869,10 @@ Containing LEFT, and RIGHT aligned respectively."
   (use-package ctable :defer t :ensure t)
   (use-package deferred :defer t :ensure t)
   (use-package s :defer t :ensure t)
-  :custom
-  (eaf-browser-continue-where-left-off t)
+  (setq browse-url-browser-function 'eaf-open-browser)
+  (defalias 'browse-web #'eaf-open-browser)
   :config
+  (setq eaf-browser-continue-where-left-off t)
   (setq eaf-browser-default-search-engine "duckduckgo")
   (setq eaf-browser-enable-adblocker "true")
   (eaf-bind-key scroll_up "C-n" eaf-pdf-viewer-keybinding)
