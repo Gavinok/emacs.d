@@ -145,9 +145,6 @@
 
   (gv/catch-tty-ESC))
 
-(use-package ciel
-  :bind (("C-c C-i" . ciel-ci)
-	 ("C-c C-y" . ciel-co)))
 (use-package multiple-cursors
   :bind (("C-<" . mc/mark-previous-like-this)
 	 ("C->" . mc/mark-next-like-this)))
@@ -219,6 +216,22 @@
 ;;     :config
 ;;     (unless (display-graphic-p)
 ;;       (evil-terminal-cursor-changer-activate))))
+(define-key global-map (kbd "C-c a") (make-sparse-keymap))
+(define-key global-map (kbd "C-c i") (make-sparse-keymap))
+(use-package expand-region
+  :bind (("C-;"      . er/expand-region)
+	 ("C-c a w"  . er/mark-word)
+	 ("C-c a \"" . er/mark-outside-quotes)
+	 ("C-c a q"  . er/mark-outside-quotes)
+	 ("C-c a )"  . er/mark-outside-pairs)
+	 ("C-c a b"  . er/mark-outside-pairs)
+	 ("C-c a t"  . er/mark-outer-tag)
+	 ("C-c i w"  . er/mark-word)
+	 ("C-c i \"" . er/mark-inside-quotes)
+	 ("C-c i q"  . er/mark-inside-quotes)
+	 ("C-c i )"  . er/mark-inside-pairs)
+	 ("C-c i b"  . er/mark-inside-pairs)
+	 ("C-c i t"  . er/mark-inner-tag)))
 
 ;;; TERMINAL SETTINGS
 (if (display-graphic-p)
