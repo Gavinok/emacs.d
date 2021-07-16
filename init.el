@@ -642,7 +642,6 @@
 (use-package outline-minor-faces
   :hook (emacs-lisp-mode . outline-minor-faces-add-font-lock-keywords))
 
-
 ;;;; Setup Folding For Programming
 (use-package prog-mode
   :ensure nil
