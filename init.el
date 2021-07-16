@@ -894,4 +894,5 @@ Containing LEFT, and RIGHT aligned respectively."
   (setq proced-auto-update-flag t
 	proced-auto-update-interval 2
 	proced-decend t))
+(setenv "LAUNCHER" "emenu -p ")
 ;;;; stuff to ignore
