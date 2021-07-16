@@ -82,23 +82,28 @@
 ;; for visual selection style use C-x SPC
 (use-package god-mode
   :defer t
-  :bind (("<escape>" . god-local-mode)
+  :bind (("<escape>" . god-mode-all)
 	 ("C-x ["    . previous-buffer)
 	 ("C-x ]"    . next-buffer)
 	 ("C-c C-d"  . cd)
 	 ("C-z"      . repeat)
+	 ("M-g C-n"  . isearch-repeat-forward)
+	 ("M-g C-p"  . isearch-repeat-backward)
 	 :map god-local-mode-map
 	 ("{" . pop-global-mark)
 	 ("}" . unpop-to-mark-command)
 	 ("f" . forward-word) ; move FASTER
 	 ("b" . backward-word)
-	 ("]" . forward-paragraph)
-	 ("[" . backward-paragraph)
+	 ("]" . forward-list)
+	 ("[" . backward-list)
 	 ("v" . set-mark-command)
 	 :map minibuffer-local-map
 	 ;; I don't use god-mode in the minibuffer
 	 ("<escape>" . 'keyboard-escape-quit))
   :config
+  ;; exclude eaf from god mode
+  (add-to-list 'god-exempt-major-modes 'eaf-mode)
+  (add-to-list 'god-exempt-major-modes 'exwm-mode)
 ;;;; Mark Ring
     (defun unpop-to-mark-command ()
     "Unpop off mark ring. Does nothing if mark ring is empty."
