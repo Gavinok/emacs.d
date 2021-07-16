@@ -229,26 +229,28 @@
   ;; Enable recursive minibuffers
   (setq enable-recursive-minibuffers t))
 (use-package orderless
+  :commands (orderless)
   :custom (completion-styles '(orderless)))
 (use-package marginalia
-  :after vertico
   :custom
   (marginalia-annotators
    '(marginalia-annotators-heavy marginalia-annotators-light nil))
   :init
   (marginalia-mode))
+;; Note that M-sn is used for searghing ang
 (use-package consult
-  :bind (("C-S-S"	. consult-line)
-	 ("C-M-l"	. consult-imenu)
-	 ("C-c h"	. consult-outline)
+  :bind (("C-c l"	. consult-line)
+	 ("C-c i"	. consult-imenu)
+	 ("C-c o"	. consult-outline)
 	 ("C-x C-k C-k" . consult-kmacro))
   :custom
   (completion-in-region-function #'consult-completion-in-region)
   :config
-  (add-hook 'completion-setup-hook #'hl-line-mode))
+
+  (add-hook 'completion-setup-hook #'hl-line-mode)
+  )
 (use-package affe
-  :after orderless
-  :bind (("C-c o" . gv/notegrep)
+  :bind (("C-c n" . gv/notegrep)
 	 ("C-c f" . affe-find)
 	 ("C-c g" . affe-grep))
   :commands (affe-grep affe-find)
