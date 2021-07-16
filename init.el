@@ -182,6 +182,48 @@
 ;;; COMPLETION
 (use-package vertico
   :init
+  (use-package marginalia
+    :custom
+    (marginalia-annotators
+     '(marginalia-annotators-heavy marginalia-annotators-light nil))
+    :init
+    (marginalia-mode))
+;;;; Out Of Order Compleiton
+  (use-package orderless
+    :commands (orderless)
+    :custom (completion-styles '(orderless)))
+;;;; Extra Completion Functions
+  ;; Note that M-sn is used for searghing ang
+  (use-package consult
+    :bind (("C-c l"	. consult-line)
+	   ("C-c i"	. consult-imenu)
+	   ("C-c o"	. consult-outline)
+	   ("C-x C-k C-k" . consult-kmacro))
+    :custom
+    (completion-in-region-function #'consult-completion-in-region)
+    :config
+    (add-hook 'completion-setup-hook #'hl-line-mode))
+;;;; Fuzzy Finding
+  (use-package affe
+    :bind (("C-c n" . gv/notegrep)
+	   ("C-c f" . affe-find)
+	   ("C-c g" . affe-grep))
+    :commands (affe-grep affe-find)
+    :config
+    ;; only exclude git files
+    (setq affe-find-command
+	  (concat "find  "
+		  "-not -path '*/\\.nnn*' -not -path '*/\\.git*' "
+		  "-type f"))
+    ;; Configure Orderless
+    (setq affe-regexp-function #'orderless-pattern-compiler
+	  affe-highlight-function #'orderless--highlight)
+
+    ;; Manual preview key for `affe-grep'
+    (consult-customize affe-grep :preview-key (kbd "M-."))
+    (defun gv/notegrep ()
+      (interactive)
+      (affe-grep org-directory)))
   (vertico-mode)
   :config
   ;; Do not allow the cursor in the minibuffer prompt
@@ -190,68 +232,27 @@
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
   ;; Enable recursive minibuffers
   (setq enable-recursive-minibuffers t))
-(use-package orderless
-  :commands (orderless)
-  :custom (completion-styles '(orderless)))
-(use-package marginalia
-  :custom
-  (marginalia-annotators
-   '(marginalia-annotators-heavy marginalia-annotators-light nil))
-  :init
-  (marginalia-mode))
-;; Note that M-sn is used for searghing ang
-(use-package consult
-  :bind (("C-c l"	. consult-line)
-	 ("C-c i"	. consult-imenu)
-	 ("C-c o"	. consult-outline)
-	 ("C-x C-k C-k" . consult-kmacro))
-  :custom
-  (completion-in-region-function #'consult-completion-in-region)
-  :config
 
-  (add-hook 'completion-setup-hook #'hl-line-mode)
-  )
-(use-package affe
-  :bind (("C-c n" . gv/notegrep)
-	 ("C-c f" . affe-find)
-	 ("C-c g" . affe-grep))
-  :commands (affe-grep affe-find)
-  :config
-  ;; only exclude git files
-  (setq affe-find-command
-	(concat "find  "
-		"-not -path '*/\\.nnn*' -not -path '*/\\.git*' "
-		"-type f"))
-  ;; Configure Orderless
-  (setq affe-regexp-function #'orderless-pattern-compiler
-	affe-highlight-function #'orderless--highlight)
-
-  ;; Manual preview key for `affe-grep'
-  (consult-customize affe-grep :preview-key (kbd "M-."))
-  (defun gv/notegrep ()
-    (interactive)
-    (affe-grep org-directory)))
-
-;; THEMEING
+;;; THEMEING
 (use-package ujelly-theme
   :ensure nil
   :config
   (load-theme 'ujelly t)
   (set-frame-parameter (selected-frame) 'alpha '(90 90))
   (add-to-list 'default-frame-alist '(alpha 90 90))
-  (set-cursor-color "#dc322f")
   (set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
 
   ;; (set-face-attribute 'mode-line nil :foreground "#bdc3ce" :background "#000")
   (set-face-attribute 'default nil :background "#000" :foreground "#eee"))
 
+;;; Aligning Text
 (use-package align
   :ensure nil
   :bind ("C-x C-a" . align-regexp)
   :config
   (defadvice align-regexp (around align-regexp-with-spaces activate)
-  (let ((indent-tabs-mode nil))
-    ad-do-it)))
+    (let ((indent-tabs-mode nil))
+      ad-do-it)))
 
 ;;; WRITING
 (use-package writegood-mode
