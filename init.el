@@ -630,17 +630,6 @@
 
 ;;; FOLDING
 ;;;; Cycle Headings With Bicycle
-(use-package outline
-  :ensure nil
-  :bind (:map outline-minor-mode-map
-	      ("C-c C-n" . outline-next-visible-heading)
-	      ("C-c C-p" . outline-previous-visible-heading)
-	      ("C-c C-f" . outline-forward-same-level)
-	      ("C-c C-b" . outline-backward-same-level)
-	      ("C-c C-a" . outline-show-all)
-	      ("C-c C-o" . outline-hide-other)
-	      ("C-c C-u" . outline-up-heading)))
-
 (use-package bicycle
   :after god-mode
   :hook outline-minor-mode-hook
