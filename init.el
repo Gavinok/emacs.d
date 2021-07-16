@@ -514,6 +514,12 @@
 	  '(lambda ()
 	     (ibuffer-switch-to-saved-filter-groups "home")))) ; [built-in] Powerful interface for managing buffers
 
+;;; ISEARCH
+(use-package isearch
+  :ensure nil
+  :commands (isearch-forward isearch-backward)
+  :config
+  (setq search-whitespace-regexp ".*?"))
 ;;; DEFAULTS
 (use-package emacs
   :ensure nil
