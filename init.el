@@ -352,22 +352,17 @@
 		  (org-level-3 . 1.05)
 		  (org-level-4 . 1.05)))
     (set-face-attribute (car face) nil :font "Liberation Mono" :weight 'medium :height (cdr face))))
-;;;; Contacts
-(use-package org-contacts
-  :ensure nil
-  :after org
-  :custom (org-contacts-files (list (concat org-directory "/contacts.org"))))
+
 ;;;; Drag And Drop
 (use-package org-download
   :unless gv/is-termux
-  :hook (dired-mode . org-download-enable)
+  :bind ("s-i" . org-download-screenshot)
+  :hook ((org-mode dired-mode) . org-download-enable)
   :init
   (setq org-agenda-files (seq-filter (lambda (x) (not (string-match "completed.org" x)))
 				     (directory-files-recursively org-directory "\\.org$")))
   (setq-default org-download-screenshot-method "gnome-screenshot -a -f %s")
-  (setq-default org-download-image-dir "./pic")
-  (exwm-input-set-key (kbd "s-i") 'org-download-screenshot)
-  :after org)
+  (setq-default org-download-image-dir "./pic"))
 ;;;; Better Looking Bullets
 (use-package org-superstar
   :when (display-graphic-p)
