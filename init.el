@@ -404,11 +404,11 @@
   :custom (vterm-max-scrollback 10000))
 
 (use-package esh-autosuggest
-  :after eshell) ;company for eshell
+  :hook eshell-mode) ;company for eshell
 
 (use-package em-alias
   :ensure nil
-  :after eshell
+  :hook eshell-mode
   :config
   (add-hook 'eshell-mode-hook
 	    (lambda ()
@@ -416,7 +416,7 @@
 	      (eshell/alias "ee" "find-file-other-window $1"))))
 
 (use-package fish-completion
-  :after eshell
+  :hook eshell-mode
   :when (executable-find "fish")
   :config (global-fish-completion-mode))
 
