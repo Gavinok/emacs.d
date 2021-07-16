@@ -426,6 +426,14 @@
 (use-package racket-mode
   :mode "\\.rkt\\'")
 
+;;; TREE-SITTER
+;; Tree-sitter support
+(use-package tree-sitter
+  :commands (tree-sitter-mode))
+;; install the tree-sitter grammars
+(use-package tree-sitter-langs
+  :after tree-sitter)
+
 ;;; LSP
 (use-package eglot
   :commands eglot
