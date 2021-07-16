@@ -279,10 +279,10 @@
     (interactive)
       (org-map-entries 'org-archive-subtree "/DONE" 'file)
       (org-map-entries 'org-archive-subtree "/CANCELLED" 'file))
-;;;; Better defaults 
+;;;; Better defaults
   (setq org-ellipsis " ▾"
 	org-hide-emphasis-markers t
-        org-special-ctrl-a/e t
+	org-special-ctrl-a/e t
 	org-src-fontify-natively t
 	org-fontify-quote-and-verse-blocks t
 	org-src-tab-acts-natively t
