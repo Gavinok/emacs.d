@@ -509,7 +509,8 @@
 	 ("Magit" (name . "\*magit"))
 	 ("Help" (or (name . "\*Help\*")
 		     (name . "\*Apropos\*")
-		     (name . "\*info\*"))))))
+		     (name . "\*info\*")))
+	 ("Browser" (mode . eaf-mode)))))
   (add-hook 'ibuffer-mode-hook
 	  '(lambda ()
 	     (ibuffer-switch-to-saved-filter-groups "home")))) ; [built-in] Powerful interface for managing buffers
