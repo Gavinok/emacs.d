@@ -637,16 +637,18 @@
 (use-package outline-minor-faces
   :hook (emacs-lisp-mode . outline-minor-faces-add-font-lock-keywords))
 
+
 ;;;; Setup Folding For Programming
 (use-package prog-mode
   :ensure nil
   :config
+  (add-hook 'emacs-lisp-mode-hook 'prettify-symbols-mode)
   (add-hook 'prog-mode-hook 'outline-minor-mode)
   (add-hook 'prog-mode-hook 'hs-minor-mode))
 
 ;;; EXTRA UI
 ;;;; Beacon
-(use-package beacon 
+(use-package beacon
   :defer t
   :init (beacon-mode 1)); Highlight cursor postion after movement
 ;;;; Display hex colors in emacs
