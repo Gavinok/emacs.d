@@ -525,6 +525,8 @@
 (use-package emacs
   :ensure nil
   :config
+  (push '(truncation nil nil) ;; no truncation indicators
+        fringe-indicator-alist)
   (set-frame-font "Liberation Mono 14" nil t)
 ;;;; Backups
   (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
