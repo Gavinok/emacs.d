@@ -559,6 +559,8 @@
   (fset 'yes-or-no-p 'y-or-n-p)    ; don't ask to spell out "yes"
   (show-paren-mode 1)              ; Highlight parenthesis
   (setq x-select-enable-primary t) ; use primary as clipboard in emacs
+  ;; avoid leaving a gap between the frame and the screen
+  (setq-default frame-resize-pixelwise t)
 ;;;; Vim like scrolling
   (setq scroll-step            1
 	scroll-conservatively  10000)
