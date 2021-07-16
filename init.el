@@ -578,20 +578,19 @@
 ;;       of lines that point moves in pixel-scroll.el ruins large image
 ;;       scrolling. So unfortunately I think we'll just have to live with
 ;;       this.
-  (when (display-graphic-p)
-    (pixel-scroll-mode)
-    (setq pixel-dead-time 0 ; Never go back to the old scrolling behaviour.
-	  ;; Scroll by number of pixels instead of lines (t = frame-char-height pixels).
-	  pixel-resolution-fine-flag t
-	  ;; Distance in pixel-resolution to scroll each mouse wheel event.
-	  mouse-wheel-scroll-amount '(1)
-	  ;; Progressive speed is too fast for me.
-	  mouse-wheel-progressive-speed nil))
-;;;; Show All These In The Same Window
-  (add-to-list 'same-window-buffer-names "*SQL*")
-  (add-to-list 'same-window-buffer-names "*Help*")
-  (add-to-list 'same-window-buffer-names "*Apropos*")
-  (add-to-list 'same-window-buffer-names "*Process List*")) ; General emacs settings
+(use-package pixel-scroll
+  :ensure nil
+  :defer t
+  :unless gv/is-termux
+  :config
+  (pixel-scroll-mode)
+  (setq pixel-dead-time 0 ; Never go back to the old scrolling behaviour.
+	;; Scroll by number of pixels instead of lines (t = frame-char-height pixels).
+	pixel-resolution-fine-flag t
+	;; Distance in pixel-resolution to scroll each mouse wheel event.
+	mouse-wheel-scroll-amount '(1)
+	;; Progressive speed is too fast for me.
+	mouse-wheel-progressive-speed nil))
 
 (use-package savehist
   :init (savehist-mode t)) ; Save command history
