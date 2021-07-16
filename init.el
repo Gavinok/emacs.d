@@ -797,9 +797,15 @@
   :after password-store
   :config
   (auth-source-pass-enable))
+;;; Winner Mode
 (use-package winner
   :ensure nil
+  :bind (( "s-/" . winner-undo)
+	 ( "s-?" . winner-redo)
+	 ( "s-u" . winner-undo)
+	 ( "s-r" . winner-redo))
   :config
+  :init (winner-mode 1)) ; window managment undo
 
 ;;; MODELINE
 (unless gv/is-termux
