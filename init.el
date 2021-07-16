@@ -390,7 +390,7 @@
   :unless gv/is-termux
   :defer t
   :init (global-diff-hl-mode))
-;;; Completion
+;;; As You Type Completion
 (use-package company
   :defer t
   :config
