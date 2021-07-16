@@ -371,7 +371,7 @@
 ;;;; Templates
 (use-package org-tempo
   :ensure nil
-  :after org
+  :defer t
   :config
   (add-to-list 'org-structure-template-alist '("sh"  . "src sh"))
   (add-to-list 'org-structure-template-alist '("el"  . "src emacs-lisp"))
