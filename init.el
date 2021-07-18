@@ -555,6 +555,8 @@
 	delete-old-versions t
 	backup-by-copying t)
 ;;;; Defaults
+  ;; Cursor Shape
+  (setq-default cursor-type 'bar)
   (setq delete-by-moving-to-trash t
 	create-lockfiles nil
 	auto-save-default nil
