@@ -89,11 +89,12 @@
 	 ("C-z"      . repeat)
 	 ("M-g C-n"  . isearch-repeat-forward)
 	 ("M-g C-p"  . isearch-repeat-backward)
+	 ("M-c"      . capitalize-dwim)
 	 :map god-local-mode-map
 	 ("{" . pop-global-mark)
 	 ("}" . unpop-to-mark-command)
-	 ("f" . forward-word) ; move FASTER
-	 ("b" . backward-word)
+	 ("F" . forward-word) ; move FASTER
+	 ("B" . backward-word)
 	 ("]" . forward-list)
 	 ("[" . backward-list)
 	 ("v" . set-mark-command)
