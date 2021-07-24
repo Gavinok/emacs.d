@@ -54,9 +54,10 @@
 ;; Vim style undo
 (use-package undo-fu
   :init (global-unset-key (kbd "C-/"))
+  :defer nil
   :bind (;; I hate it when I accidentl
-	 ("C-/" . undo-fu-only-undo)
-	 ("C-?" . undo-fu-only-redo)))
+         ("C-/" . undo-fu-only-undo)
+         ("C-?" . undo-fu-only-redo)))
 (use-package undo-fu-session
   :after undo-fu
   :init
