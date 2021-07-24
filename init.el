@@ -721,7 +721,8 @@
 
 ;;;; Attachment reminders
   (use-package message-attachment-reminder)
-
+;;;; Org In Emails
+  (use-package org-mime)
 ;;;; mbsync and msmtp setup
   (setq mu4e-get-mail-command "mailsync"
 	sendmail-program "/usr/bin/msmtp"
