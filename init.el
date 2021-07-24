@@ -116,12 +116,12 @@
     (interactive)
     (when mark-ring
       (let ((pos (marker-position (car (last mark-ring)))))
-	(if (not (= (point) pos))
-	    (goto-char pos)
-	  (setq mark-ring (cons (copy-marker (mark-marker)) mark-ring))
-	  (set-marker (mark-marker) pos)
-	  (setq mark-ring (nbutlast mark-ring))
-	  (goto-char (marker-position (car (last mark-ring))))))))
+        (if (not (= (point) pos))
+            (goto-char pos)
+          (setq mark-ring (cons (copy-marker (mark-marker)) mark-ring))
+          (set-marker (mark-marker) pos)
+          (setq mark-ring (nbutlast mark-ring))
+          (goto-char (marker-position (car (last mark-ring))))))))
 ;;;; Cursor shape
   (defun my-god-mode-update-cursor-type ()
     (setq cursor-type (if (or god-local-mode buffer-read-only) 'box 'bar)))
@@ -134,8 +134,8 @@
 
   (defun gv/-tty-ESC-filter (map)
     (if (and (equal (this-single-command-keys) [?\e])
-	     (sit-for (/ gv/fast-keyseq-timeout 1000.0)))
-	[escape] map))
+             (sit-for (/ gv/fast-keyseq-timeout 1000.0)))
+        [escape] map))
 
   (defun gv/-lookup-key (map key)
     (catch 'found
@@ -145,45 +145,31 @@
     "Setup key mappings of current terminal to turn a tty's ESC into `escape'."
     (when (memq (terminal-live-p (frame-terminal)) '(t pc))
       (let ((esc-binding (gv/-lookup-key input-decode-map ?\e)))
-	(define-key input-decode-map
-	  [?\e] `(menu-item "" ,esc-binding :filter gv/-tty-ESC-filter)))))
+        (define-key input-decode-map
+          [?\e] `(menu-item "" ,esc-binding :filter gv/-tty-ESC-filter)))))
 
   (gv/catch-tty-ESC))
 
 (use-package multiple-cursors
   :bind (("C-<" . mc/mark-previous-like-this)
-	 ("C->" . mc/mark-next-like-this)
-	 ("C-x C->" . mc/mark-all-like-this)))
+         ("C->" . mc/mark-next-like-this)
+         ("C-x C->" . mc/mark-all-like-this)))
 ;;; Extending Selection
 ;; Expand region is useful for adding iw aw style selection to emacs
 ;; TODO find a better alternative so I can put this in usepackage
 
-(define-key global-map (kbd "C-c a") (make-sparse-keymap))
-(define-key global-map (kbd "C-c i") (make-sparse-keymap))
 (use-package expand-region
-  :bind (("C-;"      . er/expand-region)
-	 ("C-c a w"  . er/mark-word)
-	 ("C-c a \"" . er/mark-outside-quotes)
-	 ("C-c a q"  . er/mark-outside-quotes)
-	 ("C-c a )"  . er/mark-outside-pairs)
-	 ("C-c a b"  . er/mark-outside-pairs)
-	 ("C-c a t"  . er/mark-outer-tag)
-	 ("C-c i w"  . er/mark-word)
-	 ("C-c i \"" . er/mark-inside-quotes)
-	 ("C-c i q"  . er/mark-inside-quotes)
-	 ("C-c i )"  . er/mark-inside-pairs)
-	 ("C-c i b"  . er/mark-inside-pairs)
-	 ("C-c i t"  . er/mark-inner-tag)))
+  :bind (("C-="      . er/expand-region)))
 
 ;;; TERMINAL SETTINGS
 (if (display-graphic-p)
     (set-face-background 'default "#000000")
   (progn (set-face-background 'default "undefinded")
-	 (add-to-list 'term-file-aliases
-		      '("st-256color" . "xterm-256color"))
-	 (xterm-mouse-mode t))
-	(global-set-key (kbd "<mouse-4>") 'next-line)
-	(global-set-key (kbd "<mouse-5>") 'previous-line))
+         (add-to-list 'term-file-aliases
+                      '("st-256color" . "xterm-256color"))
+         (xterm-mouse-mode t))
+        (global-set-key (kbd "<mouse-4>") 'next-line)
+        (global-set-key (kbd "<mouse-5>") 'previous-line))
 
 ;;; COMPLETION
 (use-package vertico
