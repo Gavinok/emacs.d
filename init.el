@@ -833,9 +833,7 @@
 (use-package winner
   :ensure nil
   :bind (( "s-/" . winner-undo)
-	 ( "s-?" . winner-redo)
-	 ( "s-u" . winner-undo)
-	 ( "s-r" . winner-redo))
+         ( "s-?" . winner-redo))
   :config
   :init (winner-mode 1)) ; window managment undo
 
