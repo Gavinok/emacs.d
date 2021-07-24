@@ -63,39 +63,49 @@
   :init
   (global-undo-fu-session-mode))
 
+;; Can be used similar to vim's change list
+(use-package goto-chg
+  :bind (("C-c j" . goto-last-change)
+         ("C-c k" . goto-last-change-reverse)))
+
 (use-package crux
   :bind (("C-a" . crux-move-beginning-of-line)
-	 ;; Remove whitespace when killing at the end of a line
-	 ("C-k" . crux-kill-and-join-forward)
-	 ("C-c C-e" . crux-eval-and-replace)
-	 ;; Since C-j is so similar
-	 ("C-S-o" . crux-smart-open-line-above)
-	 ("C-o" . crux-smart-open-line)
-	 ("C-c v" . crux-swap-windows)))
+         ;; Remove whitespace when killing at the end of a line
+         ("C-k" . crux-kill-and-join-forward)
+         ("C-c C-e" . crux-eval-and-replace)
+         ;; Since C-j is so similar
+         ("C-S-o" . crux-smart-open-line-above)
+         ("C-o" . crux-smart-open-line)))
+
+(use-package windmove
+  :bind (("C-c v" . windmove-swap-states-left)))
 
 ;; TODO look into `repeat-mode' in emacs 28
 ;; for visual selection style use C-x SPC
 (use-package god-mode
   :defer t
   :bind (("<escape>" . god-mode-all)
-	 ("C-x ["    . previous-buffer)
-	 ("C-x ]"    . next-buffer)
-	 ("C-c C-d"  . cd)
-	 ("C-z"      . repeat)
-	 ("M-g C-n"  . isearch-repeat-forward)
-	 ("M-g C-p"  . isearch-repeat-backward)
-	 ("M-c"      . capitalize-dwim)
-	 :map god-local-mode-map
-	 ("{" . pop-global-mark)
-	 ("}" . unpop-to-mark-command)
-	 ("F" . forward-word) ; move FASTER
-	 ("B" . backward-word)
-	 ("]" . forward-list)
-	 ("[" . backward-list)
-	 ("v" . set-mark-command)
-	 :map minibuffer-local-map
-	 ;; I don't use god-mode in the minibuffer
-	 ("<escape>" . 'keyboard-escape-quit))
+         ("C-x ["    . previous-buffer)
+         ("C-x ]"    . next-buffer)
+         ("C-x c"    . delete-window)
+         ("C-c C-d"  . cd)
+         ("C-z"      . repeat)
+         ("M-s n"    . isearch-repeat-forward)
+         ("M-s p"    . isearch-repeat-backward)
+         ("M-c"      . capitalize-dwim)
+         ("M-SPC"    . keyboard-escape-quit)
+         :map god-local-mode-map
+         ("{" . pop-global-mark)
+         ("}" . unpop-to-mark-command)
+         ("F" . forward-word) ; move FASTER
+         ("B" . backward-word)
+         ("D" . kill-word)
+         ("]" . forward-list)
+         ("[" . backward-list)
+         ("v" . set-mark-command)
+         :map minibuffer-local-map
+         ;; I don't use god-mode in the minibuffer
+         ("<escape>" . keyboard-escape-quit))
   :config
   ;; exclude eaf from god mode
   (add-to-list 'god-exempt-major-modes 'eaf-mode)
