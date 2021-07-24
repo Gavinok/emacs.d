@@ -383,11 +383,11 @@
 
 (use-package diff-hl
   :unless gv/is-termux
-  :defer t
+  :defer 3
   :init (global-diff-hl-mode))
 ;;; As You Type Completion
 (use-package company
-  :defer t
+  :defer 3
   :config
   (global-company-mode nil)
   (setq company-idle-delay 0.1
