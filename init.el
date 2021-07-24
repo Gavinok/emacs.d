@@ -800,6 +800,23 @@
                          (:name "Messages with images"
                                 :query "mime:image/*" :key 112))) ; email client depends on mu command
 
+;;;; Headers View
+  (set-face-attribute 'mu4e-flagged-face nil
+                      :background "#900")
+  (set-face-attribute 'mu4e-flagged-face nil
+                      :foreground "#000")
+  (set-face-attribute 'mu4e-unread-face nil
+                      :background "#900")
+  (set-face-attribute 'mu4e-unread-face nil
+                      :foreground "#000")
+(setq-default mu4e-use-fancy-chars t)  
+(setq-default mu4e-header-sort-field :date)
+(setq-default mu4e-headers-show-threads nil)
+(setq-default mu4e-headers-fields '((:flags         .    6)
+                                    (:from-or-to    .   22)
+                                    (:subject       .   70)
+                                    (:human-date    .   nil)))
+(mu4e-hide-other-mu4e-buffers))
 ;;; PASS
 (use-package password-store
   :commands (password-store-copy
