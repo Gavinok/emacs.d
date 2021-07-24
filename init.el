@@ -945,8 +945,11 @@ Containing LEFT, and RIGHT aligned respectively."
   :config
   ;; pdf auto refresh
   (add-hook 'doc-view-mode-hook 'auto-revert-mode))
+;;;; Torrents
 (use-package transmission
-  :defer t)
+  :defer t
+  :config
+  (add-hook 'transmission-mode-hook 'hl-line-mode))
 ;;;; proced [built-in] htop alternative
 (use-package proced
   :ensure nil
