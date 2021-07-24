@@ -839,6 +839,7 @@
   :init (winner-mode 1)) ; window managment undo
 
 ;;; MODELINE
+(setq-default header-line-format '(" "))
 (unless gv/is-termux
   (require 'battery))
 (defun simple-mode-line-render (left right)
