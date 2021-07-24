@@ -693,27 +693,28 @@
       (message "Opening %s done" file)))
   (define-key dired-mode-map (kbd "O") 'gv/dired-xdg-open))
 
+
 ;;; EMAIL
 (use-package mu4e
   :unless gv/is-termux
   :load-path "/usr/share/emacs/site-lisp/mu4e"
   :ensure nil
-  :commands (mu4e mu4e-compose-new)
   :bind ("C-x m" . mu4e-compose-new)
-  :config
-  ;; This is set to 't' to avoid mail syncing issues when using mbsync
-  (setq mu4e-change-filenames-when-moving t)
-
+  :commands (mu4e mu4e-compose-new mu4e-user-agent)
+  :init
   ;; Show full email address
   (setq mu4e-view-show-addresses 't)
 
+  (setq mu4e-maildir "~/.local/share/mail")
+  
   ;; where to put attachemnts
   (setq mu4e-attachment-dir  "~/Downloads")
 
   ;; use mu4e for e-mail in emacs
   (setq mail-user-agent 'mu4e-user-agent)
-
-  (setq mu4e-maildir "~/.local/share/mail")
+  :config
+  ;; This is set to 't' to avoid mail syncing issues when using mbsync
+  (setq mu4e-change-filenames-when-moving t)
 
   ;; This prevents saving the email to the Sent folder since gmail will do this for us on their end.
   (setq mu4e-sent-messages-behavior 'delete)
