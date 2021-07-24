@@ -44,12 +44,6 @@
   (interactive)
   (async-shell-command
    (concat "tts.sh '" (x-get-clipboard)"'")))
-(defun gv/sudo-save ()
-  "save this file as super user"
-  (interactive)
-  (if (not buffer-file-name)
-      (write-file (concat "/sudo:root@localhost:" (read-file-name "File:")))
-    (write-file (concat "/sudo:root@localhost:" buffer-file-name))))
 
 (defun gv/stars ()
   "prompt user on of my github stars or my repos"
