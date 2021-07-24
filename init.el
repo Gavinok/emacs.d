@@ -464,6 +464,9 @@
       (and dotgit
            (cons 'transient (file-name-directory dotgit)))))
   (add-hook 'project-find-functions 'my-git-project-finder)) ; [built-in] Project Managment
+;;; COMPILATION
+(use-package compile
+  :bind ("C-x C-m" . compile))
 
 ;;; BUFFER MANAGMENT
 (use-package ibuffer
