@@ -862,7 +862,7 @@ Containing LEFT, and RIGHT aligned respectively."
 (setq-default left-margin-width 2)
 (setq-default right-margin-width 2)
 (set-window-buffer nil (current-buffer))
-(setq-default header-line-format
+(setq-default mode-line-format
       '((:eval
          (format-mode-line
           (simple-mode-line-render
