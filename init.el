@@ -891,24 +891,49 @@ Containing LEFT, and RIGHT aligned respectively."
 ;; Don't forget to run M-x eaf-install-dependencies
 (use-package eaf
   :unless gv/is-termux
-  :bind (("C-c w" . eaf-open-browser-with-history))
+  :bind (("C-c w" . gv/bm)
+         ("s-w" . gv/bm))
   :defer t
   :load-path "~/.emacs.d/site-lisp/emacs-application-framework" ; Set to "/usr/share/emacs/site-lisp/eaf" if installed from AUR
   :init
-  (use-package epc :defer t :ensure t)
-  (use-package ctable :defer t :ensure t)
+  (use-package epc      :defer t :ensure t)
+  (use-package ctable   :defer t :ensure t)
   (use-package deferred :defer t :ensure t)
-  (use-package s :defer t :ensure t)
+  (use-package s        :defer t :ensure t)
   (setq browse-url-browser-function 'eaf-open-browser)
   (defalias 'browse-web #'eaf-open-browser)
   :config
+  (defun slurp (f)
+    (with-temp-buffer
+      (insert-file-contents f)
+      (buffer-substring-no-properties
+       (point-min)
+       (point-max))))
+  (defun gv/bm ()
+    (interactive)
+    (let ((selected (completing-read
+                     "Select URL: " (split-string
+                                     (slurp "~/.config/bookmarks") "\n" t))))
+      (let ((url (car (split-string
+                       selected
+                       " " t))))
+        (if (string-match-p "\\http.*\\'" url)
+            ;; Open selected url
+            (eaf-open-browser url)
+          ;; Search entered text
+          (eaf-search-it selected)))))
   (setq eaf-browser-continue-where-left-off t)
-  (setq eaf-browser-default-search-engine "duckduckgo")
+  (setq eaf-browser-dnefault-search-engine "duckduckgo")
   (setq eaf-browser-enable-adblocker "true")
   (eaf-bind-key scroll_up "C-n" eaf-pdf-viewer-keybinding)
   (eaf-bind-key scroll_down "C-p" eaf-pdf-viewer-keybinding)
   (eaf-bind-key take_photo "p" eaf-camera-keybinding)
-  (eaf-bind-key nil "M-q" eaf-browser-keybinding))
+  (eaf-bind-key nil "i" eaf-browser-keybinding)
+  (eaf-bind-key nil "h" eaf-browser-keybinding)
+  (eaf-bind-key nil "j" eaf-browser-keybinding)
+  (eaf-bind-key nil "k" eaf-browser-keybinding)
+  (eaf-bind-key nil "l" eaf-browser-keybinding)
+  )
 
 ;;;; Better PDFs
 ;https://github.com/politza/pdf-tools
