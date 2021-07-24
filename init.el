@@ -955,7 +955,24 @@ Containing LEFT, and RIGHT aligned respectively."
   :commands proced
   :config
   (setq proced-auto-update-flag t
-	proced-auto-update-interval 2
-	proced-decend t))
+        proced-auto-update-interval 2
+        proced-decend t))
+;;;; Use emacs instead of dmenu
 (setenv "LAUNCHER" "emenu -p ")
 ;;;; stuff to ignore
+(put 'upcase-region 'disabled nil)
+(put 'downcase-region 'disabled nil)
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(system-packages goto-chg writegood-mode which-key vterm vlf vimrc-mode vertico undo-fu-session undo-fu ujelly-theme tree-sitter-langs transmission rainbow-mode racket-mode quelpa-use-package pdf-tools pcre2el password-store outline-minor-faces org-superstar org-roam org-plus-contrib org-mime org-download org-alert orderless multiple-cursors modus-themes message-attachment-reminder marginalia magit lua-mode keycast jumplist god-mode flyspell-correct fish-completion fennel-mode expand-region esh-autosuggest epc eglot eaf diff-hl dashboard crux bicycle beacon all-the-icons affe)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
