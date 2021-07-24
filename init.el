@@ -725,11 +725,11 @@
   (use-package org-mime)
 ;;;; mbsync and msmtp setup
   (setq mu4e-get-mail-command "mailsync"
-	sendmail-program "/usr/bin/msmtp"
-	message-sendmail-extra-arguments '("--read-envelope-from")
-	send-mail-function 'smtpmail-send-it
-	message-sendmail-f-is-evil t
-	message-send-mail-function 'message-send-mail-with-sendmail)
+        sendmail-program "/usr/bin/msmtp"
+        message-sendmail-extra-arguments '("--read-envelope-from")
+        send-mail-function 'smtpmail-send-it
+        message-sendmail-f-is-evil t
+        message-send-mail-function 'message-send-mail-with-sendmail)
 
   ;;images in emails
   (setq mu4e-view-show-images t)
@@ -741,64 +741,64 @@
 
 ;;;; Accounts
   (setq mu4e-contexts
-	(list
-	 ;; Personal account
-	 (make-mu4e-context
-	  :name "Personal"
-	  :match-func
-	  (lambda (msg)
-	    (when msg
-	      (string-prefix-p "/personal" (mu4e-message-field msg :maildir))))
-	  :vars '((user-mail-address                . "gavinfreeborn@gmail.com")
-		  (user-full-name                   . "Gavin Jaeger-Freeborn")
-		  (mu4e-drafts-folder               . "/personal/[Gmail].Drafts")
-		  (mu4e-sent-folder                 . "/personal/[Gmail].Sent Mail")
-		  (mu4e-refile-folder               . "/personal/[Gmail].All Mail")
-		  (mu4e-trash-folder                . "/personal/[Gmail].Trash")))
+        (list
+         ;; Personal account
+         (make-mu4e-context
+          :name "Personal"
+          :match-func
+          (lambda (msg)
+            (when msg
+              (string-prefix-p "/personal" (mu4e-message-field msg :maildir))))
+          :vars '((user-mail-address                . "gavinfreeborn@gmail.com")
+                  (user-full-name                   . "Gavin Jaeger-Freeborn")
+                  (mu4e-drafts-folder               . "/personal/[Gmail].Drafts")
+                  (mu4e-sent-folder                 . "/personal/[Gmail].Sent Mail")
+                  (mu4e-refile-folder               . "/personal/[Gmail].All Mail")
+                  (mu4e-trash-folder                . "/personal/[Gmail].Trash")))
 
-	 ;; Info Work account
-	 (make-mu4e-context
-	  :name "Info"
-	  :match-func
-	  (lambda (msg)
-	    (when msg
-	      (string-prefix-p "/info" (mu4e-message-field msg :maildir))))
-	  :vars '((user-mail-address                . "info@flatwaternorth.ca")
-		  (user-full-name                   . "Gavin Jaeger-Freeborn")
-		  (mu4e-drafts-folder               . "/info/[Gmail].Drafts")
-		  (mu4e-sent-folder                 . "/info/[Gmail].Sent Mail")
-		  (mu4e-refile-folder               . "/info/[Gmail].All Mail")
-		  (mu4e-trash-folder                . "/info/[Gmail].Trash")))
+         ;; Info Work account
+         (make-mu4e-context
+          :name "Info"
+          :match-func
+          (lambda (msg)
+            (when msg
+              (string-prefix-p "/info" (mu4e-message-field msg :maildir))))
+          :vars '((user-mail-address                . "info@flatwaternorth.ca")
+                  (user-full-name                   . "Gavin Jaeger-Freeborn")
+                  (mu4e-drafts-folder               . "/info/[Gmail].Drafts")
+                  (mu4e-sent-folder                 . "/info/[Gmail].Sent Mail")
+                  (mu4e-refile-folder               . "/info/[Gmail].All Mail")
+                  (mu4e-trash-folder                . "/info/[Gmail].Trash")))
 
-	 ;; Coach Work account
-	 (make-mu4e-context
-	  :name "Coach"
-	  :match-func
-	  (lambda (msg)
-	    (when msg
-	      (string-prefix-p "/coach" (mu4e-message-field msg :maildir))))
-	  :vars '((user-mail-address                . "coach@flatwaternorth.ca")
-		  (user-full-name                   . "Gavin Jaeger-Freeborn")
-		  (mu4e-drafts-folder               . "/coach/[Gmail].Drafts")
-		  (mu4e-sent-folder                 . "/coach/[Gmail].Sent Mail")
-		  (mu4e-refile-folder               . "/coach/[Gmail].All Mail")
-		  (mu4e-trash-folder                . "/coach/[Gmail].Trash")))))
+         ;; Coach Work account
+         (make-mu4e-context
+          :name "Coach"
+          :match-func
+          (lambda (msg)
+            (when msg
+              (string-prefix-p "/coach" (mu4e-message-field msg :maildir))))
+          :vars '((user-mail-address                . "coach@flatwaternorth.ca")
+                  (user-full-name                   . "Gavin Jaeger-Freeborn")
+                  (mu4e-drafts-folder               . "/coach/[Gmail].Drafts")
+                  (mu4e-sent-folder                 . "/coach/[Gmail].Sent Mail")
+                  (mu4e-refile-folder               . "/coach/[Gmail].All Mail")
+                  (mu4e-trash-folder                . "/coach/[Gmail].Trash")))))
 ;;;; Contacts
   (setq mail-personal-alias-file  "~/.config/mutt/aliases")
   (setq mu4e-org-contacts-file  (concat org-directory "/contacts.org"))
   (add-to-list 'mu4e-headers-actions
-	       '("org-contact-add" . mu4e-action-add-org-contact) t)
+               '("org-contact-add" . mu4e-action-add-org-contact) t)
   (add-to-list 'mu4e-view-actions
-	       '("org-contact-add" . mu4e-action-add-org-contact) t)
+               '("org-contact-add" . mu4e-action-add-org-contact) t)
 ;;;; Bookmarks
   (setq mu4e-bookmarks '((:name "To Handle"
-				:query "((flag:flagged AND (NOT flag:replied)) OR (NOT flag:seen)) AND (NOT groff)" :key 116)
-			 (:name "Today's messages"
-				:query "date:today..now" :key 118)
-			 (:name "Last 7 days"
-				:query "date:7d..now" :hide-unread t :key 119)
-			 (:name "Messages with images"
-				:query "mime:image/*" :key 112)))) ; email client depends on mu command
+                                :query "((flag:flagged AND (NOT flag:replied)) OR (NOT flag:seen))" :key 116)
+                         (:name "Today's messages"
+                                :query "date:today..now" :key 118)
+                         (:name "Last 7 days"
+                                :query "date:7d..now" :hide-unread t :key 119)
+                         (:name "Messages with images"
+                                :query "mime:image/*" :key 112))) ; email client depends on mu command
 
 ;;; PASS
 (use-package password-store
