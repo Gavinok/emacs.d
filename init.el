@@ -244,10 +244,10 @@
   ;; Note that M-sn is used for searghing ang
   (use-package consult
     :bind (("C-c l"     . consult-line)
-           ("C-c i"     . consult-imenu)
-           ("C-c o"     . consult-outline)
-           ("C-x b"     . consult-buffer)
-           ("C-x C-k C-k" . consult-kmacro))
+	   ("C-c i"     . consult-imenu)
+	   ("C-c o"     . consult-outline)
+	   ("C-x b"     . consult-buffer)
+	   ("C-x C-k C-k" . consult-kmacro))
     :custom
     (completion-in-region-function #'consult-completion-in-region)
     :config
@@ -310,7 +310,8 @@
 (use-package flyspell-correct
   :bind ("C-c DEL" . flyspell-correct-previous)
   :hook ((org-mode mu4e-compose-mode mail-mode git-commit-mode)
-         . turn-on-flyspell))
+	 . turn-on-flyspell))
+
 
 ;;; ORG
 (if gv/is-termux
