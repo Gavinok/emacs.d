@@ -555,21 +555,21 @@
 		filename-and-process)))
   (setq ibuffer-saved-filter-groups
       '(("home"
-         ("Qutebrowser" (name . "qutebrowser"))
-         ("emacs-config" (or (filename . ".emacs.d")
-                             (filename . "emacs-config")))
-         ("Org" (or (mode . org-mode)
-                    (filename . "OrgMode")))
-         ("Web Dev" (or (mode . html-mode)
-                        (mode . css-mode)))
-         ("Magit" (name . "\*magit"))
-         ("Help" (or (name . "\*Help\*")
-                     (name . "\*Apropos\*")
-                     (name . "\*info\*")))
-         ("Browser" (mode . eaf-mode)))))
+	 ("Qutebrowser" (name . "qutebrowser"))
+	 ("emacs-config" (or (filename . ".emacs.d")
+			     (filename . "emacs-config")))
+	 ("Org" (or (mode . org-mode)
+		    (filename . "OrgMode")))
+	 ("Web Dev" (or (mode . html-mode)
+			(mode . css-mode)))
+	 ("Magit" (name . "\*magit"))
+	 ("Help" (or (name . "\*Help\*")
+		     (name . "\*Apropos\*")
+		     (name . "\*info\*")))
+	 ("Browser" (mode . eaf-mode)))))
   (add-hook 'ibuffer-mode-hook
-          (lambda ()
-             (ibuffer-switch-to-saved-filter-groups "home")))) ; [built-in] Powerful interface for managing buffers
+	  (lambda ()
+	     (ibuffer-switch-to-saved-filter-groups "home")))) ; [built-in] Powerful interface for managing buffers
 
 ;;; ISEARCH
 (use-package isearch
