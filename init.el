@@ -160,13 +160,18 @@
     (add-hook 'post-command-hook #'my-god-mode-update-cursor-type))
 
 
+;;;; God mode keys everywhere
+(use-package view
+  :ensure nil
+  :bind (:map view-mode-map
+	 ("n" . next-line)
+	 ("p" . previous-line)))
 
-  (defun gv/catch-tty-ESC ()
-    "Setup key mappings of current terminal to turn a tty's ESC into `escape'."
-    (when (memq (terminal-live-p (frame-terminal)) '(t pc))
-      (let ((esc-binding (gv/-lookup-key input-decode-map ?\e)))
-        (define-key input-decode-map
-          [?\e] `(menu-item "" ,esc-binding :filter gv/-tty-ESC-filter)))))
+(use-package simple
+  :ensure nil
+  :bind (:map special-mode-map
+	 ("n" . next-line)
+	 ("p" . previous-line)))
 
   (gv/catch-tty-ESC))
 
