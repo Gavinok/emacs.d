@@ -4,13 +4,13 @@
 
 ;; Lower threshold back to 8 MiB (default is 800kB)
 (add-hook 'emacs-startup-hook
-          (lambda ()
-            (setq gc-cons-threshold (expt 2 23))))
+	  (lambda ()
+	    (setq gc-cons-threshold (expt 2 23))))
 ;;; PACKAGE LIST
 (setq package-archives
       '(("melpa" . "https://melpa.org/packages/")
-        ("org" . "https://orgmode.org/elpa/")
-        ("elpa" . "https://elpa.gnu.org/packages/")))
+	("org" . "https://orgmode.org/elpa/")
+	("elpa" . "https://elpa.gnu.org/packages/")))
 
 ;;; BOOTSTRAP USE-PACKAGE
 (package-initialize)
@@ -617,34 +617,31 @@
   :commands (hippie-expand)
   :config
   (setq hippie-expand-try-functions-list
-        '(try-expand-dabbrev
-          try-expand-dabbrev-all-buffers
-          try-expand-dabbrev-from-kill
-          try-complete-lisp-symbol-partially
-          try-complete-lisp-symbol
-          try-complete-file-name-partially
-          try-complete-file-name
-          try-expand-all-abbrevs
-          try-expand-list
-          try-expand-line)))
+	'(try-expand-dabbrev
+	  try-expand-dabbrev-all-buffers
+	  try-expand-dabbrev-from-kill
+	  try-complete-lisp-symbol-partially
+	  try-complete-lisp-symbol
+	  try-complete-file-name-partially
+	  try-complete-file-name
+	  try-expand-all-abbrevs
+	  try-expand-list
+	  try-expand-line)))
 
 ;;; FOLDING
-;;;; Cycle Headings With Bicycle
-(use-package bicycle
-  :after god-mode
-  :hook outline-minor-mode-hook
+(use-package outline
+  :after prog-mode
+  :hook outline-minor-mode
   :bind (:map outline-minor-mode-map
-         ("C-<tab>" . bicycle-cycle)
-         ("<backtab>" . bicycle-cycle-global)
-         :map god-local-mode-map
-         ("<tab>" . bicycle-cycle)))
-
-(use-package outline-minor-faces
-  :hook (emacs-lisp-mode . outline-minor-faces-add-font-lock-keywords))
+	 ("C-<tab>" . outline-cycle)
+	 ("<backtab>" . outline-cycle-buffer)
+	 :map god-local-mode-map
+	 ("<tab>" . outline-cycle)))
 
 ;;;; Setup Folding For Programming
 (use-package prog-mode
   :ensure nil
+  :after god-mode
   :config
   (add-hook 'emacs-lisp-mode-hook 'prettify-symbols-mode)
   (add-hook 'prog-mode-hook 'outline-minor-mode)
@@ -676,9 +673,10 @@
   (add-hook 'dired-mode-hook #'hl-line-mode)
 ;;;;; Hide . and .. in dired
   (setq dired-omit-files
-        (rx (or (seq bol (? ".") "#")
-                (seq bol "." eol)
-                (seq bol ".." eol))))
+	(rx (or (seq bol (? ".") "#")
+		(seq bol "." eol)
+		(seq bol ".." eol))))
+
 
   (add-hook 'dired-mode-hook 'dired-omit-mode)
   (add-hook 'dired-mode-hook 'dired-hide-details-mode)
@@ -703,22 +701,19 @@
   :commands (mu4e mu4e-compose-new mu4e-user-agent)
   :init
   ;; Show full email address
-  (setq mu4e-view-show-addresses 't)
-
-  (setq mu4e-maildir "~/.local/share/mail")
-  
-  ;; where to put attachemnts
-  (setq mu4e-attachment-dir  "~/Downloads")
-
-  ;; use mu4e for e-mail in emacs
-  (setq mail-user-agent 'mu4e-user-agent)
+  (setq mu4e-view-show-addresses 't
+	mu4e-maildir "~/.local/share/mail"
+	;; where to put attachemnts
+	mu4e-attachment-dir  "~/Downloads"
+	;; use mu4e for e-mail in emacs
+	mail-user-agent 'mu4e-user-agent)
   :config
   ;; This is set to 't' to avoid mail syncing issues when using mbsync
   (setq mu4e-change-filenames-when-moving t)
 
   ;; This prevents saving the email to the Sent folder since gmail will do this for us on their end.
-  (setq mu4e-sent-messages-behavior 'delete)
-  (setq message-kill-buffer-on-exit t)
+  (setq mu4e-sent-messages-behavior 'delete
+	message-kill-buffer-on-exit t)
 
 ;;;; Attachment reminders
   (use-package message-attachment-reminder)
@@ -726,103 +721,109 @@
   (use-package org-mime)
 ;;;; mbsync and msmtp setup
   (setq mu4e-get-mail-command "mailsync"
-        sendmail-program "/usr/bin/msmtp"
-        message-sendmail-extra-arguments '("--read-envelope-from")
-        send-mail-function 'smtpmail-send-it
-        message-sendmail-f-is-evil t
-        message-send-mail-function 'message-send-mail-with-sendmail)
+	sendmail-program "/usr/bin/msmtp"
+	message-sendmail-extra-arguments '("--read-envelope-from")
+	send-mail-function 'smtpmail-send-it
+	message-sendmail-f-is-evil t
+	message-send-mail-function 'message-send-mail-with-sendmail)
 
   ;;images in emails
   (setq mu4e-view-show-images t)
 ;;;; Abbreviations
   (define-abbrev-table 'mu4e-compose-mode-abbrev-table
-    '(("sin" "Sincerely, \nGavin Jaeger-Freeborn" nil 1)))
+    '(("sin" "Sincerely, \nGavin Jaeger-Freeborn" nil 1)
+      ("fwn_board" "<lammerdawn@gmail.com>, <president@flatwaternorth.ca>, <coach@flatwaternorth.ca>, <lewis_ds@me.com>, <a.kporter@klondiker.com>, <nikibparry@gmail.com>" nil 1)
+      ("fwn_staff" "doonmcdowell51@gmail.com, makenna.macauley@gmail.com, jmcdowell1@live.ca, mountain2adventure@gmail.com, ballet@mkcd.ca, roganparry@gmail.com,joelgirouard23@gmail.com,brucep205@gmail.com, marin.ruth@icloud.com, sneill@northwestel.net,james.mccann.2006@gmail.com,torimarieski8@icloud.com, kalebparry1@gmail.com" nil 1)
+      ("fwn_sprint" "<lammerdawn@gmail.com>, <president@flatwaternorth.ca>, <coach@flatwaternorth.ca>, <lewis_ds@me.com>, <a.kporter@klondiker.com>, <nikibparry@gmail.com>, doonmcdowell51@gmail.com, makenna.macauley@gmail.com, jmcdowell1@live.ca, mountain2adventure@gmail.com, ballet@mkcd.ca, roganparry@gmail.com,joelgirouard23@gmail.com,brucep205@gmail.com, marin.ruth@icloud.com, sneill@northwestel.net,james.mccann.2006@gmail.com,torimarieski8@icloud.com, kalebparry1@gmail.com" nil 1)
+      ("fwn_roadshow" "g.gilbert.g@gmail.com, lpvidal@hotmail.com" nil 1)))
+
   (add-hook 'mu4e-compose-mode-hook #'abbrev-mode)
   (add-to-list 'auto-mode-alist '("^/tmp/neomutt.*\\'" . mail-mode))
+  (add-hook 'mu4e-view-mode-hook 'visual-line-mode)
 
 ;;;; Accounts
   (setq mu4e-contexts
-        (list
-         ;; Personal account
-         (make-mu4e-context
-          :name "Personal"
-          :match-func
-          (lambda (msg)
-            (when msg
-              (string-prefix-p "/personal" (mu4e-message-field msg :maildir))))
-          :vars '((user-mail-address                . "gavinfreeborn@gmail.com")
-                  (user-full-name                   . "Gavin Jaeger-Freeborn")
-                  (mu4e-drafts-folder               . "/personal/[Gmail].Drafts")
-                  (mu4e-sent-folder                 . "/personal/[Gmail].Sent Mail")
-                  (mu4e-refile-folder               . "/personal/[Gmail].All Mail")
-                  (mu4e-trash-folder                . "/personal/[Gmail].Trash")))
+	(list
+	 ;; Personal account
+	 (make-mu4e-context
+	  :name "Personal"
+	  :match-func
+	  (lambda (msg)
+	    (when msg
+	      (string-prefix-p "/personal" (mu4e-message-field msg :maildir))))
+	  :vars '((user-mail-address                . "gavinfreeborn@gmail.com")
+		  (user-full-name                   . "Gavin Jaeger-Freeborn")
+		  (mu4e-drafts-folder               . "/personal/[Gmail].Drafts")
+		  (mu4e-sent-folder                 . "/personal/[Gmail].Sent Mail")
+		  (mu4e-refile-folder               . "/personal/[Gmail].All Mail")
+		  (mu4e-trash-folder                . "/personal/[Gmail].Trash")))
 
-         ;; Info Work account
-         (make-mu4e-context
-          :name "Info"
-          :match-func
-          (lambda (msg)
-            (when msg
-              (string-prefix-p "/info" (mu4e-message-field msg :maildir))))
-          :vars '((user-mail-address                . "info@flatwaternorth.ca")
-                  (user-full-name                   . "Gavin Jaeger-Freeborn")
-                  (mu4e-drafts-folder               . "/info/[Gmail].Drafts")
-                  (mu4e-sent-folder                 . "/info/[Gmail].Sent Mail")
-                  (mu4e-refile-folder               . "/info/[Gmail].All Mail")
-                  (mu4e-trash-folder                . "/info/[Gmail].Trash")))
+	 ;; Info Work account
+	 (make-mu4e-context
+	  :name "Info"
+	  :match-func
+	  (lambda (msg)
+	    (when msg
+	      (string-prefix-p "/info" (mu4e-message-field msg :maildir))))
+	  :vars '((user-mail-address                . "info@flatwaternorth.ca")
+		  (user-full-name                   . "Gavin Jaeger-Freeborn")
+		  (mu4e-drafts-folder               . "/info/[Gmail].Drafts")
+		  (mu4e-sent-folder                 . "/info/[Gmail].Sent Mail")
+		  (mu4e-refile-folder               . "/info/[Gmail].All Mail")
+		  (mu4e-trash-folder                . "/info/[Gmail].Trash")))
 
-         ;; Coach Work account
-         (make-mu4e-context
-          :name "Coach"
-          :match-func
-          (lambda (msg)
-            (when msg
-              (string-prefix-p "/coach" (mu4e-message-field msg :maildir))))
-          :vars '((user-mail-address                . "coach@flatwaternorth.ca")
-                  (user-full-name                   . "Gavin Jaeger-Freeborn")
-                  (mu4e-drafts-folder               . "/coach/[Gmail].Drafts")
-                  (mu4e-sent-folder                 . "/coach/[Gmail].Sent Mail")
-                  (mu4e-refile-folder               . "/coach/[Gmail].All Mail")
-                  (mu4e-trash-folder                . "/coach/[Gmail].Trash")))))
+	 ;; Coach Work account
+	 (make-mu4e-context
+	  :name "Coach"
+	  :match-func
+	  (lambda (msg)
+	    (when msg
+	      (string-prefix-p "/coach" (mu4e-message-field msg :maildir))))
+	  :vars '((user-mail-address                . "coach@flatwaternorth.ca")
+		  (user-full-name                   . "Gavin Jaeger-Freeborn")
+		  (mu4e-drafts-folder               . "/coach/[Gmail].Drafts")
+		  (mu4e-sent-folder                 . "/coach/[Gmail].Sent Mail")
+		  (mu4e-refile-folder               . "/coach/[Gmail].All Mail")
+		  (mu4e-trash-folder                . "/coach/[Gmail].Trash")))))
 ;;;; Contacts
   (setq mail-personal-alias-file  "~/.config/mutt/aliases")
   (setq mu4e-org-contacts-file  (concat org-directory "/contacts.org"))
   (add-to-list 'mu4e-headers-actions
-               '("org-contact-add" . mu4e-action-add-org-contact) t)
+	       '("org-contact-add" . mu4e-action-add-org-contact) t)
   (add-to-list 'mu4e-view-actions
-               '("org-contact-add" . mu4e-action-add-org-contact) t)
+	       '("org-contact-add" . mu4e-action-add-org-contact) t)
 ;;;; Bookmarks
   (setq mu4e-bookmarks '((:name "To Handle"
-                                :query "((flag:flagged AND (NOT flag:replied)) OR (NOT flag:seen))" :key 116)
-                         (:name "Today's messages"
-                                :query "date:today..now" :key 118)
-                         (:name "Last 7 days"
-                                :query "date:7d..now" :hide-unread t :key 119)
-                         (:name "Messages with images"
-                                :query "mime:image/*" :key 112))) ; email client depends on mu command
+				:query "((flag:flagged AND (NOT flag:replied)) OR (NOT flag:seen))" :key 116)
+			 (:name "Today's messages"
+				:query "date:today..now" :key 118)
+			 (:name "Last 7 days"
+				:query "date:7d..now" :hide-unread t :key 119)
+			 (:name "Messages with images"
+				:query "mime:image/*" :key 112))) ; email client depends on mu command
 
 ;;;; Headers View
   (set-face-attribute 'mu4e-flagged-face nil
-                      :background "#900")
+		      :background "#900")
   (set-face-attribute 'mu4e-flagged-face nil
-                      :foreground "#000")
+		      :foreground "#000")
   (set-face-attribute 'mu4e-unread-face nil
-                      :background "#900")
+		      :background "#900")
   (set-face-attribute 'mu4e-unread-face nil
-                      :foreground "#000")
-(setq-default mu4e-use-fancy-chars t)  
+		      :foreground "#000")
+(setq-default mu4e-use-fancy-chars t)
 (setq-default mu4e-header-sort-field :date)
 (setq-default mu4e-headers-show-threads nil)
 (setq-default mu4e-headers-fields '((:flags         .    6)
-                                    (:from-or-to    .   22)
-                                    (:subject       .   70)
-                                    (:human-date    .   nil)))
+				    (:from-or-to    .   22)
+				    (:subject       .   70)
+				    (:human-date    .   nil)))
 (mu4e-hide-other-mu4e-buffers))
 ;;; PASS
 (use-package password-store
   :commands (password-store-copy
-             password-store-insert
-             password-store-generate))
+	     password-store-insert
+	     password-store-generate))
 
 ;; Authenticte with auth-source-pass
 (use-package auth-source-pass
@@ -833,7 +834,7 @@
 (use-package winner
   :ensure nil
   :bind (( "s-/" . winner-undo)
-         ( "s-?" . winner-redo))
+	 ( "s-?" . winner-redo))
   :config
   :init (winner-mode 1)) ; window managment undo
 
@@ -845,38 +846,39 @@
   "Return a string of `window-width' length.
 Containing LEFT, and RIGHT aligned respectively."
   (let ((available-width
-         (- (window-total-width)
-            (+ (length (format-mode-line left))
-               (length (format-mode-line right))))))
+	 (- (window-total-width)
+	    (+ (length (format-mode-line left))
+	       (length (format-mode-line right))))))
     (append left
-            (list (format (format "%%%ds" available-width) " "))
-            right)))
+	    (list (format (format "%%%ds" available-width) " "))
+	    right)))
 (set-face-attribute 'mode-line nil
-                    :box '(:line-width 10 :color "#000"))
+		    :box '(:line-width 10 :color "#000"))
 (set-face-attribute 'mode-line-inactive nil
-                    :box '(:line-width 10 :color "#000"))
+		    :box '(:line-width 10 :color "#000"))
 (set-face-attribute 'mode-line nil
-                    :background  "#0F0F0F")
-(setq-default left-margin-width 2)
-(setq-default right-margin-width 2)
+		    :background  "#0F0F0F")
+(unless gv/is-terminal
+  (setq-default left-margin-width 4)
+  (setq-default right-margin-width 4))
 (set-window-buffer nil (current-buffer))
 (setq-default mode-line-format
       '((:eval
-         (format-mode-line
-          (simple-mode-line-render
-          ;; Left
-          '(" "
-            (:eval (propertize (if (buffer-modified-p) "● " "  " ) 'face 'error))
-            " %b"
-            ;; value of current line number
-            " %l:%c"
-            (:eval (propertize (concat " %p%%" " " (if god-local-mode " 😇 " "  ") " (%m) ") 'face 'shadow))
-            )
-          ;; Right
-          '((:eval (propertize (format-time-string "%a, %b %d %I:%M%p")'face 'font-lock-keyword-face))
-            " "
-            (:eval (unless gv/is-termux (battery-format "[%p]" (funcall battery-status-function))) )
-            "    "))))))
+	 (format-mode-line
+	  (simple-mode-line-render
+	  ;; Left
+	  '(" "
+	    (:eval (propertize (if (buffer-modified-p) "● " "  " ) 'face 'error))
+	    mode-line-buffer-identification
+	    ;; value of current line number
+	    " %l:%c"
+	    (:eval (propertize (concat " %p%%" " " (if god-local-mode " 😇 " "  ") " (%m) ") 'face 'shadow))
+	    )
+	  ;; Right
+	  '((:eval (propertize (format-time-string "%a, %b %d %I:%M%p")'face 'font-lock-keyword-face))
+	    " "
+	    (:eval (unless gv/is-termux (battery-format "[%p]" (funcall battery-status-function))) )
+	    "    "))))))
 
 ;;; Server Setup
 (use-package server
@@ -891,7 +893,7 @@ Containing LEFT, and RIGHT aligned respectively."
 (use-package eaf
   :unless gv/is-termux
   :bind (("C-c w" . gv/bm)
-         ("s-w" . gv/bm))
+	 ("s-w" . gv/bm))
   :defer t
   :load-path "~/.emacs.d/site-lisp/emacs-application-framework" ; Set to "/usr/share/emacs/site-lisp/eaf" if installed from AUR
   :init
@@ -911,28 +913,33 @@ Containing LEFT, and RIGHT aligned respectively."
   (defun gv/bm ()
     (interactive)
     (let ((selected (completing-read
-                     "Select URL: " (split-string
-                                     (slurp "~/.config/bookmarks") "\n" t))))
+		     "Select URL: " (split-string
+				     (slurp "~/.config/bookmarks") "\n" t))))
       (let ((url (car (split-string
-                       selected
-                       " " t))))
-        (if (string-match-p "\\http.*\\'" url)
-            ;; Open selected url
-            (eaf-open-browser url)
-          ;; Search entered text
-          (eaf-search-it selected)))))
-  (setq eaf-browser-continue-where-left-off t)
-  (setq eaf-browser-dnefault-search-engine "duckduckgo")
-  (setq eaf-browser-enable-adblocker "true")
+		       selected
+		       " " t))))
+	(if (string-match-p "\\http.*\\'" url)
+	    ;; Open selected url
+	    (eaf-open-browser url)
+	  ;; Search entered text
+	  (eaf-search-it selected)))))
+  (setq-default eaf-browser-continue-where-left-off t)
+  (setq-default eaf-browser-dnefault-search-engine "duckduckgo")
+  (setq-default eaf-browser-enable-adblocker "true")
   (eaf-bind-key scroll_up "C-n" eaf-pdf-viewer-keybinding)
   (eaf-bind-key scroll_down "C-p" eaf-pdf-viewer-keybinding)
   (eaf-bind-key take_photo "p" eaf-camera-keybinding)
-  (eaf-bind-key nil "i" eaf-browser-keybinding)
-  (eaf-bind-key nil "h" eaf-browser-keybinding)
-  (eaf-bind-key nil "j" eaf-browser-keybinding)
-  (eaf-bind-key nil "k" eaf-browser-keybinding)
-  (eaf-bind-key nil "l" eaf-browser-keybinding)
-  )
+  (dolist (keys '("i" "h" "j" "k" "l"
+		  "d" "f" "x" ","
+		  "-" "." "0" "1"
+		  "2" "=" "B" "F"
+		  "G" "H" "I" "J"
+		  "K" "L" "P" "T"
+		  "Y" "c" "d" "e"
+		  "f" "g" "m" "n"
+		  "o" "p" "r" "t"
+		  "u" "v" "x" "y"
+		  (eaf-bind-key nil key eaf-browser-keybinding)))))
 
 ;;;; Better PDFs
 ;https://github.com/politza/pdf-tools
@@ -955,8 +962,8 @@ Containing LEFT, and RIGHT aligned respectively."
   :commands proced
   :config
   (setq proced-auto-update-flag t
-        proced-auto-update-interval 2
-        proced-decend t))
+	proced-auto-update-interval 2
+	proced-decend t))
 ;;;; Use emacs instead of dmenu
 (setenv "LAUNCHER" "emenu -p ")
 ;;;; stuff to ignore
