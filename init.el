@@ -199,18 +199,18 @@
 ;;;; Fuzzy Finding
   (use-package affe
     :bind (("C-c n" . gv/notegrep)
-           ("C-c f" . affe-find)
-           ("C-c g" . affe-grep))
+	   ("C-c f" . affe-find)
+	   ("C-c g" . affe-grep))
     :commands (affe-grep affe-find)
     :config
     ;; only exclude git files
     (setq affe-find-command
-          (concat "find  "
-                  "-not -path '*/\\.nnn*' -not -path '*/\\.git*' "
-                  "-type f"))
+	  (concat "find  "
+		  "-not -path '*/\\.nnn*' -not -path '*/\\.git*' "
+		  "-type f"))
     ;; Configure Orderless
     (setq affe-regexp-function #'orderless-pattern-compiler
-          affe-highlight-function #'orderless--highlight)
+	  affe-highlight-function #'orderless--highlight)
 
     ;; Manual preview key for `affe-grep'
     (consult-customize affe-grep :preview-key (kbd "M-."))
@@ -221,7 +221,7 @@
   :config
   ;; Do not allow the cursor in the minibuffer prompt
   (setq minibuffer-prompt-properties
-        '(read-only t cursor-intangible t face minibuffer-prompt))
+	'(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
   ;; Enable recursive minibuffers
   (setq enable-recursive-minibuffers t))
@@ -234,15 +234,16 @@
   (set-frame-parameter (selected-frame) 'alpha '(90 90))
   (add-to-list 'default-frame-alist '(alpha 90 90))
   (set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
-
   ;; (set-face-attribute 'mode-line nil :foreground "#bdc3ce" :background "#000")
-  (set-face-attribute 'default nil :background "#000" :foreground "#eee"))
+  (set-face-attribute 'default nil :background "#000" :foreground "#eee")
+)
 
 ;;; Aligning Text
 (use-package align
   :ensure nil
   :bind ("C-x C-a" . align-regexp)
   :config
+  ;; Align using spaces
   (defadvice align-regexp (around align-regexp-with-spaces activate)
     (let ((indent-tabs-mode nil))
       ad-do-it)))
@@ -264,8 +265,8 @@
   :ensure org-plus-contrib
   :commands (org-capture org-agenda)
   :bind (("C-c y" . org-store-link)
-         ("C-c c" . org-capture)
-         ("C-c a" . org-agenda))
+	 ("C-c c" . org-capture)
+	 ("C-c a" . org-agenda))
   :config
   (add-hook 'org-mode-hook (lambda () (setq indent-tabs-mode nil)))
 ;;;; Archive Completed Tasks
@@ -275,92 +276,94 @@
       (org-map-entries 'org-archive-subtree "/CANCELLED" 'file))
 ;;;; Better defaults
   (setq org-ellipsis " ▾"
-        org-hide-emphasis-markers t
-        org-special-ctrl-a/e t
-        org-src-fontify-natively t
-        org-fontify-quote-and-verse-blocks t
-        org-src-tab-acts-natively t
-        org-edit-src-content-indentation 2
-        org-hide-block-startup nil
-        org-src-preserve-indentation nil
-        org-startup-folded 'content
-        org-cycle-separator-lines 2)
+	org-hide-emphasis-markers t
+	org-special-ctrl-a/e t
+	org-src-fontify-natively t
+	org-fontify-quote-and-verse-blocks t
+	org-src-tab-acts-natively t
+	org-edit-src-content-indentation 2
+	org-hide-block-startup nil
+	org-src-preserve-indentation nil
+	org-startup-folded 'content
+	org-cycle-separator-lines 2)
 
   (setq org-log-done 'time)
   (setq org-log-into-drawer t)
   (setq org-todo-keywords
-        '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
-          (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "DELEGATED(D)" "CANCELLED(c)")))
+	'((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
+	  (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)"
+		    "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)"
+		    "|" "DELEGATED(D)" "CANCELLED(c)")))
 
 ;;;; Agenda Views
   (setq org-agenda-custom-commands
-        '(("d" "Today's Tasks"
-           ((agenda "" ((org-agenda-span 1)
-                        (org-agenda-overriding-header "Today's Tasks")))))
-          ;; ("d" "Dashboard"
-          ;;  ((agenda "" ((org-deadline-warning-days 7)))
-          ;;   (todo "NEXT"
-          ;;      ((org-agenda-overriding-header "Next Tasks")))
-          ;;   (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
+	'(("d" "Today's Tasks"
+	   ((agenda "" ((org-agenda-span 1)
+			(org-agenda-overriding-header "Today's Tasks")))))
+	  ;; ("d" "Dashboard"
+	  ;;  ((agenda "" ((org-deadline-warning-days 7)))
+	  ;;   (todo "NEXT"
+	  ;;      ((org-agenda-overriding-header "Next Tasks")))
+	  ;;   (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
 
-          ("n" "Next Tasks"
-           ((todo "NEXT"
-                  ((org-agenda-overriding-header "Next Tasks")))))
+	  ("n" "Next Tasks"
+	   ((todo "NEXT"
+		  ((org-agenda-overriding-header "Next Tasks")))))
 
-          ("W" "Work Tasks" tags-todo "+work")
+	  ("W" "Work Tasks" tags-todo "+work")
 
-          ;; Low-effort next actions
-          ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&+Effort>0"
-           ((org-agenda-overriding-header "Low Effort Tasks")
-            (org-agenda-max-todos 20)
-            (org-agenda-files org-agenda-files)))))
+	  ;; Low-effort next actions
+	  ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&+Effort>0"
+	   ((org-agenda-overriding-header "Low Effort Tasks")
+	    (org-agenda-max-todos 20)
+	    (org-agenda-files org-agenda-files)))))
 ;;;; Capture
   (setq org-default-notes-file (concat org-directory "/refile.org"))
   (setq org-capture-templates
-        '(("t" "Todo" entry (file (lambda () (concat org-directory "/refile.org")))
-           "* TODO %?\nDEADLINE: %T\n  %a")
-          ("M" "movie" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
-           "* Meeting with  %?\nSCHEDULED: %T\n")
-          ("m" "Meeting" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
-           "* Meeting with  %?\nSCHEDULED: %T\n")
-          ("r" "Refund" entry (file+olp (lambda () (concat org-directory "/Work.org"))
-                                        "Work" "Refunds")
-           "* TODO Refund %?\n%?  %a\n")
-          ("w" "Waitlist" entry (file+olp (lambda () (concat org-directory "/Work.org"))
-                                          "Work" "Waitlist")
-           "* %?\n%? %a\n")
-          ("v" "Video Idea" entry (file+olp (lambda () (concat org-directory "/youtube.org"))
-                                            "YouTube" "Video Ideas")
-           "* %?\n%? %a\n")
-          ("c" "Cool Thing" entry (file+opl+datetree (lambda () (concat org-directory "/archive.org")))
-           "* %?\nEntered on %U\n  %i\n  %a")))
+	'(("t" "Todo" entry (file (lambda () (concat org-directory "/refile.org")))
+	   "* TODO %?\nDEADLINE: %T\n  %a")
+	  ("M" "movie" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
+	   "* Meeting with  %?\nSCHEDULED: %T\n")
+	  ("m" "Meeting" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
+	   "* Meeting with  %?\nSCHEDULED: %T\n")
+	  ("r" "Refund" entry (file+olp (lambda () (concat org-directory "/Work.org"))
+					"Work" "Refunds")
+	   "* TODO Refund %?\n%?  %a\n")
+	  ("w" "Waitlist" entry (file+olp (lambda () (concat org-directory "/Work.org"))
+					  "Work" "Waitlist")
+	   "* %?\n%? %a\n")
+	  ("v" "Video Idea" entry (file+olp (lambda () (concat org-directory "/youtube.org"))
+					    "YouTube" "Video Ideas")
+	   "* %?\n%? %a\n")
+	  ("c" "Cool Thing" entry (file+opl+datetree (lambda () (concat org-directory "/archive.org")))
+	   "* %?\nEntered on %U\n  %i\n  %a")))
 ;;;; Refile targets
   (setq org-refile-targets
-        '(("Work.org"    :maxlevel . 3)
-          ("archive.org" :maxlevel . 3)
-          ("mylife.org"  :maxlevel . 3)))
+	'(("Work.org"    :maxlevel . 3)
+	  ("archive.org" :maxlevel . 3)
+	  ("mylife.org"  :maxlevel . 3)))
   (advice-add 'org-refile :after 'org-save-all-org-buffers)
 ;;;; Font Sizes
   (dolist (face '((org-level-1 . 1.05)
-                  (org-level-2 . 1.05)
-                  (org-level-3 . 1.05)
-                  (org-level-4 . 1.05)))
+		  (org-level-2 . 1.05)
+		  (org-level-3 . 1.05)
+		  (org-level-4 . 1.05)))
     (set-face-attribute (car face) nil :font "RobotoMono Nerd Font" :weight 'medium :height (cdr face))))
 
 
 ;;;; Drag And Drop
 (use-package org-download
-  :unless gv/is-termux
+  :unless gv/is-terminal
   :bind ("s-i" . org-download-screenshot)
   :hook ((org-mode dired-mode) . org-download-enable)
   :init
   (setq org-agenda-files (seq-filter (lambda (x) (not (string-match "completed.org" x)))
-                                     (directory-files-recursively org-directory "\\.org$")))
+				     (directory-files-recursively org-directory "\\.org$")))
   (setq-default org-download-screenshot-method "gnome-screenshot -a -f %s")
   (setq-default org-download-image-dir "./pic"))
 ;;;; Better Looking Bullets
 (use-package org-superstar
-  :when (display-graphic-p)
+  :when gv/is-terminal
   :hook (org-mode . org-superstar-mode))
 
 ;;;; Templates
@@ -391,7 +394,7 @@
   :config
   (global-company-mode nil)
   (setq company-idle-delay 0.1
-        company-minimum-prefix-length 1))
+	company-minimum-prefix-length 1))
 
 ;;; VTERM AND ESHELL
 (use-package vterm
@@ -406,9 +409,9 @@
   :hook eshell-mode
   :config
   (add-hook 'eshell-mode-hook
-            (lambda ()
-              (eshell/alias "e" "find-file $1")
-              (eshell/alias "ee" "find-file-other-window $1"))))
+	    (lambda ()
+	      (eshell/alias "e" "find-file $1")
+	      (eshell/alias "ee" "find-file-other-window $1"))))
 
 (use-package fish-completion
   :hook eshell-mode
@@ -440,7 +443,7 @@
   (let ((cp (getenv "CLASSPATH")))
     (setenv "CLASSPATH" (concat cp ":" my/eclipse-jdt-home))
     (unwind-protect
-        (eglot--eclipse-jdt-contact nil)
+	(eglot--eclipse-jdt-contact nil)
       (setenv "CLASSPATH" cp))))
 
 (setcdr (assq 'java-mode eglot-server-programs) #'my/eclipse-jdt-contact)
@@ -460,9 +463,9 @@
   (defun my-git-project-finder (dir)
     "Integrate .git project roots."
     (let ((dotgit (and (setq dir (locate-dominating-file dir ".git"))
-                       (expand-file-name dir))))
+		       (expand-file-name dir))))
       (and dotgit
-           (cons 'transient (file-name-directory dotgit)))))
+	   (cons 'transient (file-name-directory dotgit)))))
   (add-hook 'project-find-functions 'my-git-project-finder)) ; [built-in] Project Managment
 ;;; COMPILATION
 (use-package compile
@@ -487,12 +490,12 @@
 
 ;; Modify the default ibuffer-formats
   (setq ibuffer-formats
-        '((mark modified read-only " "
-                (name 40 40 :left :elide)
-                " "
-                (mode 16 16 :left :elide)
-                " "
-                filename-and-process)))
+	'((mark modified read-only " "
+		(name 40 40 :left :elide)
+		" "
+		(mode 16 16 :left :elide)
+		" "
+		filename-and-process)))
   (setq ibuffer-saved-filter-groups
       '(("home"
          ("Qutebrowser" (name . "qutebrowser"))
@@ -545,20 +548,20 @@
   (delete-selection-mode 1)
 ;;;; Backups
   (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
-        vc-make-backup-files t
-        version-control t
-        kept-old-versions 0
-        kept-new-versions 10
-        delete-old-versions t
-        backup-by-copying t)
+	vc-make-backup-files t
+	version-control t
+	kept-old-versions 0
+	kept-new-versions 10
+	delete-old-versions t
+	backup-by-copying t)
 ;;;; Defaults
   ;; Cursor Shape
   (setq-default cursor-type 'bar)
   (setq delete-by-moving-to-trash t
-        create-lockfiles nil
-        auto-save-default nil
-        inhibit-startup-screen t
-        ring-bell-function 'ignore)
+	create-lockfiles nil
+	auto-save-default nil
+	inhibit-startup-screen t
+	ring-bell-function 'ignore)
 ;;;; UTF-8
   (prefer-coding-system 'utf-8)
   (setq locale-coding-system 'utf-8)
@@ -580,13 +583,14 @@
   (setq-default frame-resize-pixelwise t)
 ;;;; Vim like scrolling
   (setq scroll-step            1
-        scroll-conservatively  10000)
+	scroll-conservatively  10000)
+  (setq next-screen-context-lines 20)
   ;; move by logical lines rather than visual lines (better for macros)
   (setq line-move-visual nil))
 
 (use-package autorevert
   :ensure nil
-  :defer t
+  :defer 1
   :init (global-auto-revert-mode t))
 
 ;; Good speed and allow scrolling through large images (pixel-scroll).
@@ -650,7 +654,7 @@
     ;; if our source file uses tabs, we use tabs, if spaces spaces, and if
     ;; neither, we use the current indent-tabs-mode
     (let ((space-count (how-many "^  " (point-min) (point-max)))
-          (tab-count (how-many "^\t" (point-min) (point-max))))
+	  (tab-count (how-many "^\t" (point-min) (point-max))))
       (if (> space-count tab-count) (setq indent-tabs-mode nil))
       (if (> tab-count space-count) (setq indent-tabs-mode t))))
   (add-hook 'prog-mode-hook 'infer-indentation-style))
