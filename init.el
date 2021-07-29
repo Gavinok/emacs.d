@@ -576,30 +576,43 @@
   :ensure nil
   :commands (isearch-forward isearch-backward)
   :config
-  (setq search-whitespace-regexp ".*?"))
+  (defun isearch-save-and-exit ()
+    "Exit search normally. and save the `search-string' on kill-ring."
+    (interactive)
+    (isearch-done)
+    (isearch-clean-overlays)
+    (kill-new isearch-string))
+
+  (define-key isearch-mode-map "\M-w" 'isearch-save-and-exit)
+
+  ;; Avoid typing - and _ during searches
+  (setq search-whitespace-regexp ".")
+  ;; Place cursor at the start of the match similar to vim's t
+  ;; C-g will return the cursor to it's orignal position
+  (add-hook 'isearch-mode-end-hook 'my-goto-match-beginning)
+  (defun my-goto-match-beginning ()
+      (when (and isearch-forward isearch-other-end (not isearch-mode-end-hook-quit))
+	(goto-char isearch-other-end))))
 ;;; DEFAULTS
 (use-package emacs
   :ensure nil
   :config
   ;; change truncation indicators
 (define-fringe-bitmap 'right-curly-arrow
-  [#b00000000
-   #b00000000
-   #b00000000
-   #b00000000
-   #b01110000
+  [#b10000000
+   #b10000000
+   #b10000000
+   #b01000000
+   #b01000000
+   #b01000000
+   #b00100000
+   #b00100000
+   #b00100000
    #b00010000
    #b00010000
-   #b00000000])
+   #b00010000])
 (define-fringe-bitmap 'left-curly-arrow
-  [#b00000000
-   #b00001000
-   #b00001000
-   #b00001110
-   #b00000000
-   #b00000000
-   #b00000000
-   #b00000000])
+  [#b00000000])
   (set-frame-font "RobotoMono Nerd Font 14" nil t)
   ;; Replace selection on insert
   (delete-selection-mode 1)
