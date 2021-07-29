@@ -20,12 +20,13 @@
   (package-refresh-contents)
   (package-install 'use-package))
 (eval-when-compile (require 'use-package))
-
+(setq use-package-verbose t)
+(setq package-native-compile t)
+(setq comp-deferred-compilation t)
 ;;; ASYNC
 
 ;;;; Emacs look SIGNIFICANTLY less often which is a good thing.
 ;;;; asynchronous bytecode compilation and various other actions makes
-
 (use-package async
   :ensure t
   :defer t
@@ -715,12 +716,13 @@
 ;;; EXTRA UI
 ;;;; Beacon
 (use-package beacon
+  :unless gv/is-terminal
   :defer t
   :init (beacon-mode 1)); Highlight cursor postion after movement
 ;;;; Display hex colors in emacs
 (use-package rainbow-mode
   :defer t
-  :init (rainbow-mode t))
+  :commands (rainbow-mode))
 
 ;;; DIRED
 (use-package dired
