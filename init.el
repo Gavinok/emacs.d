@@ -1009,6 +1009,7 @@ Containing LEFT, and RIGHT aligned respectively."
 ;;;; Torrents
 (use-package transmission
   :defer t
+  :commands transmission
   :config
   (add-hook 'transmission-mode-hook 'hl-line-mode))
 ;;;; proced [built-in] htop alternative
