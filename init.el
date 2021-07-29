@@ -35,9 +35,13 @@
   :custom (async-bytecomp-allowed-packages '(all)))
 
 ;;; MY STUFF
-(setq gv/is-termux
+(defvar gv/is-termux
       (string-suffix-p
-       "Android" (string-trim (shell-command-to-string "uname -a"))))
+       "Android" (string-trim (shell-command-to-string "uname -a")))
+      "Truthy value indicating if emacs is currently running in termux")
+(defvar gv/is-terminal
+  (display-graphic-p)
+  "Truthy value indicating if emacs is currently running in a terminal")
 
 (defun gv/read ()
   "text to speech"
