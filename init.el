@@ -312,6 +312,8 @@
   :hook ((org-mode mu4e-compose-mode mail-mode git-commit-mode)
 	 . turn-on-flyspell))
 
+(use-package academic-phrases
+  :commands (academic-phrases))
 
 ;;; ORG
 (if gv/is-termux
