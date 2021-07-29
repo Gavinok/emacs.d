@@ -744,8 +744,9 @@
       (message "Opening %s..." file)
       (call-process "xdg-open" nil 0 nil file)
       (message "Opening %s done" file)))
-  (define-key dired-mode-map (kbd "O") 'gv/dired-xdg-open))
-
+  (define-key dired-mode-map (kbd "O") 'gv/dired-xdg-open)
+  ;; prevent opening extra dired buffers
+  (setq dired-kill-when-opening-new-dired-buffer t))
 
 ;;; EMAIL
 (use-package mu4e
