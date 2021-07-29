@@ -214,9 +214,8 @@
 ;;; Extending Selection
 ;; Expand region is useful for adding iw aw style selection to emacs
 ;; TODO find a better alternative so I can put this in usepackage
-
 (use-package expand-region
-  :bind (("C-="      . er/expand-region)))
+  :bind (("C-=" . er/expand-region)))
 
 ;;; TERMINAL SETTINGS
 (if (display-graphic-p)
