@@ -113,46 +113,72 @@
 (use-package god-mode
   :defer t
   :bind (("<escape>" . god-mode-all)
-         ("C-x ["    . previous-buffer)
-         ("C-x ]"    . next-buffer)
-         ("C-x c"    . delete-window)
-         ("C-c C-d"  . cd)
-         ("C-z"      . repeat)
-         ("M-s n"    . isearch-repeat-forward)
-         ("M-s p"    . isearch-repeat-backward)
-         ("M-c"      . capitalize-dwim)
-         ("M-SPC"    . keyboard-escape-quit)
-         :map god-local-mode-map
-         ("{" . pop-global-mark)
-         ("}" . unpop-to-mark-command)
-         ("F" . forward-word) ; move FASTER
-         ("B" . backward-word)
-         ("D" . kill-word)
-         ("]" . forward-list)
-         ("[" . backward-list)
-         ("v" . set-mark-command)
-         :map minibuffer-local-map
-         ;; I don't use god-mode in the minibuffer
-         ("<escape>" . keyboard-escape-quit))
+	 ("C-x c"    . delete-window)
+	 ("C-c C-d"  . cd)
+	 ("C-z"      . repeat)
+	 ([remap capitalize-word] . capitalize-dwim)
+	 :map god-local-mode-map
+	 ("<escape>" . keyboard-quit)
+	 ("i" . god-mode-all)
+	 ("{" . pop-global-mark)
+	 ("}" . unpop-to-mark-command)
+	 ("F" . forward-word) ; move FASTER
+	 ("B" . backward-word)
+	 ("]" . forward-list)
+	 ("[" . backward-list)
+	 ("v" . set-mark-command)
+	 ("`" . toggle-kbd-macro-recording-on)
+	 ("~" . call-last-kbd-macro)
+	 ;; isearch
+	 :map isearch-mode-map
+	 ("<escape>" . god-mode-isearch-activate)
+	 :map god-mode-isearch-map
+	 ("<escape>" .  god-mode-isearch-disable)
+	 :map minibuffer-local-map
+	 ;; i don't use god-mode in the minibuffer
+	 ("<escape>" . keyboard-escape-quit))
   :config
+  (use-package god-mode-isearch :ensure nil :after god-mode)
+  (defun toggle-kbd-macro-recording-on ()
+    "One-key keyboard macros: turn recording on."
+    (interactive)
+    (define-key global-map (this-command-keys)
+      'toggle-kbd-macro-recording-off)
+    (start-kbd-macro nil))
+
+  (defun toggle-kbd-macro-recording-off ()
+    "One-key keyboard macros: turn recording off."
+    (interactive)
+    (define-key global-map (this-command-keys)
+      'toggle-kbd-macro-recording-on)
+    (end-kbd-macro))
   ;; exclude eaf from god mode
-  (add-to-list 'god-exempt-major-modes 'eaf-mode)
-  (add-to-list 'god-exempt-major-modes 'exwm-mode)
-;;;; Mark Ring
-    (defun unpop-to-mark-command ()
+  (setq-default god-exempt-major-modes
+		'(eaf-mode exwm-mode org-agenda-mode dired-mode
+			   ibuffer-mode grep-mode magit-popup-mode))
+  (setq-default god-exempt-predicates
+		(list #'god-exempt-mode-p
+		      #'god-comint-mode-p
+		      #'god-git-commit-mode-p
+		      #'god-view-mode-p
+		      #'god-special-mode-p))
+
+  ;; Mark Ring
+  (defun unpop-to-mark-command ()
     "Unpop off mark ring. Does nothing if mark ring is empty."
     (interactive)
     (when mark-ring
       (let ((pos (marker-position (car (last mark-ring)))))
-        (if (not (= (point) pos))
-            (goto-char pos)
-          (setq mark-ring (cons (copy-marker (mark-marker)) mark-ring))
-          (set-marker (mark-marker) pos)
-          (setq mark-ring (nbutlast mark-ring))
-          (goto-char (marker-position (car (last mark-ring))))))))
-;;;; Cursor shape
+	(if (not (= (point) pos))
+	    (goto-char pos)
+	  (setq mark-ring (cons (copy-marker (mark-marker)) mark-ring))
+	  (set-marker (mark-marker) pos)
+	  (setq mark-ring (nbutlast mark-ring))
+	  (goto-char (marker-position (car (last mark-ring))))))))
+  ;; Cursor shape
   (defun my-god-mode-update-cursor-type ()
     (setq cursor-type (if (or god-local-mode buffer-read-only) 'box 'bar)))
+
   (add-hook 'post-command-hook #'my-god-mode-update-cursor-type)
   
   (defun my-god-cursor-color ()
@@ -173,7 +199,6 @@
 	 ("n" . next-line)
 	 ("p" . previous-line)))
 
-  (gv/catch-tty-ESC))
 
 (use-package multiple-cursors
   :bind (("C-<" . mc/mark-previous-like-this)
