@@ -209,9 +209,9 @@
 
 
 (use-package multiple-cursors
-  :bind (("C-<" . mc/mark-previous-like-this)
-         ("C->" . mc/mark-next-like-this)
-         ("C-x C->" . mc/mark-all-like-this)))
+  :bind (("C-x <" . mc/mark-previous-like-this)
+	 ("C-x >" . mc/mark-next-like-this)
+	 ("C-x C->" . mc/mark-all-like-this)))
 ;;; Extending Selection
 ;; Expand region is useful for adding iw aw style selection to emacs
 ;; TODO find a better alternative so I can put this in usepackage
