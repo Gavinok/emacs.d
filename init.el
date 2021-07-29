@@ -663,25 +663,6 @@
   :defer 1
   :init (global-auto-revert-mode t))
 
-;; Good speed and allow scrolling through large images (pixel-scroll).
-;; Note: Scroll lags when point must be moved but increasing the number
-;;       of lines that point moves in pixel-scroll.el ruins large image
-;;       scrolling. So unfortunately I think we'll just have to live with
-;;       this.
-(use-package pixel-scroll
-  :ensure nil
-  :defer t
-  :unless gv/is-termux
-  :config
-  (pixel-scroll-mode)
-  (setq pixel-dead-time 0 ; Never go back to the old scrolling behaviour.
-        ;; Scroll by number of pixels instead of lines (t = frame-char-height pixels).
-        pixel-resolution-fine-flag t
-        ;; Distance in pixel-resolution to scroll each mouse wheel event.
-        mouse-wheel-scroll-amount '(1)
-        ;; Progressive speed is too fast for me.
-        mouse-wheel-progressive-speed nil))
-
 (use-package savehist
   :defer t
   :init (savehist-mode t)) ; Save command history
