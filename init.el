@@ -97,16 +97,23 @@
 	 ("C-c k" . goto-last-change-reverse)))
 
 (use-package crux
-  :bind (("C-a" . crux-move-beginning-of-line)
-         ;; Remove whitespace when killing at the end of a line
-         ("C-k" . crux-kill-and-join-forward)
-         ("C-c C-e" . crux-eval-and-replace)
-         ;; Since C-j is so similar
-         ("C-S-o" . crux-smart-open-line-above)
-         ("C-o" . crux-smart-open-line)))
+  :bind (([remap beginning-of-line] . crux-move-beginning-of-line)
+	 ;; Remove whitespace when killing at the end of a line
+	 ([remap kill-line] . crux-kill-and-join-forward)
+	 ("C-c C-e" . crux-eval-and-replace)
+	 ;; Since C-j is so similar
+	 ("C-S-o" . crux-smart-open-line-above)
+	 ("C-o" . crux-smart-open-line)))
 
 (use-package windmove
   :bind (("C-c v" . windmove-swap-states-left)))
+
+;; Custome keymap for an active region
+(use-package selected
+  :hook
+  (activate-mark . selected-global-mode)
+  :bind (:map selected-keymap
+	      ("<escape>" . keyboard-escape-quit)))
 
 ;; TODO look into `repeat-mode' in emacs 28
 ;; for visual selection style use C-x SPC
