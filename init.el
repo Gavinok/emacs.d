@@ -94,7 +94,7 @@
 ;; Can be used similar to vim's change list
 (use-package goto-chg
   :bind (("C-c j" . goto-last-change)
-         ("C-c k" . goto-last-change-reverse)))
+	 ("C-c k" . goto-last-change-reverse)))
 
 (use-package crux
   :bind (("C-a" . crux-move-beginning-of-line)
