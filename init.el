@@ -218,14 +218,14 @@
   :bind (("C-=" . er/expand-region)))
 
 ;;; TERMINAL SETTINGS
-(if (display-graphic-p)
+(if gv/is-terminal
     (set-face-background 'default "#000000")
   (progn (set-face-background 'default "undefinded")
-         (add-to-list 'term-file-aliases
-                      '("st-256color" . "xterm-256color"))
-         (xterm-mouse-mode t))
-        (global-set-key (kbd "<mouse-4>") 'next-line)
-        (global-set-key (kbd "<mouse-5>") 'previous-line))
+	 (add-to-list 'term-file-aliases
+		      '("st-256color" . "xterm-256color"))
+	 (xterm-mouse-mode t))
+	(global-set-key (kbd "<mouse-4>") 'next-line)
+	(global-set-key (kbd "<mouse-5>") 'previous-line))
 
 ;;; COMPLETION
 (use-package vertico
