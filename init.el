@@ -50,6 +50,30 @@
   (interactive)
   (start-process-shell-command "Stars" nil "stars"))
 
+;;;; Fix terminal escape
+(when gv/is-terminal
+  ;; For whatever reason terminals have trouble recognizing escape
+  ;; form emacs properly. Found this solution at
+  ;; https://github.com/emacsorphanage/god-mode/issues/43
+  (defvar gv/fast-keyseq-timeout 200)
+
+  (defun gv/-tty-ESC-filter (map)
+    (if (and (equal (this-single-command-keys) [?\e])
+	     (sit-for (/ gv/fast-keyseq-timeout 1000.0)))
+	[escape] map))
+
+  (defun gv/-lookup-key (map key)
+    (catch 'found
+      (map-keymap (lambda (k b) (if (equal key k) (throw 'found b))) map)))
+
+  (defun gv/catch-tty-ESC ()
+    "Setup key mappings of current terminal to turn a tty's ESC into `escape'."
+    (when (memq (terminal-live-p (frame-terminal)) '(t pc))
+      (let ((esc-binding (gv/-lookup-key input-decode-map ?\e)))
+	(define-key input-decode-map
+	  [?\e] `(menu-item "" ,esc-binding :filter gv/-tty-ESC-filter)))))
+
+  (gv/catch-tty-ESC))
 ;;; Modal Bindings
 ;; Vim style undo
 (use-package undo-fu
@@ -126,20 +150,12 @@
   (defun my-god-mode-update-cursor-type ()
     (setq cursor-type (if (or god-local-mode buffer-read-only) 'box 'bar)))
   (add-hook 'post-command-hook #'my-god-mode-update-cursor-type)
-;;;; Fix terminal escape
-  ;; For whatever reason terminals have trouble recognizing escape
-  ;; form emacs properly. Found this solution at
-  ;; https://github.com/emacsorphanage/god-mode/issues/43
-  (defvar gv/fast-keyseq-timeout 200)
+  
+  (defun my-god-cursor-color ()
+    (if god-local-mode (set-cursor-color "red")))
+    (add-hook 'post-command-hook #'my-god-mode-update-cursor-type))
 
-  (defun gv/-tty-ESC-filter (map)
-    (if (and (equal (this-single-command-keys) [?\e])
-             (sit-for (/ gv/fast-keyseq-timeout 1000.0)))
-        [escape] map))
 
-  (defun gv/-lookup-key (map key)
-    (catch 'found
-      (map-keymap (lambda (k b) (if (equal key k) (throw 'found b))) map)))
 
   (defun gv/catch-tty-ESC ()
     "Setup key mappings of current terminal to turn a tty's ESC into `escape'."
