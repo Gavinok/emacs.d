@@ -918,8 +918,8 @@ Containing LEFT, and RIGHT aligned respectively."
 (set-face-attribute 'mode-line nil
 		    :background  "#0F0F0F")
 (unless gv/is-terminal
-  (setq-default left-margin-width 4)
-  (setq-default right-margin-width 4))
+  (setq-default left-margin-width 2)
+  (setq-default right-margin-width 2))
 (set-window-buffer nil (current-buffer))
 (setq-default mode-line-format
       '((:eval
