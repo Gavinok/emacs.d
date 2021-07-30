@@ -219,9 +219,8 @@
   :bind (("C-=" . er/expand-region)))
 
 ;;; TERMINAL SETTINGS
-(if gv/is-terminal
-    (set-face-background 'default "#000000")
-  (progn (set-face-background 'default "undefinded")
+(when gv/is-terminal
+    (progn (set-face-background 'default "undefinded")
 	 (add-to-list 'term-file-aliases
 		      '("st-256color" . "xterm-256color"))
 	 (xterm-mouse-mode t))
