@@ -623,22 +623,19 @@
 
 ;;; FOLDING
 (use-package outline
-  :after prog-mode
-  :hook outline-minor-mode
+  :defer nil
+  :hook (prog-mode . outline-minor-mode)
   :bind (:map outline-minor-mode-map
-	 ("C-<tab>" . outline-cycle)
-	 ("<backtab>" . outline-cycle-buffer)
-	 :map god-local-mode-map
-	 ("<tab>" . outline-cycle)))
+	      ("<backtab>" . outline-cycle-buffer))
+  :init
+  (setq outline-minor-mode-prefix "\C-c"))
 
 ;;;; Setup Folding For Programming
 (use-package prog-mode
   :ensure nil
-  :after god-mode
   :config
   (add-hook 'emacs-lisp-mode-hook 'prettify-symbols-mode)
-  (add-hook 'prog-mode-hook 'outline-minor-mode)
-  (add-hook 'prog-mode-hook 'hs-minor-mode)
+;;;;; Smart Indentation
   (defun infer-indentation-style ()
     ;; if our source file uses tabs, we use tabs, if spaces spaces, and if
     ;; neither, we use the current indent-tabs-mode
