@@ -139,9 +139,7 @@
 
 (use-package simple
   :ensure nil
-  :bind (:map special-mode-map
-	 ("n" . next-line)
-	 ("p" . previous-line)))
+  :bind (("M-SPC" . cycle-spacing)))
 
 
 (use-package multiple-cursors
