@@ -350,7 +350,6 @@
   (setq-default org-download-image-dir "./pic"))
 ;;;; Better Looking Bullets
 (use-package org-superstar
-  :when gv/is-terminal
   :hook (org-mode . org-superstar-mode))
 
 ;;;; Templates
