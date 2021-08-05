@@ -360,6 +360,7 @@
   (add-to-list 'org-structure-template-alist '("sh"  . "src sh"))
   (add-to-list 'org-structure-template-alist '("el"  . "src emacs-lisp"))
   (add-to-list 'org-structure-template-alist '("vim"  . "src vim")))
+
 ;;;; Indentation
 (use-package org-indent
   :ensure nil
@@ -592,7 +593,7 @@
 ;;;; Vim like scrolling
   (setq scroll-step            1
 	scroll-conservatively  10000)
-  (setq next-screen-context-lines 20)
+  (setq next-screen-context-lines 5)
   ;; move by logical lines rather than visual lines (better for macros)
   (setq line-move-visual nil))
 
@@ -675,7 +676,6 @@
 		(seq bol "." eol)
 		(seq bol ".." eol))))
 
-
   (add-hook 'dired-mode-hook 'dired-omit-mode)
   (add-hook 'dired-mode-hook 'dired-hide-details-mode)
 ;;;;; xdg-open integration
@@ -689,6 +689,7 @@
       (message "Opening %s done" file)))
   (define-key dired-mode-map (kbd "O") 'gv/dired-xdg-open)
   ;; prevent opening extra dired buffers
+  ;; emacs 28
   (setq dired-kill-when-opening-new-dired-buffer t))
 
 (use-package hl-todo
@@ -700,8 +701,11 @@
   :load-path "/usr/share/emacs/site-lisp/mu4e"
   :ensure nil
   :bind ("C-x m" . mu4e-compose-new)
-  :commands (mu4e mu4e-compose-new mu4e-user-agent)
+  :commands (mu4e mu4e-compose-new)
   :init
+  ;; set *before* loading mu4e; and restart emacs if you want to change it
+  ;; users of use-packag~ should can use the :init section for this.
+  ;; (setq mu4e-view-use-old t)
   ;; Show full email address
   (setq mu4e-view-show-addresses 't
 	mu4e-maildir "~/.local/share/mail"
@@ -736,7 +740,7 @@
     '(("sin" "Sincerely, \nGavin Jaeger-Freeborn" nil 1)
       ("fwn_board" "<lammerdawn@gmail.com>, <president@flatwaternorth.ca>, <coach@flatwaternorth.ca>, <lewis_ds@me.com>, <a.kporter@klondiker.com>, <nikibparry@gmail.com>" nil 1)
       ("fwn_staff" "doonmcdowell51@gmail.com, makenna.macauley@gmail.com, jmcdowell1@live.ca, mountain2adventure@gmail.com, ballet@mkcd.ca, roganparry@gmail.com,joelgirouard23@gmail.com,brucep205@gmail.com, marin.ruth@icloud.com, sneill@northwestel.net,james.mccann.2006@gmail.com,torimarieski8@icloud.com, kalebparry1@gmail.com" nil 1)
-      ("fwn_sprint" "<lammerdawn@gmail.com>, <president@flatwaternorth.ca>, <coach@flatwaternorth.ca>, <lewis_ds@me.com>, <a.kporter@klondiker.com>, <nikibparry@gmail.com>, doonmcdowell51@gmail.com, makenna.macauley@gmail.com, jmcdowell1@live.ca, mountain2adventure@gmail.com, ballet@mkcd.ca, roganparry@gmail.com,joelgirouard23@gmail.com,brucep205@gmail.com, marin.ruth@icloud.com, sneill@northwestel.net,james.mccann.2006@gmail.com,torimarieski8@icloud.com, kalebparry1@gmail.com" nil 1)
+      ("fwn_sprint" "<helenannegirouard@icloud.com>, <lammerdawn@gmail.com>, <president@flatwaternorth.ca>, <coach@flatwaternorth.ca>, <lewis_ds@me.com>, <a.kporter@klondiker.com>, <nikibparry@gmail.com>, doonmcdowell51@gmail.com, makenna.macauley@gmail.com, jmcdowell1@live.ca, mountain2adventure@gmail.com, ballet@mkcd.ca, roganparry@gmail.com,joelgirouard23@gmail.com,brucep205@gmail.com, marin.ruth@icloud.com, sneill@northwestel.net,james.mccann.2006@gmail.com,torimarieski8@icloud.com, kalebparry1@gmail.com" nil 1)
       ("fwn_roadshow" "g.gilbert.g@gmail.com, lpvidal@hotmail.com" nil 1)))
 
   (add-hook 'mu4e-compose-mode-hook #'abbrev-mode)
@@ -814,14 +818,14 @@
 		      :background "#900")
   (set-face-attribute 'mu4e-unread-face nil
 		      :foreground "#000")
-(setq-default mu4e-use-fancy-chars t)
-(setq-default mu4e-header-sort-field :date)
-(setq-default mu4e-headers-show-threads nil)
-(setq-default mu4e-headers-fields '((:flags         .    6)
-				    (:from-or-to    .   22)
-				    (:subject       .   70)
-				    (:human-date    .   nil)))
-(mu4e-hide-other-mu4e-buffers))
+  (setq-default mu4e-use-fancy-chars t)
+  (setq-default mu4e-header-sort-field :date)
+  (setq-default mu4e-headers-show-threads nil)
+  (setq-default mu4e-headers-fields '((:flags         .    6)
+				      (:from-or-to    .   22)
+				      (:subject       .   70)
+				      (:human-date    .   nil)))
+  (mu4e-hide-other-mu4e-buffers))
 ;;; PASS
 (use-package password-store
   :commands (password-store-copy
@@ -839,7 +843,7 @@
   :bind (( "s-/" . winner-undo)
 	 ( "s-?" . winner-redo))
   :config
-  :init (winner-mode 1)) ; window managment undo
+  :init (winner-mode 1)) ; Window Managment Undo
 
 ;;; MODELINE
 (setq-default header-line-format '(" "))
@@ -855,12 +859,6 @@ Containing LEFT, and RIGHT aligned respectively."
     (append left
 	    (list (format (format "%%%ds" available-width) " "))
 	    right)))
-(set-face-attribute 'mode-line nil
-		    :box '(:line-width 10 :color "#000"))
-(set-face-attribute 'mode-line-inactive nil
-		    :box '(:line-width 10 :color "#000"))
-(set-face-attribute 'mode-line nil
-		    :background  "#0F0F0F")
 (unless gv/is-terminal
   (setq-default left-margin-width 2)
   (setq-default right-margin-width 2))
@@ -968,6 +966,7 @@ Containing LEFT, and RIGHT aligned respectively."
   :config
   ;; pdf auto refresh
   (add-hook 'doc-view-mode-hook 'auto-revert-mode))
+
 ;;;; Torrents
 (use-package transmission
   :defer t
@@ -982,9 +981,10 @@ Containing LEFT, and RIGHT aligned respectively."
   (setq proced-auto-update-flag t
 	proced-auto-update-interval 2
 	proced-decend t))
+
 ;;;; Use emacs instead of dmenu
 (setenv "LAUNCHER" "emenu -p ")
-;;;; stuff to ignore
+;;;; Stuff To Ignore
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 
@@ -993,8 +993,10 @@ Containing LEFT, and RIGHT aligned respectively."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(org-agenda-files
+   '("/home/gavinok/Documents/org/2021_canoekids_waitlist.org" "/home/gavinok/Documents/org/2021_flatwaternorth_executive_meeting.org" "/home/gavinok/Documents/org/2021_june_flatwaternorth_executive_meeting.org" "/home/gavinok/Documents/org/2021_may_flatwaternorth_executive_meeting.org" "/home/gavinok/Documents/org/Athletes.org" "/home/gavinok/Documents/org/Practices.org" "/home/gavinok/Documents/org/Work.org" "/home/gavinok/Documents/org/archive.org" "/home/gavinok/Documents/org/backlog.org" "/home/gavinok/Documents/org/c.org" "/home/gavinok/Documents/org/contacts.org" "/home/gavinok/Documents/org/divisionals_meeting.org" "/home/gavinok/Documents/org/elm.org" "/home/gavinok/Documents/org/fennel.org" "/home/gavinok/Documents/org/guile.org" "/home/gavinok/Documents/org/hy.org" "/home/gavinok/Documents/org/interviews_flatwaternorth.org" "/home/gavinok/Documents/org/janet.org" "/home/gavinok/Documents/org/joker.org" "/home/gavinok/Documents/org/june_ptso.org" "/home/gavinok/Documents/org/mylife.org" "/home/gavinok/Documents/org/nationals_prep.org" "/home/gavinok/Documents/org/parents_meeting.org" "/home/gavinok/Documents/org/racket.org" "/home/gavinok/Documents/org/rec.org" "/home/gavinok/Documents/org/refile.org" "/home/gavinok/Documents/org/reminders.org" "/home/gavinok/Documents/org/results.org" "/home/gavinok/Documents/org/roadshow.org" "/home/gavinok/Documents/org/staff_orientation.org" "/home/gavinok/Documents/org/staff_orientation_day.org" "/home/gavinok/Documents/org/today.org" "/home/gavinok/Documents/org/youtube.org" "/home/gavinok/Documents/org/yukon_river_quest.org"))
  '(package-selected-packages
-   '(system-packages goto-chg writegood-mode which-key vterm vlf vimrc-mode vertico undo-fu-session undo-fu ujelly-theme tree-sitter-langs transmission rainbow-mode racket-mode quelpa-use-package pdf-tools pcre2el password-store outline-minor-faces org-superstar org-roam org-plus-contrib org-mime org-download org-alert orderless multiple-cursors modus-themes message-attachment-reminder marginalia magit lua-mode keycast jumplist god-mode flyspell-correct fish-completion fennel-mode expand-region esh-autosuggest epc eglot eaf diff-hl dashboard crux bicycle beacon all-the-icons affe)))
+   '(hl-todo rainbow-delimiters modus-operandi-theme all-the-icons-dired highlight-indent-guides typing-game c-c-combo corfu xah-fly-keys academic-phrases selected system-packages goto-chg writegood-mode which-key vterm vlf vimrc-mode vertico undo-fu-session undo-fu ujelly-theme tree-sitter-langs transmission rainbow-mode racket-mode quelpa-use-package pdf-tools pcre2el password-store outline-minor-faces org-superstar org-roam org-plus-contrib org-mime org-download org-alert orderless multiple-cursors modus-themes message-attachment-reminder marginalia magit lua-mode keycast jumplist god-mode flyspell-correct fish-completion fennel-mode expand-region esh-autosuggest epc eglot eaf diff-hl dashboard crux bicycle beacon all-the-icons affe)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
