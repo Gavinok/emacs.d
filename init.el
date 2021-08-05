@@ -353,12 +353,6 @@
 	'(("d" "Today's Tasks"
 	   ((agenda "" ((org-agenda-span 1)
 			(org-agenda-overriding-header "Today's Tasks")))))
-	  ;; ("d" "Dashboard"
-	  ;;  ((agenda "" ((org-deadline-warning-days 7)))
-	  ;;   (todo "NEXT"
-	  ;;      ((org-agenda-overriding-header "Next Tasks")))
-	  ;;   (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
-
 	  ("n" "Next Tasks"
 	   ((todo "NEXT"
 		  ((org-agenda-overriding-header "Next Tasks")))))
