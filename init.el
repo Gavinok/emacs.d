@@ -877,14 +877,18 @@ Containing LEFT, and RIGHT aligned respectively."
   :config
   (unless (server-running-p)
     (server-start)))
+
 ;;; Extras
-(use-package quelpa-use-package)
+;; (use-package quelpa-use-package)
 ;; Don't forget to run M-x eaf-install-dependencies
 (use-package eaf
   :unless gv/is-termux
   :bind (("C-c w" . gv/bm)
 	 ("s-w" . gv/bm))
   :defer t
+  ;; :quelpa (eaf :fetcher github
+  ;;             :repo  "manateelazycat/emacs-application-framework"
+  ;;             :files ("*"))
   :load-path "~/.emacs.d/site-lisp/emacs-application-framework" ; Set to "/usr/share/emacs/site-lisp/eaf" if installed from AUR
   :init
   (use-package epc      :defer t :ensure t)
