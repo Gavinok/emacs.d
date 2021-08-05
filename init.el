@@ -663,6 +663,9 @@
 ;;; DIRED
 (use-package dired
   :ensure nil
+  :defer nil
+  :bind (:map dired-mode-map
+              ("-" . dired-up-directory))
   :config
   (setq dired-listing-switches "-aghoA --group-directories-first")
   (add-hook 'dired-mode-hook #'hl-line-mode)
