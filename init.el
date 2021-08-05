@@ -740,7 +740,8 @@
       ("fwn_roadshow" "g.gilbert.g@gmail.com, lpvidal@hotmail.com" nil 1)))
 
   (add-hook 'mu4e-compose-mode-hook #'abbrev-mode)
-  (add-to-list 'auto-mode-alist '("^/tmp/neomutt.*\\'" . mail-mode))
+  (add-to-list 'auto-mode-alist '("^/tmp/neomutt.*\\'" . mail-mode)) ;; neomutt
+  (add-to-list 'auto-mode-alist '(".*snd\.[0-9].*\\'" . mail-mode))  ;; mblaze
   (add-hook 'mu4e-view-mode-hook 'visual-line-mode)
 
 ;;;; Accounts
