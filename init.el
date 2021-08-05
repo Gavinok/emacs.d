@@ -41,7 +41,7 @@
        "Android" (string-trim (shell-command-to-string "uname -a")))
       "Truthy value indicating if emacs is currently running in termux")
 (defvar gv/is-terminal
-  (display-graphic-p)
+  (not (display-graphic-p))
   "Truthy value indicating if emacs is currently running in a terminal")
 
 (defun gv/read ()
