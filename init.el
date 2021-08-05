@@ -116,84 +116,26 @@
   :bind (:map selected-keymap
 	      ("<escape>" . keyboard-escape-quit)))
 
-;; TODO look into `repeat-mode' in emacs 28
-;; for visual selection style use C-x SPC
-(use-package god-mode
-  :defer t
-  :bind (("<escape>" . god-mode-all)
-	 ("C-x c"    . delete-window)
-	 ("C-c C-d"  . cd)
-	 ("C-z"      . repeat)
-	 ([remap capitalize-word] . capitalize-dwim)
-	 :map god-local-mode-map
-	 ("<escape>" . keyboard-quit)
-	 ("i" . god-mode-all)
-	 ("{" . pop-global-mark)
-	 ("}" . unpop-to-mark-command)
-	 ("F" . forward-word) ; move FASTER
-	 ("B" . backward-word)
-	 ("]" . forward-list)
-	 ("[" . backward-list)
-	 ("v" . set-mark-command)
-	 ("`" . toggle-kbd-macro-recording-on)
-	 ("~" . call-last-kbd-macro)
-	 :map minibuffer-local-map
-	 ;; i don't use god-mode in the minibuffer
-	 ("<escape>" . keyboard-escape-quit))
-  :config
-  (defun toggle-kbd-macro-recording-on ()
-    "One-key keyboard macros: turn recording on."
-    (interactive)
-    (define-key global-map (this-command-keys)
-      'toggle-kbd-macro-recording-off)
-    (start-kbd-macro nil))
-
-  (defun toggle-kbd-macro-recording-off ()
-    "One-key keyboard macros: turn recording off."
-    (interactive)
-    (define-key global-map (this-command-keys)
-      'toggle-kbd-macro-recording-on)
-    (end-kbd-macro))
-  ;; exclude eaf from god mode
-  (setq-default god-exempt-major-modes
-		'(eaf-mode exwm-mode org-agenda-mode dired-mode
-			   ibuffer-mode grep-mode magit-popup-mode))
-  (setq-default god-exempt-predicates
-		(list #'god-exempt-mode-p
-		      #'god-comint-mode-p
-		      #'god-git-commit-mode-p
-		      #'god-view-mode-p
-		      #'god-special-mode-p))
-
-  ;; Mark Ring
-  (defun unpop-to-mark-command ()
-    "Unpop off mark ring. Does nothing if mark ring is empty."
-    (interactive)
-    (when mark-ring
-      (let ((pos (marker-position (car (last mark-ring)))))
-	(if (not (= (point) pos))
-	    (goto-char pos)
-	  (setq mark-ring (cons (copy-marker (mark-marker)) mark-ring))
-	  (set-marker (mark-marker) pos)
-	  (setq mark-ring (nbutlast mark-ring))
-	  (goto-char (marker-position (car (last mark-ring))))))))
-  ;; Cursor shape
-  (defun my-god-mode-update-cursor-type ()
-    (setq cursor-type (if (or god-local-mode buffer-read-only) 'box 'bar)))
-
-  (add-hook 'post-command-hook #'my-god-mode-update-cursor-type)
-  
-  (defun my-god-cursor-color ()
-    (if god-local-mode (set-cursor-color "red")))
-    (add-hook 'post-command-hook #'my-god-mode-update-cursor-type))
-
-
 ;;;; God mode keys everywhere
 (use-package view
   :ensure nil
-  :bind (:map view-mode-map
+  :bind (("<escape>" . view-mode)
+         :map view-mode-map
+         ("i" . view-mode)
 	 ("n" . next-line)
-	 ("p" . previous-line)))
+	 ("p" . previous-line)
+         ("e" . move-end-of-line)
+         ("a" . crux-move-beginning-of-line)
+         ("f" . forward-to-word)
+         ("b" . backward-to-word)
+         ("<tab>" . outline-cycle))
+  :init
+  (setq view-read-only t)
+    ;; Cursor shape
+  (defun my-view-mode-update-cursor-type ()
+    (setq cursor-type (if buffer-read-only 'box 'bar)))
+
+  (add-hook 'post-command-hook #'my-view-mode-update-cursor-type))
 
 (use-package simple
   :ensure nil
