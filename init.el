@@ -869,19 +869,29 @@ Containing LEFT, and RIGHT aligned respectively."
       '((:eval
 	 (format-mode-line
 	  (simple-mode-line-render
-	  ;; Left
-	  '(" "
-	    (:eval (propertize (if (buffer-modified-p) "● " "  " ) 'face 'error))
-	    mode-line-buffer-identification
-	    ;; value of current line number
-	    " %l:%c"
-	    (:eval (propertize (concat " %p%%" " " (if god-local-mode " 😇 " "  ") " (%m) ") 'face 'shadow))
-	    )
-	  ;; Right
-	  '((:eval (propertize (format-time-string "%a, %b %d %I:%M%p")'face 'font-lock-keyword-face))
-	    " "
-	    (:eval (unless gv/is-termux (battery-format "[%p]" (funcall battery-status-function))) )
-	    "    "))))))
+	   ;; Left
+	   '(" "
+	     (:eval (propertize
+                     (if (buffer-modified-p) "● " "  " ) 'face 'error))
+	     mode-line-buffer-identification
+	     ;; value of current line number
+	     " %l:%c"
+	     (:eval (propertize
+                     (concat " %p%%" " "
+                             (if god-local-mode " 😇 " "  ")
+                             " ( %m ) ") 'face 'shadow))
+             mode-line-misc-info
+	     )
+	   ;; Right
+	   '((:eval (propertize
+                     (format-time-string "%a, %b %d %I:%M%p")
+                     'face 'font-lock-keyword-face))
+	     " "
+	     (:eval (unless gv/is-termux
+                      (battery-format
+                       "[%p]"
+                       (funcall battery-status-function))) )
+	     "    "))))))
 
 ;;; Server Setup
 (use-package server
