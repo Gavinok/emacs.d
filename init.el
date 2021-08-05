@@ -679,6 +679,9 @@
   ;; prevent opening extra dired buffers
   (setq dired-kill-when-opening-new-dired-buffer t))
 
+(use-package hl-todo
+  :hook (prog-mode . hl-todo-mode))
+
 ;;; EMAIL
 (use-package mu4e
   :unless gv/is-termux
