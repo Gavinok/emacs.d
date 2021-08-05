@@ -137,16 +137,10 @@
 	 ("v" . set-mark-command)
 	 ("`" . toggle-kbd-macro-recording-on)
 	 ("~" . call-last-kbd-macro)
-	 ;; isearch
-	 :map isearch-mode-map
-	 ("<escape>" . god-mode-isearch-activate)
-	 :map god-mode-isearch-map
-	 ("<escape>" .  god-mode-isearch-disable)
 	 :map minibuffer-local-map
 	 ;; i don't use god-mode in the minibuffer
 	 ("<escape>" . keyboard-escape-quit))
   :config
-  (use-package god-mode-isearch :ensure nil :after god-mode)
   (defun toggle-kbd-macro-recording-on ()
     "One-key keyboard macros: turn recording on."
     (interactive)
