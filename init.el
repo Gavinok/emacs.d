@@ -526,23 +526,32 @@
 ;;; DEFAULTS
 (use-package emacs
   :ensure nil
+  :defer nil
+  :bind (("C-x C-d"    . delete-pair)
+         ("M-?" . help-command)
+         ("C-h" . delete-backward-char)
+         ("C-x f" . ffap))
   :config
+  (hl-line-mode t)
+  ;; No delay when deleting pairs
+  (setq delete-pair-blink-delay 0)
+
   ;; change truncation indicators
-(define-fringe-bitmap 'right-curly-arrow
-  [#b10000000
-   #b10000000
-   #b10000000
-   #b01000000
-   #b01000000
-   #b01000000
-   #b00100000
-   #b00100000
-   #b00100000
-   #b00010000
-   #b00010000
-   #b00010000])
-(define-fringe-bitmap 'left-curly-arrow
-  [#b00000000])
+  (define-fringe-bitmap 'right-curly-arrow
+    [#b10000000
+     #b10000000
+     #b10000000
+     #b01000000
+     #b01000000
+     #b01000000
+     #b00100000
+     #b00100000
+     #b00100000
+     #b00010000
+     #b00010000
+     #b00010000])
+  (define-fringe-bitmap 'left-curly-arrow
+    [#b00000000])
   (set-frame-font "RobotoMono Nerd Font 14" nil t)
   ;; Replace selection on insert
   (delete-selection-mode 1)
