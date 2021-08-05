@@ -646,11 +646,15 @@
   (add-hook 'prog-mode-hook 'infer-indentation-style))
 
 ;;; EXTRA UI
-;;;; Beacon
-(use-package beacon
+(use-package pulse
   :unless gv/is-terminal
   :defer t
-  :init (beacon-mode 1)); Highlight cursor postion after movement
+  :init (defun pulse-line (&rest _)
+          (pulse-momentary-highlight-one-line (point)))
+  (dolist (command '(;; scroll-up-command
+                     ;; scroll-down-command
+                     recenter-top-bottom other-window))
+    (advice-add command :after #'pulse-line))) ; Highlight cursor postion after movement
 ;;;; Display hex colors in emacs
 (use-package rainbow-mode
   :defer t
