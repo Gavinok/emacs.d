@@ -737,6 +737,10 @@
 	;; use mu4e for e-mail in emacs
 	mail-user-agent 'mu4e-user-agent)
   :config
+  (defun my/jump-to-maildir ()
+    (interactive)
+    (let ((maildir (completing-read "Maildir: " (mu4e-get-maildirs))))
+      (mu4e-headers-search (format "maildir:\"%s\"" maildir))))
   ;; This is set to 't' to avoid mail syncing issues when using mbsync
   (setq mu4e-change-filenames-when-moving t)
 
