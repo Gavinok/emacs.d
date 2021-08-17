@@ -79,19 +79,28 @@
 	  [?\e] `(menu-item "" ,esc-binding :filter gv/-tty-ESC-filter)))))
 
   (gv/catch-tty-ESC))
-;;; Modal Bindings
-;; Vim style undo
+
+;;; UNDO
+;; Vim style undo not needed for emacs 28
 (use-package undo-fu
   :init (global-unset-key (kbd "C-/"))
   :defer nil
   :bind (;; I hate it when I accidentl
          ("C-/" . undo-fu-only-undo)
          ("C-?" . undo-fu-only-redo)))
+
 (use-package undo-fu-session
   :after undo-fu
+  :init (global-unset-key (kbd "C-/"))
+  :bind (("C-/" . undo-only)
+         ;; Uses emacs 28s
+	 ;; ("C-?" . undo-redo)
+	 ;; ("C-x /" . undo-redo)
+         )
   :init
   (global-undo-fu-session-mode))
 
+;;; Modal Bindings
 
 (use-package crux
   :bind (([remap beginning-of-line] . crux-move-beginning-of-line)
