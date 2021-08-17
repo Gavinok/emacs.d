@@ -92,10 +92,6 @@
   :init
   (global-undo-fu-session-mode))
 
-;; Can be used similar to vim's change list
-(use-package goto-chg
-  :bind (("C-c j" . goto-last-change)
-	 ("C-c k" . goto-last-change-reverse)))
 
 (use-package crux
   :bind (([remap beginning-of-line] . crux-move-beginning-of-line)
@@ -751,7 +747,11 @@
 ;;;; Attachment reminders
   (use-package message-attachment-reminder)
 ;;;; Org In Emails
-  (use-package org-mime)
+  (use-package org-mime
+    :config
+    (setq org-mime-export-options '(:section-numbers nil
+                                                     :with-author nil
+                                                     :with-toc nil)))
 ;;;; mbsync and msmtp setup
   (setq mu4e-get-mail-command "mailsync"
 	sendmail-program "/usr/bin/msmtp"
