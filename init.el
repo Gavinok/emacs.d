@@ -553,9 +553,12 @@
   :bind (("C-x C-d"    . delete-pair)
          ("M-?" . help-command)
          ("C-h" . delete-backward-char)
-         ("C-x f" . ffap))
+         ("C-x f" . ffap)
+         ("M-c" . capitalize-dwim)
+         ("M-u" . upcase-dwim)
+         ("M-l" . downcase-dwim))
   :config
-  (hl-line-mode t)
+  (global-hl-line-mode t)
   ;; No delay when deleting pairs
   (setq delete-pair-blink-delay 0)
 
