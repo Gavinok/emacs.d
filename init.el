@@ -433,7 +433,23 @@
   :mode "\\.fnl\\'")
 (use-package racket-mode
   :mode "\\.rkt\\'")
-
+(use-package meghanada
+  :config
+  (add-hook 'java-mode-hook
+            (lambda ()
+              ;; meghanada-mode on
+              (meghanada-mode t)
+              (flycheck-mode +1)
+              (setq c-basic-offset 2)
+              ;; use code format
+              (add-hook 'before-save-hook 'meghanada-code-beautify-before-save)))
+  (cond
+   ((eq system-type 'windows-nt)
+    (setq meghanada-java-path (expand-file-name "bin/java.exe" (getenv "JAVA_HOME")))
+    (setq meghanada-maven-path "mvn.cmd"))
+   (t
+    (setq meghanada-java-path "java")
+    (setq meghanada-maven-path "mvn"))))
 ;;; TREE-SITTER
 ;; Tree-sitter support
 (use-package tree-sitter
@@ -445,20 +461,9 @@
 ;;; LSP
 (use-package eglot
   :commands eglot
-  :hook ((java-mode c-mode-common) . eglot-ensure)
+  :hook ((c-mode-common) . eglot-ensure)
   :config
-  (defconst my/eclipse-jdt-home "/usr/share/java/jdtls/plugins/org.eclipse.equinox.launcher.gtk.linux.x86_64_1.2.200.v20210406-1409.jar")
-
-(defun my/eclipse-jdt-contact (interactive)
-  (let ((cp (getenv "CLASSPATH")))
-    (setenv "CLASSPATH" (concat cp ":" my/eclipse-jdt-home))
-    (unwind-protect
-	(eglot--eclipse-jdt-contact nil)
-      (setenv "CLASSPATH" cp))))
-
-(setcdr (assq 'java-mode eglot-server-programs) #'my/eclipse-jdt-contact)
-  (add-to-list 'eglot-server-programs '(c-mode . ("ccls")))
-  (add-to-list 'eglot-server-programs '(java-mode . ("jdtls"))))
+  (add-to-list 'eglot-server-programs '(c-mode . ("ccls"))))
 
 ;; As the built-in project.el support expects to use vc-mode hooks to
 ;; find the root of projects we need to provide something equivalent
