@@ -126,16 +126,42 @@
 	 ("p" . previous-line)
          ("e" . move-end-of-line)
          ("a" . crux-move-beginning-of-line)
-         ("f" . forward-to-word)
-         ("b" . backward-to-word)
-         ("<tab>" . outline-cycle))
+         ;; Vim like whitespace movement
+         ("f" . forward-whitespace)
+         ("b" . (lambda ()
+                  (interactive)
+                  (let ((current-prefix-arg -1)) ;; emulate C-u
+                    (call-interactively 'forward-whitespace) ;; invoke align-regexp interactively
+                    )))
+         ("s" . consult-line)
+         ("SPC"  . View-scroll-half-page-forward)
+         ("S-SPC". View-scroll-half-page-backward)
+         ("z" . view-rep-run))
   :init
   (setq view-read-only t)
     ;; Cursor shape
   (defun my-view-mode-update-cursor-type ()
     (setq cursor-type (if buffer-read-only 'box 'bar)))
+  (add-hook 'post-command-hook #'my-view-mode-update-cursor-type)
 
-  (add-hook 'post-command-hook #'my-view-mode-update-cursor-type))
+  ;; My jank way to emulate vim's . functionality
+  (advice-add 'view-mode :after 'view-rep)
+  :config
+  (defun view-rep (arg)
+    "intelegently start and end recording macros"
+    (if view-mode
+        (kmacro-end-macro nil)
+      (kmacro-start-macro nil)))
+
+  (defun view-rep-run ()
+    "run a previously defined macro either from view-mode or from insert mode"
+    (interactive)
+    (when view-mode
+      (read-only-mode -1)
+      (view-mode -1))
+    (kmacro-end-and-call-macro nil)
+    (view-mode 1)))
+
 
 (use-package simple
   :ensure nil
