@@ -109,7 +109,9 @@
 	 ("C-c C-e" . crux-eval-and-replace)
 	 ;; Since C-j is so similar
 	 ("C-S-o" . crux-smart-open-line-above)
-	 ("C-o" . crux-smart-open-line)))
+	 ("C-o" . crux-smart-open-line)
+         ("C-S-k" . crux-kill-whole-line)
+	 ))
 
 (use-package windmove
   :bind (("C-c v" . windmove-swap-states-left)))
