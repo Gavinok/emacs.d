@@ -181,15 +181,19 @@
 	   ("C-c i"     . consult-imenu)
 	   ("C-c o"     . consult-outline)
 	   ("C-x b"     . consult-buffer)
-	   ("C-x C-k C-k" . consult-kmacro))
+	   ("C-x C-k C-k" . consult-kmacro)
+           ("C-c n" . gv/notegrep))
     :custom
     (completion-in-region-function #'consult-completion-in-region)
     :config
-    (add-hook 'completion-setup-hook #'hl-line-mode))
+    (add-hook 'completion-setup-hook #'hl-line-mode)
+    (defun gv/notegrep ()
+      "Use interactive grepping to search my notes"
+      (interactive)
+      (consult-ripgrep org-directory)))
 ;;;; Fuzzy Finding
   (use-package affe
-    :bind (("C-c n" . gv/notegrep)
-	   ("C-c f" . affe-find)
+    :bind (("C-c f" . affe-find)
 	   ("C-c g" . affe-grep))
     :commands (affe-grep affe-find)
     :config
@@ -198,15 +202,12 @@
 	  (concat "find  "
 		  "-not -path '*/\\.nnn*' -not -path '*/\\.git*' "
 		  "-type f"))
-    ;; Configure Orderless
-    (setq affe-regexp-function #'orderless-pattern-compiler
-	  affe-highlight-function #'orderless--highlight)
-
+    (defun affe-orderless-regexp-compiler (input _type)
+      (setq input (orderless-pattern-compiler input))
+      (cons input (lambda (str) (orderless--highlight input str))))
+    (setq affe-regexp-compiler #'affe-orderless-regexp-compiler)
     ;; Manual preview key for `affe-grep'
-    (consult-customize affe-grep :preview-key (kbd "M-."))
-    (defun gv/notegrep ()
-      (interactive)
-      (affe-grep org-directory)))
+    (consult-customize affe-grep :preview-key (kbd "M-.")))
   (vertico-mode)
   :config
   ;; Do not allow the cursor in the minibuffer prompt
