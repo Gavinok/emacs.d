@@ -731,7 +731,8 @@
   :unless gv/is-termux
   :load-path "/usr/share/emacs/site-lisp/mu4e"
   :ensure nil
-  :bind ("C-x m" . mu4e-compose-new)
+  :bind (("C-x m" . mu4e-compose-new)
+         ([remap mu4e~headers-jump-to-maildir] . my/jump-to-maildir))
   :commands (mu4e mu4e-compose-new)
   :init
   ;; set *before* loading mu4e; and restart emacs if you want to change it
