@@ -50,11 +50,6 @@
   (async-shell-command
    (concat "tts.sh '" (x-get-clipboard)"'")))
 
-(defun gv/stars ()
-  "prompt user on of my github stars or my repos"
-  (interactive)
-  (start-process-shell-command "Stars" nil "stars"))
-
 ;;;; Fix terminal escape
 (when gv/is-terminal
   ;; For whatever reason terminals have trouble recognizing escape
