@@ -95,10 +95,9 @@
   :init
   (global-undo-fu-session-mode))
 
-;;; Modal Bindings
-
+;;; General Key Bindings
 (use-package crux
-  :bind (([remap beginning-of-line] . crux-move-beginning-of-line)
+  :bind (([remap move-beginning-of-line] . crux-move-beginning-of-line)
 	 ;; Remove whitespace when killing at the end of a line
 	 ([remap kill-line] . crux-kill-and-join-forward)
 	 ("C-c C-e" . crux-eval-and-replace)
