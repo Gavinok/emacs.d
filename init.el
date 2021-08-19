@@ -117,7 +117,7 @@
   :bind (:map selected-keymap
 	      ("<escape>" . keyboard-escape-quit)))
 
-;;;; God mode keys everywhere
+;;; Modal Bindings
 (use-package view
   :ensure nil
   :bind (("<escape>" . view-mode)
@@ -137,7 +137,7 @@
          ("s" . consult-line)
          ("SPC"  . View-scroll-half-page-forward)
          ("S-SPC". View-scroll-half-page-backward)
-         ("z" . view-rep-run))
+         ("z" . em-rep))
   :init
   (setq view-read-only t)
     ;; Cursor shape
@@ -145,24 +145,25 @@
     (setq cursor-type (if buffer-read-only 'box 'bar)))
   (add-hook 'post-command-hook #'my-view-mode-update-cursor-type)
 
-  ;; My jank way to emulate vim's . functionality
-  (advice-add 'view-mode :after 'view-rep)
   :config
-  (defun view-rep (arg)
+  (let ((normal-mode view-mode))
+  ;; My jank way to emulate vim's . functionality
+  (advice-add 'normal-mode :after 'em-rep)
+  
+  (defun em-rep (arg)
     "intelegently start and end recording macros"
-    (if view-mode
+    (if normal-mode
         (kmacro-end-macro nil)
       (kmacro-start-macro nil)))
 
-  (defun view-rep-run ()
-    "run a previously defined macro either from view-mode or from insert mode"
+  (defun em-dot ()
+    "run a previously defined macro either from normal-mode or from insert mode"
     (interactive)
-    (when view-mode
+    (when normal-mode
       (read-only-mode -1)
-      (view-mode -1))
+      (normal-mode -1))
     (kmacro-end-and-call-macro nil)
-    (view-mode 1)))
-
+    (normal-mode 1))))
 
 (use-package simple
   :ensure nil
