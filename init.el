@@ -661,12 +661,19 @@
 
 ;;; FOLDING
 (use-package outline
+  :ensure nil
   :defer nil
   :hook (prog-mode . outline-minor-mode)
   :bind (:map outline-minor-mode-map
 	      ("<backtab>" . outline-cycle-buffer))
   :init
   (setq outline-minor-mode-prefix "\C-c"))
+
+(use-package outline-magic
+  :ensure t
+  :commands outline-cycle
+  :bind (:map outline-minor-mode-map
+              ("<tab>" . #'outline-cycle)))
 
 ;;;; Setup Folding For Programming
 (use-package prog-mode
