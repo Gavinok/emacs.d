@@ -246,16 +246,22 @@
   (setq enable-recursive-minibuffers t))
 
 ;;; THEMEING
-(use-package ujelly-theme
-  :ensure nil
-  :config
-  (load-theme 'ujelly t)
-  (set-frame-parameter (selected-frame) 'alpha '(90 90))
-  (add-to-list 'default-frame-alist '(alpha 90 90))
-  (set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
-  ;; (set-face-attribute 'mode-line nil :foreground "#bdc3ce" :background "#000")
-  (set-face-attribute 'default nil :background "#000" :foreground "#eee")
-)
+ (use-package ujelly-theme
+   :config
+   (load-theme 'ujelly t)
+   (set-frame-parameter (selected-frame) 'alpha '(90 90))
+   (add-to-list 'default-frame-alist '(alpha 90 90))
+   (set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
+   ;; (set-face-attribute 'mode-line nil :foreground "#bdc3ce" :background "#000")
+   (set-face-attribute 'default nil :background "#000" :foreground "#eee")
+ (set-face-attribute 'mode-line nil
+		    :box '(:line-width 10 :color "#000"))
+ (set-face-attribute 'mode-line-inactive nil
+		    :box '(:line-width 10 :color "#000"))
+ (set-face-attribute 'mode-line nil
+		    :background  "#0F0F0F"))
+
+;; (load-theme 'modus-operandi t)
 
 ;;; Aligning Text
 (use-package align
