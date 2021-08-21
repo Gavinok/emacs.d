@@ -115,8 +115,6 @@
          ("C-S-k" . crux-kill-whole-line)
 	 ))
 
-(use-package windmove
-  :bind (("C-c v" . windmove-swap-states-left)))
 
 ;; Custome keymap for an active region
 (use-package selected
