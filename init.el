@@ -25,8 +25,8 @@
 (setq comp-deferred-compilation t)
 ;;; ASYNC
 
-;;;; Emacs look SIGNIFICANTLY less often which is a good thing.
-;;;; asynchronous bytecode compilation and various other actions makes
+;; Emacs look SIGNIFICANTLY less often which is a good thing.
+;; asynchronous bytecode compilation and various other actions makes
 (use-package async
   :ensure t
   :defer t
