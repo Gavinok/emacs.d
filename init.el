@@ -44,6 +44,14 @@
   (not (display-graphic-p))
   "Truthy value indicating if emacs is currently running in a terminal")
 
+(defun gv/backward-whitespace ()
+    "like forward-whitespace but backwards"
+    (interactive)
+    ;; emulate C-u
+    (let ((current-prefix-arg -1))
+      ;; invoke forward-whitespace interactively
+      (call-interactively 'forward-whitespace)))
+
 (defun gv/read ()
   "text to speech"
   (interactive)
