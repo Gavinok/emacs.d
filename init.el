@@ -116,12 +116,6 @@
 	 ))
 
 
-;; Custome keymap for an active region
-(use-package selected
-  :hook
-  (activate-mark . selected-global-mode)
-  :bind (:map selected-keymap
-	      ("<escape>" . keyboard-escape-quit)))
 
 ;;; Modal Bindings
 (use-package view
