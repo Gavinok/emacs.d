@@ -52,11 +52,49 @@
       ;; invoke forward-whitespace interactively
       (call-interactively 'forward-whitespace)))
 
+(defun xah-escape-quotes (@begin @end)
+  "Replace ?\"? by ?\\\"? in current line or text selection.
+See also: `xah-unescape-quotes'
+
+URL `http://ergoemacs.org/emacs/elisp_escape_quotes.html'
+Version 2017-01-11"
+  (interactive
+   (if (use-region-p)
+       (list (region-beginning) (region-end))
+     (list (line-beginning-position) (line-end-position))))
+  (save-excursion
+      (save-restriction
+        (narrow-to-region @begin @end)
+        (goto-char (point-min))
+        (while (search-forward "\"" nil t)
+          (replace-match "\\\"" "FIXEDCASE" "LITERAL")))))
+
+(defun xah-unescape-quotes (@begin @end)
+  "Replace  ?\\\"? by ?\"? in current line or text selection.
+See also: `xah-escape-quotes'
+
+URL `http://ergoemacs.org/emacs/elisp_escape_quotes.html'
+Version 2017-01-11"
+  (interactive
+   (if (use-region-p)
+       (list (region-beginning) (region-end))
+     (list (line-beginning-position) (line-end-position))))
+  (save-excursion
+    (save-restriction
+      (narrow-to-region @begin @end)
+      (goto-char (point-min))
+      (while (search-forward "\\\"" nil t)
+        (replace-match "\"" "FIXEDCASE" "LITERAL")))))
+
+;; Text to speach script integratoin
+(bind-key (kbd "C-x C-M-;")  #'gv/read)
 (defun gv/read ()
   "text to speech"
   (interactive)
   (async-shell-command
-   (concat "tts.sh '" (x-get-clipboard)"'")))
+   (concat "tts.sh " (shell-quote-argument (x-get-clipboard)))))
+
+;; (call-process "tts.sh" nil nil nil (x-get-clipboard))
 
 ;;;; Fix terminal escape
 (when gv/is-terminal
@@ -108,77 +146,146 @@
   :bind (([remap move-beginning-of-line] . crux-move-beginning-of-line)
 	 ;; Remove whitespace when killing at the end of a line
 	 ([remap kill-line] . crux-kill-and-join-forward)
-	 ("C-c C-e" . crux-eval-and-replace)
 	 ;; Since C-j is so similar
 	 ("C-S-o" . crux-smart-open-line-above)
 	 ("C-o" . crux-smart-open-line)
-         ("C-S-k" . crux-kill-whole-line)
+         ("M-k" . crux-kill-whole-line)
 	 ))
 
 
+(use-package which-key
+  :ensure t
+  :hook (org-mode . which-key-mode))
+
+(require 'expand-region)
+(require 'boon)
+(setq selected-org-mode-map (make-sparse-keymap))
+(use-package selected
+  :ensure t
+  :init (selected-global-mode)
+  :bind (:map selected-keymap
+              ("=" . er/expand-region)
+              ("a" . move-beginning-of-line)
+              ("e" . move-beginning-of-line)
+              ("n" . next-line)
+              ("p" . previous-line)
+              ("w" . kill-region)
+              ("d" . kill-region)
+              ("k" . kill-region)
+              ("g" . keyboard-quit)
+              ("<escape>" . keyboard-quit)
+              :map selected-org-mode-map
+              ("*" . (lambda () (interactive)
+                       (org-emphasize ?*)))))
+
+(defun my/mark-whole-line ()
+  (interactive)
+  (when (use-region-p)
+    (when (< (point) (mark))
+      (exchange-point-and-mark)))
+  (move-beginning-of-line nil)
+  (set-mark (point))
+  (move-end-of-line nil))
+
+(defun my/mark-sexp ()
+  (interactive)
+  (when (use-region-p)
+    (when (< (point) (mark))
+      (exchange-point-and-mark)))
+  (mark-sexp nil)
+  ( nil))
+
+(use-package ryo-modal
+  :ensure t
+  :commands ryo-modal-mode
+  :bind ("<escape>" . ryo-modal-mode)
+  :config
+  (ryo-modal-keys
+   ("n" next-line)
+   ("p" previous-line)
+   ;; Crux Stuff
+   ("a" crux-move-beginning-of-line)
+   ;; Boon stuff
+   ("f" boon-smarter-forward)
+   ("b" boon-smarter-backward)
+   ("SPC" set-mark-command)
+   ("k" kill-line)
+   ("/"  undo-fu-only-undo)
+   ("?"  undo-fu-only-redo)
+   ("dd" kill-whole-line)
+   ("D" kill-line)
+   ("cc" my/mark-line :then '(kill-region) :exit t)
+   ("C" kill-line :exit t)
+   ("" kill-whole-line))
+   (let ((text-objects
+          '(("w" er/mark-word :name "Word")
+            ("l" my/mark-whole-line :name "line")
+            ("s" er/mark-symbol :name "Symbol"))))
+     (eval `(ryo-modal-keys
+             ("v" ,text-objects)
+             ("d" ,text-objects :then '(kill-region))
+             ("c" ,text-objects :then '(kill-region) :exit t)))))
+
+;; git clone https://github.com/thblt/divine ~/.emacs.d/site-lisp/divine
+;; (use-package divine
+;;   :load-path "~/.emacs.d/site-lisp/divine"
+;;   ;; :init (divine-global-mode)
+;;   )
+
 
 ;;; Modal Bindings
-(use-package view
-  :ensure nil
-  :bind (("<escape>" . view-mode)
-         :map view-mode-map
-         ("i" . view-mode)
-	 ("n" . next-line)
-	 ("p" . previous-line)
-         ("e" . move-end-of-line)
-         ("a" . crux-move-beginning-of-line)
-         ;; Vim like whitespace movement
-         ("f" . forward-whitespace)
-         ("b" . (lambda ()
-                  (interactive)
-                  (let ((current-prefix-arg -1)) ;; emulate C-u
-                    (call-interactively 'forward-whitespace) ;; invoke align-regexp interactively
-                    )))
-         ("s" . consult-line)
-         ("SPC"  . View-scroll-half-page-forward)
-         ("S-SPC". View-scroll-half-page-backward)
-         ("z" . em-rep))
-  :init
-  (setq view-read-only t)
-    ;; Cursor shape
-  (defun my-view-mode-update-cursor-type ()
-    (setq cursor-type (if buffer-read-only 'box 'bar)))
-  (add-hook 'post-command-hook #'my-view-mode-update-cursor-type)
 
-  :config
-  (let ((normal-mode view-mode))
-  ;; My jank way to emulate vim's . functionality
-  (advice-add 'normal-mode :after 'em-rep)
-  
-  (defun em-rep (arg)
-    "intelegently start and end recording macros"
-    (if normal-mode
-        (kmacro-end-macro nil)
-      (kmacro-start-macro nil)))
+;; (use-package evil
+;;   :init
+;;   (setq evil-want-keybinding nil)
+;;   (setq evil-want-Y-yank-to-eol t)
+;;   (setq evil-split-window-below t)
+;;   (setq evil-split-window-right t)
+;;   (setq evil-undo-system 'undo-fu)
+;;   :config
+;;   (evil-mode 1)
+;;   (evil-set-leader 'normal " ")
+;;   (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+;;   (evil-define-key 'normal 'global (kbd "<leader>t") 'capitalize-dwim)
+;;   (evil-define-key 'visual 'global (kbd "<leader>t") 'capitalize-dwim)
+;;   ;; Better lisp bindings
+;;   (evil-define-key 'normal   'global (kbd "(")         'evil-previous-open-paren)
+;;   (evil-define-key 'normal   'global (kbd ")")         'evil-next-close-paren)
+;;   (evil-define-key 'operator 'global (kbd "(")         'evil-previous-open-paren)
+;;   (evil-define-key 'operator 'global (kbd ")")         'evil-previous-close-paren)
+;;  ;;;;; vim vinigar style
+;;   (define-key  evil-normal-state-map (kbd "-") (lambda () (interactive)
+;; 						 (dired "."))))
+;; (use-package evil-collection
+;;   :config
+;;   (evil-collection-init)
+;;   ;; Dired
+;;   (evil-collection-define-key 'normal 'dired-mode-map
+;;                               "-" 'dired-up-directory))
 
-  (defun em-dot ()
-    "run a previously defined macro either from normal-mode or from insert mode"
-    (interactive)
-    (when normal-mode
-      (read-only-mode -1)
-      (normal-mode -1))
-    (kmacro-end-and-call-macro nil)
-    (normal-mode 1))))
+;; ;; Enable Commentary
+;; (use-package evil-commentary
+;;   :bind (:map evil-normal-state-map
+;; 	      ("gc" . evil-commentary)))
+
+;; ;; Enable Surround
+;; (use-package evil-surround
+;;   :config
+;;   (global-evil-surround-mode 1))
+
+;; ;; Enable Lion
+;; (use-package evil-lion
+;;   :bind (:map evil-normal-state-map
+;; 	      ("gl" . evil-lion-left)))
 
 (use-package simple
   :ensure nil
   :bind (("M-SPC" . cycle-spacing)))
 
-
-(use-package multiple-cursors
-  :bind (("C-x <" . mc/mark-previous-like-this)
-	 ("C-x >" . mc/mark-next-like-this)
-	 ("C-x C->" . mc/mark-all-like-this)))
-;;; Extending Selection
-;; Expand region is useful for adding iw aw style selection to emacs
-;; TODO find a better alternative so I can put this in usepackage
-(use-package expand-region
-  :bind (("C-=" . er/expand-region)))
+;; (use-package multiple-cursors
+;;   :bind (("C-x <" . mc/mark-previous-like-this)
+;; 	 ("C-x >" . mc/mark-next-like-this)
+;; 	 ("C-x C->" . mc/mark-all-like-this)))
 
 ;;; TERMINAL SETTINGS
 (when gv/is-terminal
@@ -210,30 +317,35 @@
 	   ("C-c o"     . consult-outline)
 	   ("C-x b"     . consult-buffer)
 	   ("C-x C-k C-k" . consult-kmacro)
-           ("C-c n" . gv/notegrep))
+           ;; Used with clipmon makes emacs act as a
+           ;; Clipboard Manager
+           ("M-y" . consult-yank-pop))
     :custom
     (completion-in-region-function #'consult-completion-in-region)
     :config
     (add-hook 'completion-setup-hook #'hl-line-mode)
-    (defun gv/notegrep ()
-      "Use interactive grepping to search my notes"
-      (interactive)
-      (consult-ripgrep org-directory)))
+    (recentf-mode t))
+
 ;;;; Fuzzy Finding
   (use-package affe
     :bind (("C-c f" . affe-find)
-	   ("C-c g" . affe-grep))
+	   ("C-c g" . affe-grep)
+           ("C-c n" . gv/notegrep))
     :commands (affe-grep affe-find)
     :config
-    ;; only exclude git files
-    (setq affe-find-command
-	  (concat "find  "
-		  "-not -path '*/\\.nnn*' -not -path '*/\\.git*' "
-		  "-type f"))
-    (defun affe-orderless-regexp-compiler (input _type)
-      (setq input (orderless-pattern-compiler input))
-      (cons input (lambda (str) (orderless--highlight input str))))
-    (setq affe-regexp-compiler #'affe-orderless-regexp-compiler)
+    (defun gv/notegrep ()
+      "Use interactive grepping to search my notes"
+      (interactive)
+      (affe-grep org-directory))
+    ;; Only exclude git files
+    (if (executable-find "fd")
+        (setq affe-find-command "fd --hidden")
+      ;; else
+      (setq affe-find-command
+	    (concat "find  "
+		    "-not -path '*/\\.nnn*' -not -path '*/\\.git*' "
+		    "-type f")))
+
     ;; Manual preview key for `affe-grep'
     (consult-customize affe-grep :preview-key (kbd "M-.")))
   (vertico-mode)
@@ -245,23 +357,60 @@
   ;; Enable recursive minibuffers
   (setq enable-recursive-minibuffers t))
 
-;;; THEMEING
- (use-package ujelly-theme
-   :config
-   (load-theme 'ujelly t)
-   (set-frame-parameter (selected-frame) 'alpha '(90 90))
-   (add-to-list 'default-frame-alist '(alpha 90 90))
-   (set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
-   ;; (set-face-attribute 'mode-line nil :foreground "#bdc3ce" :background "#000")
-   (set-face-attribute 'default nil :background "#000" :foreground "#eee")
- (set-face-attribute 'mode-line nil
-		    :box '(:line-width 10 :color "#000"))
- (set-face-attribute 'mode-line-inactive nil
-		    :box '(:line-width 10 :color "#000"))
- (set-face-attribute 'mode-line nil
-		    :background  "#0F0F0F"))
+;; (use-package embark
+;;   :ensure t
+;;   :bind
+;;   (("C-j" . embark-act)         ;; pick some comfortable binding
+;;    ("C-;" . embark-dwim)        ;; good alternative: M-.
+;;    ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+;;   :config
+;;   ;; Hide the mode line of the Embark live/completions buffers
+;;   ;; (add-to-list 'display-buffer-alist
+;;   ;;              '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+;;   ;;                nil
+;;   ;;                (window-parameters (mode-line-format . none))))
 
-;; (load-theme 'modus-operandi t)
+;;   ;; make it so I can actually see what is selected by embark
+;;   (set-face-attribute 'embark-target nil :background "#666" :foreground "#ffffff"))
+;;; REGION STUFF
+;; (use-package expand-region
+;;   :ensure t
+;;   :bind ("M-j" . er/expand-region))
+
+;; (use-package selected
+;;   :bind (:map selected-keymap
+;;               ("w" . kill-region)
+;;               ("<tab>" . indent-region)
+;;               :map selected-org-mode-map
+;;               ("*" . (lambda () (interactive)
+;;                        (org-emphasize ?*)))
+;;               ("/" . (lambda () (interactive)
+;;                        (org-emphasize ?/)))
+;;               ("=" . (lambda () (interactive)
+;;                        (org-emphasize ?=)))
+;;               ("_" . (lambda () (interactive)
+;;                        (org-emphasize ?_))))
+;;   :init
+;;   (setq selected-org-mode-map (make-sparse-keymap))
+
+;;   (selected-global-mode t))
+;;; THEMEING
+(use-package ujelly-theme
+  :config
+  (load-theme 'ujelly t)
+  (set-frame-parameter (selected-frame) 'alpha '(90 90))
+  (add-to-list 'default-frame-alist '(alpha 90 90))
+  (set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
+  (set-face-attribute 'default nil :background "#000" :foreground "#eee")
+  (set-face-attribute 'mode-line nil
+		      :box '(:line-width 10 :color "#000"))
+  (set-face-attribute 'mode-line-inactive nil
+		      :box '(:line-width 10 :color "#000"))
+  (set-face-attribute 'mode-line nil
+		      :background  "#0F0F0F")
+(setq-default header-line-format nil))
+
+;; (load-theme 'tsdh-light t)
 
 ;;; Aligning Text
 (use-package align
@@ -306,6 +455,7 @@
   (setq org-ellipsis " ▾"
 	org-hide-emphasis-markers t
 	org-special-ctrl-a/e t
+        org-special-ctrl-k t
 	org-src-fontify-natively t
 	org-fontify-quote-and-verse-blocks t
 	org-src-tab-acts-natively t
@@ -322,7 +472,18 @@
 	  (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)"
 		    "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)"
 		    "|" "DELEGATED(D)" "CANCELLED(c)")))
-
+;;;; Babel
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((haskell . t) (emacs-lisp . t) (shell . t)
+     (C . t) (lua . t) (dot . t) (java . t)))
+  (use-package ob-rust
+    :ensure t)
+  (use-package ob-hy
+    :ensure t)
+  (use-package ob-elm
+    :ensure t)
+  (setq org-confirm-babel-evaluate nil)
 ;;;; Agenda Views
   (setq org-agenda-custom-commands
 	'(("d" "Today's Tasks"
@@ -346,7 +507,10 @@
 	   "* TODO %?\nDEADLINE: %T\n  %a")
 	  ("M" "movie" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
 	   "* Meeting with  %?\nSCHEDULED: %T\n")
-	  ("m" "Meeting" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
+          ("s" "Scheduled Event")
+	  ("sm" "Meeting" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
+	   "* Meeting with  %?\nSCHEDULED: %T\n")
+          ("se" "Event" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
 	   "* Meeting with  %?\nSCHEDULED: %T\n")
 	  ("r" "Refund" entry (file+olp (lambda () (concat org-directory "/Work.org"))
 					"Work" "Refunds")
@@ -358,12 +522,25 @@
 					    "YouTube" "Video Ideas")
 	   "* %?\n%? %a\n")
 	  ("c" "Cool Thing" entry (file+opl+datetree (lambda () (concat org-directory "/archive.org")))
-	   "* %?\nEntered on %U\n  %i\n  %a")))
+	   "* %?\nEntered on %U\n  %i\n  %a")
+          ("m" "Email Workflow")
+          ("mf" "Follow Up" entry (file+olp (lambda () (concat org-directory "/Work.org")) "Follow Up")
+           "* TODO Follow up with %:fromname on %a\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%i")
+          ("mr" "Read Later" entry (file+olp (lambda () (concat org-directory "/Work.org")) "Read Later")
+           "* TODO Read %:subject\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%a\n%i")))
+;;;; Clocking
+  ;; (setq org-clock-continuously t)
+  ;; (setq org-clock-auto-clockout-timer 2600)
+  ;; (org-clock-auto-clockout-insinuate)
+  (setq org-clock-idle-time 15)
+  (setq org-clock-x11idle-program-name "xprintidle")
+   
 ;;;; Refile targets
   (setq org-refile-targets
 	'(("Work.org"    :maxlevel . 3)
 	  ("archive.org" :maxlevel . 3)
-	  ("mylife.org"  :maxlevel . 3)))
+	  ("mylife.org"  :maxlevel . 3)
+          ("youtube.org"  :maxlevel . 3)))
   (advice-add 'org-refile :after 'org-save-all-org-buffers)
 ;;;; Font Sizes
   (dolist (face '((org-level-1 . 1.05)
@@ -372,6 +549,19 @@
 		  (org-level-4 . 1.05)))
     (set-face-attribute (car face) nil :font "RobotoMono Nerd Font" :weight 'medium :height (cdr face))))
 
+(use-package org-notify
+  :ensure nil
+  :after org
+  :config
+  (org-notify-start)
+
+  ;; (org-notify-add
+  ;;  'default
+  ;;  '(:time "10m" :period "5s" :duration 100 :actions -notify))
+   ;; (org-notify-add
+   ;; 'reminder
+   ;; '(:time "10m" :period "5s" :duration 100 :actions -notify))
+   )
 
 ;;;; Drag And Drop
 (use-package org-download
@@ -390,16 +580,16 @@
 ;;;; Templates
 (use-package org-tempo
   :ensure nil
-  :defer t
+  :after org
   :config
   (add-to-list 'org-structure-template-alist '("sh"  . "src sh"))
   (add-to-list 'org-structure-template-alist '("el"  . "src emacs-lisp"))
   (add-to-list 'org-structure-template-alist '("vim"  . "src vim")))
 
 ;;;; Indentation
-(use-package org-indent
-  :ensure nil
-  :defer t)
+;; (use-package org-indent
+;;   :ensure nil
+;;   :defer t)
 
 ;;; Git
 (use-package magit
@@ -416,7 +606,9 @@
   :config
   (global-company-mode nil)
   (setq company-idle-delay 0.1
-	company-minimum-prefix-length 1))
+	company-minimum-prefix-length 1)
+  ;; tab and go mode
+  (company-tng-mode))
 
 ;;; VTERM AND ESHELL
 (use-package vterm
@@ -440,6 +632,20 @@
   :when (executable-find "fish")
   :config (global-fish-completion-mode))
 
+;; More accureate color representation than ansi-color.el
+(use-package xterm-color
+  :ensure t
+  :after eshell
+  :config
+  (add-hook 'eshell-before-prompt-hook
+            (lambda ()
+              (setq xterm-color-preserve-properties t)))
+
+  (add-to-list 'eshell-preoutput-filter-functions 'xterm-color-filter)
+  (setq eshell-output-filter-functions
+        (remove 'eshell-handle-ansi-color eshell-output-filter-functions))
+  (setenv "TERM" "xterm-256color"))
+
 ;;; LANGS
 (use-package fennel-mode
   :mode "\\.fnl\\'")
@@ -462,13 +668,14 @@
    (t
     (setq meghanada-java-path "java")
     (setq meghanada-maven-path "mvn"))))
-;;; TREE-SITTER
-;; Tree-sitter support
-(use-package tree-sitter
-  :commands (tree-sitter-mode))
-;; install the tree-sitter grammars
-(use-package tree-sitter-langs
-  :after tree-sitter)
+
+(use-package haskell-mode
+  :ensure t
+  :mode "\\.hs\\'")
+
+(use-package rust-mode
+  :ensure t
+  :mode "\\.rs\\'")
 
 ;;; LSP
 (use-package eglot
@@ -563,18 +770,27 @@
   (defun my-goto-match-beginning ()
       (when (and isearch-forward isearch-other-end (not isearch-mode-end-hook-quit))
 	(goto-char isearch-other-end))))
+
+(use-package ffap
+  :ensure nil
+  :bind ("C-x f" . ffap)
+  :init
+  (setq find-file-visit-truename t))
+
 ;;; DEFAULTS
 (use-package emacs
   :ensure nil
   :defer nil
-  :bind (("C-x C-d"    . delete-pair)
-         ("M-?" . help-command)
-         ("C-h" . delete-backward-char)
-         ("C-x f" . ffap)
+  :bind (
+         ("C-x C-d" . delete-pair)
+         ;; ("M-?" . help-command)
+         ;; ("C-h" . delete-backward-char)
+
          ("M-c" . capitalize-dwim)
          ("M-u" . upcase-dwim)
          ("M-l" . downcase-dwim))
   :config
+
   (global-hl-line-mode t)
   ;; No delay when deleting pairs
   (setq delete-pair-blink-delay 0)
@@ -596,8 +812,6 @@
   (define-fringe-bitmap 'left-curly-arrow
     [#b00000000])
   (set-frame-font "RobotoMono Nerd Font 14" nil t)
-  ;; Replace selection on insert
-  (delete-selection-mode 1)
 ;;;; Backups
   (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
 	vc-make-backup-files t
@@ -671,15 +885,10 @@
   :defer nil
   :hook (prog-mode . outline-minor-mode)
   :bind (:map outline-minor-mode-map
-	      ("<backtab>" . outline-cycle-buffer))
+	      ;; ("<tab>" . outline-cycle)
+              ("<backtab>" . outline-cycle-buffer))
   :init
   (setq outline-minor-mode-prefix "\C-c"))
-
-(use-package outline-magic
-  :ensure t
-  :commands outline-cycle
-  :bind (:map outline-minor-mode-map
-              ("<tab>" . #'outline-cycle)))
 
 ;;;; Setup Folding For Programming
 (use-package prog-mode
@@ -697,6 +906,14 @@
   (add-hook 'prog-mode-hook 'infer-indentation-style))
 
 ;;; EXTRA UI
+(use-package hl-todo
+  :hook (prog-mode . hl-todo-mode))
+
+;; replace ugly ^L with harazontal lines
+(use-package page-break-lines
+  :config
+  (global-page-break-lines-mode))
+
 (use-package pulse
   :unless gv/is-terminal
   :defer t
@@ -742,15 +959,13 @@
   ;; emacs 28
   (setq dired-kill-when-opening-new-dired-buffer t))
 
-(use-package hl-todo
-  :hook (prog-mode . hl-todo-mode))
-
 ;;; EMAIL
 (use-package mu4e
   :unless gv/is-termux
   :load-path "/usr/share/emacs/site-lisp/mu4e"
   :ensure nil
-  :bind (("C-x m" . mu4e-compose-new)
+  :bind (("C-x M" . mu4e)
+         ("C-x m" . mu4e-compose-new)
          ([remap mu4e~headers-jump-to-maildir] . my/jump-to-maildir))
   :commands (mu4e mu4e-compose-new)
   :init
@@ -759,11 +974,11 @@
   ;; (setq mu4e-view-use-old t)
   ;; Show full email address
   (setq mu4e-view-show-addresses 't
-	mu4e-maildir "~/.local/share/mail"
-	;; where to put attachemnts
-	mu4e-attachment-dir  "~/Downloads"
-	;; use mu4e for e-mail in emacs
-	mail-user-agent 'mu4e-user-agent)
+        mu4e-maildir "~/.local/share/mail"
+        ;; where to put attachemnts
+        mu4e-attachment-dir  "~/Downloads"
+        ;; use mu4e for e-mail in emacs
+        mail-user-agent 'mu4e-user-agent)
   :config
   (defun my/jump-to-maildir ()
     (interactive)
@@ -774,7 +989,7 @@
 
   ;; This prevents saving the email to the Sent folder since gmail will do this for us on their end.
   (setq mu4e-sent-messages-behavior 'delete
-	message-kill-buffer-on-exit t)
+        message-kill-buffer-on-exit t)
 
 ;;;; Attachment reminders
   (use-package message-attachment-reminder)
@@ -786,21 +1001,17 @@
                                                      :with-toc nil)))
 ;;;; mbsync and msmtp setup
   (setq mu4e-get-mail-command "mailsync"
-	sendmail-program "/usr/bin/msmtp"
-	message-sendmail-extra-arguments '("--read-envelope-from")
-	send-mail-function 'smtpmail-send-it
-	message-sendmail-f-is-evil t
-	message-send-mail-function 'message-send-mail-with-sendmail)
+        sendmail-program "/usr/bin/msmtp"
+        message-sendmail-extra-arguments '("--read-envelope-from")
+        send-mail-function 'smtpmail-send-it
+        message-sendmail-f-is-evil t
+        message-send-mail-function 'message-send-mail-with-sendmail)
 
   ;;images in emails
   (setq mu4e-view-show-images t)
 ;;;; Abbreviations
   (define-abbrev-table 'mu4e-compose-mode-abbrev-table
-    '(("sin" "Sincerely, \nGavin Jaeger-Freeborn" nil 1)
-      ("fwn_board" "<lammerdawn@gmail.com>, <president@flatwaternorth.ca>, <coach@flatwaternorth.ca>, <lewis_ds@me.com>, <a.kporter@klondiker.com>, <nikibparry@gmail.com>" nil 1)
-      ("fwn_staff" "doonmcdowell51@gmail.com, makenna.macauley@gmail.com, jmcdowell1@live.ca, mountain2adventure@gmail.com, ballet@mkcd.ca, roganparry@gmail.com,joelgirouard23@gmail.com,brucep205@gmail.com, marin.ruth@icloud.com, sneill@northwestel.net,james.mccann.2006@gmail.com,torimarieski8@icloud.com, kalebparry1@gmail.com" nil 1)
-      ("fwn_sprint" "<helenannegirouard@icloud.com>, <lammerdawn@gmail.com>, <president@flatwaternorth.ca>, <coach@flatwaternorth.ca>, <lewis_ds@me.com>, <a.kporter@klondiker.com>, <nikibparry@gmail.com>, doonmcdowell51@gmail.com, makenna.macauley@gmail.com, jmcdowell1@live.ca, mountain2adventure@gmail.com, ballet@mkcd.ca, roganparry@gmail.com,joelgirouard23@gmail.com,brucep205@gmail.com, marin.ruth@icloud.com, sneill@northwestel.net,james.mccann.2006@gmail.com,torimarieski8@icloud.com, kalebparry1@gmail.com" nil 1)
-      ("fwn_roadshow" "g.gilbert.g@gmail.com, lpvidal@hotmail.com" nil 1)))
+    '(("sin" "Sincerely, \nGavin Jaeger-Freeborn" nil 1)))
 
   (add-hook 'mu4e-compose-mode-hook #'abbrev-mode)
   (add-to-list 'auto-mode-alist '("^/tmp/neomutt.*\\'" . mail-mode)) ;; neomutt
@@ -809,9 +1020,9 @@
 
 ;;;; Accounts
   (setq mu4e-contexts
-	(list
-	 ;; Personal account
-	 (make-mu4e-context
+        (list
+         ;; Personal account
+         (make-mu4e-context
 	  :name "Personal"
 	  :match-func
 	  (lambda (msg)
@@ -819,38 +1030,10 @@
 	      (string-prefix-p "/personal" (mu4e-message-field msg :maildir))))
 	  :vars '((user-mail-address                . "gavinfreeborn@gmail.com")
 		  (user-full-name                   . "Gavin Jaeger-Freeborn")
-		  (mu4e-drafts-folder               . "/personal/[Gmail].Drafts")
-		  (mu4e-sent-folder                 . "/personal/[Gmail].Sent Mail")
-		  (mu4e-refile-folder               . "/personal/[Gmail].All Mail")
-		  (mu4e-trash-folder                . "/personal/[Gmail].Trash")))
-
-	 ;; Info Work account
-	 (make-mu4e-context
-	  :name "Info"
-	  :match-func
-	  (lambda (msg)
-	    (when msg
-	      (string-prefix-p "/info" (mu4e-message-field msg :maildir))))
-	  :vars '((user-mail-address                . "info@flatwaternorth.ca")
-		  (user-full-name                   . "Gavin Jaeger-Freeborn")
-		  (mu4e-drafts-folder               . "/info/[Gmail].Drafts")
-		  (mu4e-sent-folder                 . "/info/[Gmail].Sent Mail")
-		  (mu4e-refile-folder               . "/info/[Gmail].All Mail")
-		  (mu4e-trash-folder                . "/info/[Gmail].Trash")))
-
-	 ;; Coach Work account
-	 (make-mu4e-context
-	  :name "Coach"
-	  :match-func
-	  (lambda (msg)
-	    (when msg
-	      (string-prefix-p "/coach" (mu4e-message-field msg :maildir))))
-	  :vars '((user-mail-address                . "coach@flatwaternorth.ca")
-		  (user-full-name                   . "Gavin Jaeger-Freeborn")
-		  (mu4e-drafts-folder               . "/coach/[Gmail].Drafts")
-		  (mu4e-sent-folder                 . "/coach/[Gmail].Sent Mail")
-		  (mu4e-refile-folder               . "/coach/[Gmail].All Mail")
-		  (mu4e-trash-folder                . "/coach/[Gmail].Trash")))))
+		  (mu4e-drafts-folder               . "/[Gmail].Drafts")
+		  (mu4e-sent-folder                 . "/[Gmail].Sent Mail")
+		  (mu4e-refile-folder               . "/[Gmail].All Mail")
+		  (mu4e-trash-folder                . "/[Gmail].Trash")))))
 ;;;; Contacts
   (setq mail-personal-alias-file  "~/.config/mutt/aliases")
   (setq mu4e-org-contacts-file  (concat org-directory "/contacts.org"))
@@ -859,14 +1042,16 @@
   (add-to-list 'mu4e-view-actions
 	       '("org-contact-add" . mu4e-action-add-org-contact) t)
 ;;;; Bookmarks
-  (setq mu4e-bookmarks '((:name "To Handle"
-				:query "((flag:flagged AND (NOT flag:replied)) OR (NOT flag:seen))" :key 116)
-			 (:name "Today's messages"
-				:query "date:today..now" :key 118)
-			 (:name "Last 7 days"
-				:query "date:7d..now" :hide-unread t :key 119)
-			 (:name "Messages with images"
-				:query "mime:image/*" :key 112))) ; email client depends on mu command
+  (setq mu4e-bookmarks '((:name "Main INBOX"
+			        :query "maildir:\"/INBOX\"" :key 115)
+                         (:name "To Handle"
+			        :query "((flag:flagged AND (NOT flag:replied)) OR (NOT flag:seen))" :key 116)
+		         (:name "Today's messages"
+			        :query "date:today..now" :key 118)
+		         (:name "Last 7 days"
+			        :query "date:7d..now" :hide-unread t :key 119)
+		         (:name "Messages with images"
+			        :query "mime:image/*" :key 112))) ; email client depends on mu command
 
 ;;;; Headers View
   (set-face-attribute 'mu4e-flagged-face nil
@@ -896,16 +1081,11 @@
   :after password-store
   :config
   (auth-source-pass-enable))
-;;; Winner Mode
-(use-package winner
-  :ensure nil
-  :bind (( "s-/" . winner-undo)
-	 ( "s-?" . winner-redo))
-  :config
-  :init (winner-mode 1)) ; Window Managment Undo
+
+(use-package pinentry
+  :ensure t)
 
 ;;; MODELINE
-(setq-default header-line-format '(" "))
 (unless gv/is-termux
   (require 'battery))
 (defun simple-mode-line-render (left right)
@@ -929,13 +1109,15 @@ Containing LEFT, and RIGHT aligned respectively."
 	   ;; Left
 	   '(" "
 	     (:eval (propertize
-                     (if (buffer-modified-p) "● " "  " ) 'face 'error))
+                     (if (and (not buffer-read-only) (buffer-modified-p))
+                         "● "
+                       "  " ) 'face 'error))
 	     mode-line-buffer-identification
 	     ;; value of current line number
 	     " %l:%c"
 	     (:eval (propertize
                      (concat " %p%%" " "
-                             (if god-local-mode " 😇 " "  ")
+                             ;; (if god-local-mode " 😇 " "  ")
                              " ( %m ) ") 'face 'shadow))
              mode-line-misc-info
 	     )
@@ -958,25 +1140,22 @@ Containing LEFT, and RIGHT aligned respectively."
   (unless (server-running-p)
     (server-start)))
 
+
 ;;; Extras
-;; (use-package quelpa-use-package)
+(use-package quelpa-use-package)
 ;; Don't forget to run M-x eaf-install-dependencies
 (use-package eaf
   :unless gv/is-termux
   :bind (("C-c w" . gv/bm)
-	 ("s-w" . gv/bm))
-  :defer t
-  ;; :quelpa (eaf :fetcher github
-  ;;             :repo  "manateelazycat/emacs-application-framework"
-  ;;             :files ("*"))
-  :load-path "~/.emacs.d/site-lisp/emacs-application-framework" ; Set to "/usr/share/emacs/site-lisp/eaf" if installed from AUR
+	("s-w" . gv/bm))
+  ;; :demand t
+  :load-path "~/.emacs.d/site-lisp/emacs-application-framework/" ; Set to "/usr/share/emacs/site-lisp/eaf" if installed from AUR
   :init
   (use-package epc      :defer t :ensure t)
   (use-package ctable   :defer t :ensure t)
   (use-package deferred :defer t :ensure t)
   (use-package s        :defer t :ensure t)
-  (setq browse-url-browser-function 'eaf-open-browser)
-  (defalias 'browse-web #'eaf-open-browser)
+  ;; (setq browse-url-browser-function 'eaf-open-browser)
   :config
   (defun slurp (f)
     (with-temp-buffer
@@ -986,6 +1165,9 @@ Containing LEFT, and RIGHT aligned respectively."
        (point-max))))
   (defun gv/bm ()
     (interactive)
+    (add-to-list 'load-path "~/.emacs.d/site-lisp/emacs-application-framework/app/browser/")
+    (require 'eaf-browser)
+
     (let ((selected (completing-read
 		     "Select URL: " (split-string
 				     (slurp "~/.config/bookmarks") "\n" t))))
@@ -997,34 +1179,35 @@ Containing LEFT, and RIGHT aligned respectively."
 	    (eaf-open-browser url)
 	  ;; Search entered text
 	  (eaf-search-it selected)))))
-  (setq-default eaf-browser-continue-where-left-off t)
-  (setq-default eaf-browser-dnefault-search-engine "duckduckgo")
-  (setq-default eaf-browser-enable-adblocker "true")
-  (eaf-bind-key scroll_up "C-n" eaf-pdf-viewer-keybinding)
-  (eaf-bind-key scroll_down "C-p" eaf-pdf-viewer-keybinding)
-  (eaf-bind-key take_photo "p" eaf-camera-keybinding)
-  (dolist (keys '("i" "h" "j" "k" "l"
-		  "d" "f" "x" ","
-		  "-" "." "0" "1"
-		  "2" "=" "B" "F"
-		  "G" "H" "I" "J"
-		  "K" "L" "P" "T"
-		  "Y" "c" "d" "e"
-		  "f" "g" "m" "n"
-		  "o" "p" "r" "t"
-		  "u" "v" "x" "y"
-		  (eaf-bind-key nil key eaf-browser-keybinding)))))
+  (setq eaf-browser-continue-where-left-off t)
+  (setq eaf-browser-dnefault-search-engine "duckduckgo")
+  (setq eaf-browser-enable-adblocker "true")
+  ;; (eaf-bind-key scroll_up "C-n" eaf-pdf-viewer-keybinding)
+  ;; (eaf-bind-key scroll_down "C-p" eaf-pdf-viewer-keybinding)
+  ;; (eaf-bind-key take_photo "p" eaf-camera-keybinding)
+  ;; (dolist (keys '("i" "h" "j" "k" "l"
+  ;;       	  "d" "f" "x" ","
+  ;;       	  "-" "." "0" "1"
+  ;;       	  "2" "=" "B" "F"
+  ;;       	  "G" "H" "I" "J"
+  ;;       	  "K" "L" "P" "T"
+  ;;       	  "Y" "c" "d" "e"
+  ;;       	  "f" "g" "m" "n"
+  ;;       	  "o" "p" "r" "t"
+  ;;       	  "u" "v" "x" "y"
+  ;;       	  (eaf-bind-key nil key eaf-browser-keybinding))))
+  )
 
 ;;;; Better PDFs
 ;https://github.com/politza/pdf-tools
 ; annotate pdfs with c-c c-a
 ; hl with c-c c-a h
 ; for help M-x pdf-tools-help RET
-(use-package pdf-tools
-  :mode "\\.pdf\\'"
-  :config
-  ;; pdf auto refresh
-  (add-hook 'doc-view-mode-hook 'auto-revert-mode))
+;; (use-package pdf-tools
+;;   :mode "\\.pdf\\'"
+;;   :config
+;;   ;; pdf auto refresh
+;;   (add-hook 'doc-view-mode-hook 'auto-revert-mode))
 
 ;;;; Torrents
 (use-package transmission
@@ -1044,33 +1227,36 @@ Containing LEFT, and RIGHT aligned respectively."
 ;;; EXWM
 (use-package exwm
   :unless gv/is-termux
+  :init
+  (setq exwm-workspace-number 4)
   :config
-  ;; ;;;; Hooks
+  (setq exwm-manage-force-tiling t)
+ ;;;; Hooks
   (add-hook 'exwm-update-class-hook
 	    (lambda ()
 	      (exwm-workspace-rename-buffer exwm-class-name)))
 
-  ;;   (add-hook 'exwm-manage-finish-hook
-  ;; 	    (lambda ()
-  ;; 	      (when (and exwm-class-name
-  ;; 			 (or (string= exwm-class-name "qutebrowser")
-  ;; 			     (string= exwm-class-name "libreoffice-writer")
-  ;; 			     (string= exwm-class-name "libreoffice-calc")
-  ;; 			     (string= exwm-class-name "Google-chrome")
-  ;; 			     (string= exwm-class-name "Brave-browser")))
-  ;; 		(exwm-input-set-local-simulation-keys nil))))
+    ;; (add-hook 'exwm-manage-finish-hook
+    ;;         (lambda ()
+    ;;           (when (and exwm-class-name
+    ;;     		 (or (string= exwm-class-name "qutebrowser")
+    ;;     		     (string= exwm-class-name "libreoffice-writer")
+    ;;     		     (string= exwm-class-name "libreoffice-calc")
+    ;;     		     (string= exwm-class-name "Google-chrome")
+    ;;     		     (string= exwm-class-name "Brave-browser")))
+    ;;     	(exwm-input-set-local-simulation-keys nil))))
 
-  ;;   (add-hook 'exwm-update-title-hook
-  ;; 	    (lambda ()
-  ;; 	      (pcase exwm-class-name
-  ;; 		("qutebrowser" (exwm-workspace-rename-buffer (format "%s" exwm-title)))
-  ;; 		("libreoffice-writer" (exwm-workspace-rename-buffer (format "Writer: %s" exwm-title)))
-  ;; 		("libreoffice-calc" (exwm-workspace-rename-buffer (format "Calc: %s" exwm-title)))
-  ;; 		("St" (exwm-workspace-rename-buffer (format "%s" exwm-title))))))
-  ;;   ;; Hide the modeline on all X windows
-  ;;   (add-hook 'exwm-floating-setup-hook
-  ;;             (lambda ()
-  ;;               (exwm-layout-hide-mode-line)))
+    (add-hook 'exwm-update-title-hook
+	    (lambda ()
+	      (pcase exwm-class-name
+		("qutebrowser" (exwm-workspace-rename-buffer (format "%s" exwm-title)))
+		("libreoffice-writer" (exwm-workspace-rename-buffer (format "Writer: %s" exwm-title)))
+		("libreoffice-calc" (exwm-workspace-rename-buffer (format "Calc: %s" exwm-title)))
+		("St" (exwm-workspace-rename-buffer (format "%s" exwm-title))))))
+    ;; Hide the modeline on all X windows
+    (add-hook 'exwm-floating-setup-hook
+              (lambda ()
+                (exwm-layout-hide-mode-line)))
 ;;;; Funcs
   (defun gv/switch-to-scratch-and-back ()
     "Toggle between *scratch* buffer and the current buffer.
@@ -1081,14 +1267,14 @@ Containing LEFT, and RIGHT aligned respectively."
           (switch-to-buffer (other-buffer))
         (switch-to-buffer scratch-buffer-name (lisp-interaction-mode)))))
 
-                                        ;Just disallow killing of scratch buffer
+  ;;Just disallow killing of scratch buffer
   (defun gv/unkillable-scratch-buffer ()
     (if (equal (buffer-name (current-buffer)) "*scratch*")
 	(progn
 	  (delete-region (point-min) (point-max))
 	  nil)
       t))
-  ;; (advice-add 'exwm-reset :after 'consult-buffer-preview)
+
   (add-hook 'kill-buffer-query-functions 'gv/unkillable-scratch-buffer)
 ;;;; Global Key Bindings
   (setq exwm-input-global-keys
@@ -1100,23 +1286,14 @@ Containing LEFT, and RIGHT aligned respectively."
 	  ;; ([?\s-v] . crux-transpose-windows)
 	  ([?\s-o] . gv/switch-to-scratch-and-back)
 	  ([?\s-f] . exwm-layout-set-fullscreen)
-	  ([?\s-q] . edwina-delete-window) ; closing windows
 	  ([?\s-c] . inferior-octave)
-	  ([?\s-C] . (lambda ()
-		       (interactive)
-		       (kill-this-buffer)
-		       (edwina-delete-window)))
+	  ([?\s-C] . kill-this-buffer)
+
 	  ;; tile exwm
-	  ([?\s-t] . (lambda ()
-		       (interactive)
-		       (exwm-reset)
-		       (edwina-arrange)))
+	  ([?\s-t] . exwm-reset)
 
 	  ;; open a terminal
-	  (,(kbd "s-T") . (lambda ()
-			    (interactive)
-			    (edwina-clone-window)
-			    (vterm)))
+	  (,(kbd "<s-return>") . vterm)
 	  ;; launch any program
 	  ([?\s-d] . (lambda (command)
 		       (interactive (list (read-shell-command "λ ")))
@@ -1148,13 +1325,10 @@ Containing LEFT, and RIGHT aligned respectively."
 	  ([?\s-m] . (defun remind-timer (reminder)
 		       (interactive "reminder?")
 		       (egg-timer-do-schedule 3 reminder)))
-	  ([?\s-b] . consult-buffer)
-	  (,(kbd "C-x C-b") . ibuffer)
-	  (,(kbd "s-B") . ibuffer)
 	  ([?\s-=] . (lambda ()
 		       (interactive)
 		       (start-process-shell-command "Connections" nil
-						    "dmenu_connection_manager.sh")))
+						    "menu_connection_manager.sh")))
 	  ([?\s-p] . (lambda ()
 		       (interactive)
 		       (start-process-shell-command "Clipmenu" nil "clipmenu")))
@@ -1171,6 +1345,7 @@ Containing LEFT, and RIGHT aligned respectively."
 ;;;; Start Programs For EXWM
   ;;   ;; (start-process-shell-command "blueman-applet" nil "blueman-applet")
   (start-process-shell-command "nm-applet" nil "nm-applet")
+  (start-process-shell-command "kdeconnect-indicator " nil "kdeconnect-indicator")
   ;; ;;;; Window Divider
   ;;   (setq window-divider-default-right-width 3)
   ;;   (let ((color (face-background 'mode-line)))
@@ -1201,22 +1376,28 @@ Containing LEFT, and RIGHT aligned respectively."
 	      (start-process-shell-command
 	       "xrandr" nil "xrandr --output eDP1 --primary --auto --left-of HDMI2 --auto")))
   (exwm-randr-enable))
-;; (use-package exwm-mff
-;;   :after exwm
-;;   :config
-;;   (exwm-mff-mode t)) ; mouse follows focus
-;; (use-package edwina
-;;   :after exwm
-;;   :config
-;;   ;;(setq display-buffer-base-action '(display-buffer-below-selected))
-;;   ) ; dwm style window managment
-;; (use-package vlf
-;;   :ensure t
-;;   :defer t) ; help emacs handle large files to avoid exwm from locking
 
+;; use emacs as a clipboard manager
+(use-package clipmon
+  :unless (and gv/is-termux (not (executable-find "clipmon")))
+  :config
+  (clipmon-mode-start))
+
+
+(use-package vlf
+  :ensure t
+  :defer t) ; help emacs handle large files to avoid exwm from locking
+
+;;; Winner Mode
+(use-package winner
+  :ensure nil
+  :bind (("s-/" . winner-undo)
+	 ("s-?" . winner-redo))
+  :config
+  :init (winner-mode 1)) ; Window Managment Undo
 ;;;; Use emacs instead of dmenu
 (setenv "LAUNCHER" "emenu -p ")
-;;;; Stuff To Ignore
+;;; Stuff To Ignore
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 
