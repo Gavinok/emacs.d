@@ -703,6 +703,8 @@ Version 2017-01-11"
 (use-package racket-mode
   :mode "\\.rkt\\'")
 (use-package meghanada
+  :bind (("M-."  . meghanada-jump-declaration)
+         ("M-," . meghanada-back-jump))
   :config
   (add-hook 'java-mode-hook
             (lambda ()
