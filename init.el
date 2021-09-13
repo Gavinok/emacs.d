@@ -189,10 +189,17 @@ Version 2017-01-11"
   (set-mark (point))
   (move-end-of-line nil))
 
+(use-package dot-mode
+  :demand t
+  :ensure t
+  :bind (("C-.". dot-mode-execute))
+  :config
+  (dot-mode-on))
 
 (use-package god-mode
   :ensure t
-  :bind (("<escape>" . god-local-mode)
+  :bind (("C-z" . god-local-mode)
+         ("<escape>" . god-local-mode)
          :map god-local-mode-map
          (";" . repeat)
          ("v" . god-mode-to-ryo)
