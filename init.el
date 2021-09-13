@@ -143,8 +143,8 @@ Version 2017-01-11"
 
 ;;; General Key Bindings
 (use-package crux
-  :bind (([remap move-beginning-of-line] . crux-move-beginning-of-line)
-	 ;; Remove whitespace when killing at the end of a line
+  :ensure t
+  :bind (;; Remove whitespace when killing at the end of a line
 	 ([remap kill-line] . crux-kill-and-join-forward)
 	 ;; Since C-j is so similar
 	 ("C-S-o" . crux-smart-open-line-above)
