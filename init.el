@@ -153,78 +153,129 @@ Version 2017-01-11"
 	 ))
 
 
-(use-package which-key
-  :ensure t
-  :hook (org-mode . which-key-mode))
+(use-package expand-region
+  :bind ("C-=" . er/expand-region)
+  :demand t
+  :ensure t)
 
-(require 'expand-region)
-(require 'boon)
-(setq selected-org-mode-map (make-sparse-keymap))
-(use-package selected
-  :ensure t
-  :init (selected-global-mode)
-  :bind (:map selected-keymap
-              ("=" . er/expand-region)
-              ("a" . move-beginning-of-line)
-              ("e" . move-beginning-of-line)
-              ("n" . next-line)
-              ("p" . previous-line)
-              ("w" . kill-region)
-              ("d" . kill-region)
-              ("k" . kill-region)
-              ("g" . keyboard-quit)
-              ("<escape>" . keyboard-quit)
-              :map selected-org-mode-map
-              ("*" . (lambda () (interactive)
-                       (org-emphasize ?*)))))
+(use-package embrace
+  :demand t
+  :ensure t)
+
+;; (setq selected-org-mode-map (make-sparse-keymap))
+;; (use-package selected
+;;   :ensure t
+;;   :init (selected-global-mode)
+;;   :bind (:map selected-keymap
+;;               ("=" . er/expand-region)
+;;               ("a" . move-beginning-of-line)
+;;               ("e" . move-beginning-of-line)
+;;               ("n" . next-line)
+;;               ("p" . previous-line)
+;;               ("w" . kill-region)
+;;               ("d" . kill-region)
+;;               ("k" . kill-region)
+;;               ("g" . keyboard-quit)
+;;               ("<escape>" . keyboard-quit)
+;;               :map selected-org-mode-map
+;;               ("*" . (lambda () (interactive)
+;;                        (org-emphasize ?*)))))
+
 
 (defun my/mark-whole-line ()
+  "Mark the entire line around or in front of point."
   (interactive)
-  (when (use-region-p)
-    (when (< (point) (mark))
-      (exchange-point-and-mark)))
   (move-beginning-of-line nil)
   (set-mark (point))
   (move-end-of-line nil))
 
-(defun my/mark-sexp ()
-  (interactive)
-  (when (use-region-p)
-    (when (< (point) (mark))
-      (exchange-point-and-mark)))
-  (mark-sexp nil)
-  ( nil))
+
+(use-package god-mode
+  :ensure t
+  :bind (("<escape>" . god-local-mode)
+         :map god-local-mode-map
+         (";" . repeat)
+         ("v" . god-mode-to-ryo)
+         ("i" . god-local-mode)
+         ("S" . embrace-add))
+  :config
+  (defun god-mode-to-ryo (&optional arg)
+    (interactive)
+    (god-local-mode -1)
+    (ryo-modal-mode 1))
+  
+  ;; Cursor Shape
+  (defun my-god-mode-update-cursor-type ()
+  (setq cursor-type (if god-local-mode 'box 'bar)))
+
+  (add-hook 'post-command-hook #'my-god-mode-update-cursor-type)
+   
+  ;; (defun ryo-advice (arg)
+  ;;   (if god-local-mode
+  ;;       (ryo-modal-mode 1)
+  ;;     (ryo-modal-mode -1)))
+  )
 
 (use-package ryo-modal
   :ensure t
+  :demand t
   :commands ryo-modal-mode
-  :bind ("<escape>" . ryo-modal-mode)
+  :bind (("C-c c" . ryo-modal-mode))
   :config
   (ryo-modal-keys
-   ("n" next-line)
-   ("p" previous-line)
-   ;; Crux Stuff
-   ("a" crux-move-beginning-of-line)
-   ;; Boon stuff
-   ("f" boon-smarter-forward)
-   ("b" boon-smarter-backward)
-   ("SPC" set-mark-command)
+   (:norepeat t)
+   ;; ("i" ryo-modal-mode)
+   ;; ("." ryo-modal-repeat)
+   ;; ("n" next-line)
+   ;; ("p" previous-line)
+   ;; ;; Crux Stuff
+   ;; ("e" move-end-of-line)
+   ;; ("a" move-beginning-of-line)
+   ;; ;; Boon stuff
+   ;; ("f" forward-char)
+   ;; ("b" backward-char)
+   ;; ("SPC" set-mark-command)
+   ;; ("/"  undo-fu-only-undo)
+   ;; ("?"  undo-fu-only-redo)
+   ("<escape>" ryo-modal-mode))
+  
+  (ryo-modal-keys
    ("k" kill-line)
-   ("/"  undo-fu-only-undo)
-   ("?"  undo-fu-only-redo)
    ("dd" kill-whole-line)
    ("D" kill-line)
-   ("cc" my/mark-line :then '(kill-region) :exit t)
+   ("cc" my/mark-whole-line :then '(kill-region) :exit t)
    ("C" kill-line :exit t)
-   ("" kill-whole-line))
-   (let ((text-objects
-          '(("w" er/mark-word :name "Word")
-            ("l" my/mark-whole-line :name "line")
-            ("s" er/mark-symbol :name "Symbol"))))
-     (eval `(ryo-modal-keys
-             ("v" ,text-objects)
-             ("d" ,text-objects :then '(kill-region))
-             ("c" ,text-objects :then '(kill-region) :exit t)))))
+   ("s" embrace-add)
+   ("cs" embrace-change)
+   ("ds" embrace-delete))
+  
+  (let ((text-objects
+         '(("iw" er/mark-word :name "Word")
+           ("w" er/mark-word :name "Word")
+           ("is" er/mark-symbol :name "symbol")
+           ("as" er/mark-symbol-with-prefix :name "symbol")
+           ("il" my/mark-whole-line :name "line")
+           ;; ("at" er/mark-outer-tag)
+           ("af" er/mark-outside-pairs)
+           ("a(" er/mark-outside-pairs)
+           ("a)" er/mark-outside-pairs)
+           ("if" er/mark-inside-pairs)
+           ("i(" er/mark-inside-pairs)
+           ("i)" er/mark-inside-pairs)
+           ("iq" er/mark-inside-quotes)
+           ("aq" er/mark-outside-quotes)
+           ("f" er/mark-defun)
+           ("ip" er/mark-text-paragraph :name "Paragraphs")
+           ("ap" mark-paragraph :name "Paragraphs")
+           ;; comments
+           ("ic" er/mark-comment :name "Comment")
+           ("ac" er/mark-comment :name "Comment"))))
+    (eval `(ryo-modal-keys
+            ("<space>" ,text-objects :exit t)
+            ("d" ,text-objects :then '(kill-region (lambda (&optional arg) (interactive)
+                                                     (god-local-mode 1))) :exit t)
+            ("c" ,text-objects :then '(kill-region (lambda (&optional arg) (interactive)
+                                                     (god-local-mode -1))) :exit t)))))
 
 ;; git clone https://github.com/thblt/divine ~/.emacs.d/site-lisp/divine
 ;; (use-package divine
