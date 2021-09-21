@@ -88,38 +88,12 @@ Version 2017-01-11"
 
 ;; Text to speach script integratoin
 (bind-key (kbd "C-x C-M-;")  #'gv/read)
-(defun gv/read ()
+
+(defun gv/read (&optional ARGS)
   "text to speech"
   (interactive)
   (async-shell-command
    (concat "tts.sh " (shell-quote-argument (x-get-clipboard)))))
-
-;; (call-process "tts.sh" nil nil nil (x-get-clipboard))
-
-;;;; Fix terminal escape
-(when gv/is-terminal
-  ;; For whatever reason terminals have trouble recognizing escape
-  ;; form emacs properly. Found this solution at
-  ;; https://github.com/emacsorphanage/god-mode/issues/43
-  (defvar gv/fast-keyseq-timeout 200)
-
-  (defun gv/-tty-ESC-filter (map)
-    (if (and (equal (this-single-command-keys) [?\e])
-	     (sit-for (/ gv/fast-keyseq-timeout 1000.0)))
-	[escape] map))
-
-  (defun gv/-lookup-key (map key)
-    (catch 'found
-      (map-keymap (lambda (k b) (if (equal key k) (throw 'found b))) map)))
-
-  (defun gv/catch-tty-ESC ()
-    "Setup key mappings of current terminal to turn a tty's ESC into `escape'."
-    (when (memq (terminal-live-p (frame-terminal)) '(t pc))
-      (let ((esc-binding (gv/-lookup-key input-decode-map ?\e)))
-	(define-key input-decode-map
-	  [?\e] `(menu-item "" ,esc-binding :filter gv/-tty-ESC-filter)))))
-
-  (gv/catch-tty-ESC))
 
 ;;; UNDO
 ;; Vim style undo not needed for emacs 28
@@ -135,8 +109,8 @@ Version 2017-01-11"
   :init (global-unset-key (kbd "C-/"))
   :bind (("C-/" . undo-only)
          ;; Uses emacs 28s
-	 ;; ("C-?" . undo-redo)
-	 ;; ("C-x /" . undo-redo)
+         ;; ("C-?" . undo-redo)
+         ;; ("C-x /" . undo-redo)
          )
   :init
   (global-undo-fu-session-mode))
@@ -152,189 +126,54 @@ Version 2017-01-11"
          ("M-k" . crux-kill-whole-line)
 	 ))
 
-
-(use-package expand-region
-  :bind ("C-=" . er/expand-region)
-  :demand t
-  :ensure t)
-
-(use-package embrace
-  :demand t
-  :ensure t)
-
-;; (setq selected-org-mode-map (make-sparse-keymap))
-;; (use-package selected
-;;   :ensure t
-;;   :init (selected-global-mode)
-;;   :bind (:map selected-keymap
-;;               ("=" . er/expand-region)
-;;               ("a" . move-beginning-of-line)
-;;               ("e" . move-beginning-of-line)
-;;               ("n" . next-line)
-;;               ("p" . previous-line)
-;;               ("w" . kill-region)
-;;               ("d" . kill-region)
-;;               ("k" . kill-region)
-;;               ("g" . keyboard-quit)
-;;               ("<escape>" . keyboard-quit)
-;;               :map selected-org-mode-map
-;;               ("*" . (lambda () (interactive)
-;;                        (org-emphasize ?*)))))
-
-
-(defun my/mark-whole-line ()
-  "Mark the entire line around or in front of point."
-  (interactive)
-  (move-beginning-of-line nil)
-  (set-mark (point))
-  (move-end-of-line nil))
-
-(use-package dot-mode
-  :demand t
-  :ensure t
-  :bind (("C-.". dot-mode-execute))
-  :config
-  (dot-mode-on))
-
-(use-package god-mode
-  :ensure t
-  :bind (("C-z" . god-local-mode)
-         ("<escape>" . god-local-mode)
-         :map god-local-mode-map
-         (";" . repeat)
-         ("v" . god-mode-to-ryo)
-         ("i" . god-local-mode)
-         ("S" . embrace-add))
-  :config
-  (defun god-mode-to-ryo (&optional arg)
-    (interactive)
-    (god-local-mode -1)
-    (ryo-modal-mode 1))
-  
-  ;; Cursor Shape
-  (defun my-god-mode-update-cursor-type ()
-  (setq cursor-type (if god-local-mode 'box 'bar)))
-
-  (add-hook 'post-command-hook #'my-god-mode-update-cursor-type)
-   
-  ;; (defun ryo-advice (arg)
-  ;;   (if god-local-mode
-  ;;       (ryo-modal-mode 1)
-  ;;     (ryo-modal-mode -1)))
-  )
-
-(use-package ryo-modal
-  :ensure t
-  :demand t
-  :commands ryo-modal-mode
-  :bind (("C-c c" . ryo-modal-mode))
-  :config
-  (ryo-modal-keys
-   (:norepeat t)
-   ;; ("i" ryo-modal-mode)
-   ;; ("." ryo-modal-repeat)
-   ;; ("n" next-line)
-   ;; ("p" previous-line)
-   ;; ;; Crux Stuff
-   ;; ("e" move-end-of-line)
-   ;; ("a" move-beginning-of-line)
-   ;; ;; Boon stuff
-   ;; ("f" forward-char)
-   ;; ("b" backward-char)
-   ;; ("SPC" set-mark-command)
-   ;; ("/"  undo-fu-only-undo)
-   ;; ("?"  undo-fu-only-redo)
-   ("<escape>" ryo-modal-mode))
-  
-  (ryo-modal-keys
-   ("k" kill-line)
-   ("dd" kill-whole-line)
-   ("D" kill-line)
-   ("cc" my/mark-whole-line :then '(kill-region) :exit t)
-   ("C" kill-line :exit t)
-   ("s" embrace-add)
-   ("cs" embrace-change)
-   ("ds" embrace-delete))
-  
-  (let ((text-objects
-         '(("iw" er/mark-word :name "Word")
-           ("w" er/mark-word :name "Word")
-           ("is" er/mark-symbol :name "symbol")
-           ("as" er/mark-symbol-with-prefix :name "symbol")
-           ("il" my/mark-whole-line :name "line")
-           ;; ("at" er/mark-outer-tag)
-           ("af" er/mark-outside-pairs)
-           ("a(" er/mark-outside-pairs)
-           ("a)" er/mark-outside-pairs)
-           ("if" er/mark-inside-pairs)
-           ("i(" er/mark-inside-pairs)
-           ("i)" er/mark-inside-pairs)
-           ("iq" er/mark-inside-quotes)
-           ("aq" er/mark-outside-quotes)
-           ("f" er/mark-defun)
-           ("ip" er/mark-text-paragraph :name "Paragraphs")
-           ("ap" mark-paragraph :name "Paragraphs")
-           ;; comments
-           ("ic" er/mark-comment :name "Comment")
-           ("ac" er/mark-comment :name "Comment"))))
-    (eval `(ryo-modal-keys
-            ("<space>" ,text-objects :exit t)
-            ("d" ,text-objects :then '(kill-region (lambda (&optional arg) (interactive)
-                                                     (god-local-mode 1))) :exit t)
-            ("c" ,text-objects :then '(kill-region (lambda (&optional arg) (interactive)
-                                                     (god-local-mode -1))) :exit t)))))
-
-;; git clone https://github.com/thblt/divine ~/.emacs.d/site-lisp/divine
-;; (use-package divine
-;;   :load-path "~/.emacs.d/site-lisp/divine"
-;;   ;; :init (divine-global-mode)
-;;   )
-
-
 ;;; Modal Bindings
+(use-package evil
+  :demand t
+  :bind (("<escape>" . keyboard-escape-quit)
+         :map evil-normal-state-map
+	 ("gc" . evil-commentary)
+         ;; vim vinigar style
+         ("-"  . (lambda () (interactive)
+                   (dired ".")))
+         ;; Better lisp bindings
+         ( "(" . evil-previous-open-paren)
+         ( ")" . evil-next-close-paren)
+         :map evil-operator-state-map
+         ( "(" . evil-previous-open-paren)
+         ( ")" . evil-previous-close-paren))
+  :init
+  (setq evil-want-keybinding nil)
+  ;; no vim insert bindings
+  (setq evil-disable-insert-state-bindings t)
+  (setq evil-want-Y-yank-to-eol t)
+  (setq evil-split-window-below t)
+  (setq evil-split-window-right t)
+  (setq evil-undo-system 'undo-fu)
+  :config
+  (evil-mode 1)
+  (evil-set-leader 'normal " "))
 
-;; (use-package evil
-;;   :init
-;;   (setq evil-want-keybinding nil)
-;;   (setq evil-want-Y-yank-to-eol t)
-;;   (setq evil-split-window-below t)
-;;   (setq evil-split-window-right t)
-;;   (setq evil-undo-system 'undo-fu)
-;;   :config
-;;   (evil-mode 1)
-;;   (evil-set-leader 'normal " ")
-;;   (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-;;   (evil-define-key 'normal 'global (kbd "<leader>t") 'capitalize-dwim)
-;;   (evil-define-key 'visual 'global (kbd "<leader>t") 'capitalize-dwim)
-;;   ;; Better lisp bindings
-;;   (evil-define-key 'normal   'global (kbd "(")         'evil-previous-open-paren)
-;;   (evil-define-key 'normal   'global (kbd ")")         'evil-next-close-paren)
-;;   (evil-define-key 'operator 'global (kbd "(")         'evil-previous-open-paren)
-;;   (evil-define-key 'operator 'global (kbd ")")         'evil-previous-close-paren)
-;;  ;;;;; vim vinigar style
-;;   (define-key  evil-normal-state-map (kbd "-") (lambda () (interactive)
-;; 						 (dired "."))))
-;; (use-package evil-collection
-;;   :config
-;;   (evil-collection-init)
-;;   ;; Dired
-;;   (evil-collection-define-key 'normal 'dired-mode-map
-;;                               "-" 'dired-up-directory))
+(use-package evil-collection
+  :config
+  (evil-collection-init)
+  ;; Dired
+  (evil-collection-define-key 'normal 'dired-mode-map
+                              "-" 'dired-up-directory))
 
-;; ;; Enable Commentary
-;; (use-package evil-commentary
-;;   :bind (:map evil-normal-state-map
-;; 	      ("gc" . evil-commentary)))
+;; Enable Commentary
+(use-package evil-commentary
+  :bind (:map evil-normal-state-map
+	      ("gc" . evil-commentary)))
 
-;; ;; Enable Surround
-;; (use-package evil-surround
-;;   :config
-;;   (global-evil-surround-mode 1))
+;; Enable Surround
+(use-package evil-surround
+  :config
+  (global-evil-surround-mode 1))
 
-;; ;; Enable Lion
-;; (use-package evil-lion
-;;   :bind (:map evil-normal-state-map
-;; 	      ("gl" . evil-lion-left)))
+;; Enable Lion
+(use-package evil-lion
+  :bind (:map evil-normal-state-map
+	      ("gl" . evil-lion-left)))
 
 (use-package simple
   :ensure nil
@@ -347,12 +186,12 @@ Version 2017-01-11"
 
 ;;; TERMINAL SETTINGS
 (when gv/is-terminal
-    (progn (set-face-background 'default "undefinded")
+  (progn (set-face-background 'default "undefinded")
 	 (add-to-list 'term-file-aliases
 		      '("st-256color" . "xterm-256color"))
 	 (xterm-mouse-mode t))
-	(global-set-key (kbd "<mouse-4>") 'next-line)
-	(global-set-key (kbd "<mouse-5>") 'previous-line))
+  (global-set-key (kbd "<mouse-4>") 'next-line)
+  (global-set-key (kbd "<mouse-5>") 'previous-line))
 
 ;;; COMPLETION
 (use-package vertico
@@ -415,47 +254,12 @@ Version 2017-01-11"
   ;; Enable recursive minibuffers
   (setq enable-recursive-minibuffers t))
 
-;; (use-package embark
-;;   :ensure t
-;;   :bind
-;;   (("C-j" . embark-act)         ;; pick some comfortable binding
-;;    ("C-;" . embark-dwim)        ;; good alternative: M-.
-;;    ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
-;;   :config
-;;   ;; Hide the mode line of the Embark live/completions buffers
-;;   ;; (add-to-list 'display-buffer-alist
-;;   ;;              '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-;;   ;;                nil
-;;   ;;                (window-parameters (mode-line-format . none))))
-
-;;   ;; make it so I can actually see what is selected by embark
-;;   (set-face-attribute 'embark-target nil :background "#666" :foreground "#ffffff"))
-;;; REGION STUFF
-;; (use-package expand-region
-;;   :ensure t
-;;   :bind ("M-j" . er/expand-region))
-
-;; (use-package selected
-;;   :bind (:map selected-keymap
-;;               ("w" . kill-region)
-;;               ("<tab>" . indent-region)
-;;               :map selected-org-mode-map
-;;               ("*" . (lambda () (interactive)
-;;                        (org-emphasize ?*)))
-;;               ("/" . (lambda () (interactive)
-;;                        (org-emphasize ?/)))
-;;               ("=" . (lambda () (interactive)
-;;                        (org-emphasize ?=)))
-;;               ("_" . (lambda () (interactive)
-;;                        (org-emphasize ?_))))
-;;   :init
-;;   (setq selected-org-mode-map (make-sparse-keymap))
-
-;;   (selected-global-mode t))
 ;;; THEMEING
 (use-package ujelly-theme
   :config
   (load-theme 'ujelly t)
+  (global-hl-line-mode t)
+  (set-face-background hl-line-face "#111")
   (set-frame-parameter (selected-frame) 'alpha '(90 90))
   (add-to-list 'default-frame-alist '(alpha 90 90))
   (set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
@@ -466,14 +270,14 @@ Version 2017-01-11"
 		      :box '(:line-width 10 :color "#000"))
   (set-face-attribute 'mode-line nil
 		      :background  "#0F0F0F")
-(setq-default header-line-format nil))
+  (setq-default header-line-format nil))
 
 ;; (load-theme 'tsdh-light t)
 
 ;;; Aligning Text
 (use-package align
   :ensure nil
-  :bind ("C-x C-a" . align-regexp)
+  ;; :bind ("C-x C-a" . align-regexp)
   :config
   ;; Align using spaces
   (defadvice align-regexp (around align-regexp-with-spaces activate)
@@ -483,6 +287,7 @@ Version 2017-01-11"
 ;;; WRITING
 (use-package writegood-mode
   :hook (flyspell-mode . writegood-mode))
+
 (use-package flyspell-correct
   :bind ("C-c DEL" . flyspell-correct-previous)
   :hook ((org-mode mu4e-compose-mode mail-mode git-commit-mode)
@@ -495,6 +300,7 @@ Version 2017-01-11"
 (if gv/is-termux
     (setq org-directory "~/storage/shared/Dropbox/Documents/org")
   (setq org-directory "~/Documents/org"))
+
 (use-package org
   :pin org
   :ensure org-plus-contrib
@@ -507,8 +313,8 @@ Version 2017-01-11"
 ;;;; Archive Completed Tasks
   (defun my-org-archive-done-tasks ()
     (interactive)
-      (org-map-entries 'org-archive-subtree "/DONE" 'file)
-      (org-map-entries 'org-archive-subtree "/CANCELLED" 'file))
+    (org-map-entries 'org-archive-subtree "/DONE" 'file)
+    (org-map-entries 'org-archive-subtree "/CANCELLED" 'file))
 ;;;; Better defaults
   (setq org-ellipsis " ▾"
 	org-hide-emphasis-markers t
@@ -570,29 +376,21 @@ Version 2017-01-11"
 	   "* Meeting with  %?\nSCHEDULED: %T\n")
           ("se" "Event" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
 	   "* Meeting with  %?\nSCHEDULED: %T\n")
-	  ("r" "Refund" entry (file+olp (lambda () (concat org-directory "/Work.org"))
-					"Work" "Refunds")
-	   "* TODO Refund %?\n%?  %a\n")
-	  ("w" "Waitlist" entry (file+olp (lambda () (concat org-directory "/Work.org"))
-					  "Work" "Waitlist")
-	   "* %?\n%? %a\n")
 	  ("v" "Video Idea" entry (file+olp (lambda () (concat org-directory "/youtube.org"))
 					    "YouTube" "Video Ideas")
 	   "* %?\n%? %a\n")
 	  ("c" "Cool Thing" entry (file+opl+datetree (lambda () (concat org-directory "/archive.org")))
 	   "* %?\nEntered on %U\n  %i\n  %a")
+          ;; Email Stuff
           ("m" "Email Workflow")
           ("mf" "Follow Up" entry (file+olp (lambda () (concat org-directory "/Work.org")) "Follow Up")
            "* TODO Follow up with %:fromname on %a\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%i")
           ("mr" "Read Later" entry (file+olp (lambda () (concat org-directory "/Work.org")) "Read Later")
            "* TODO Read %:subject\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%a\n%i")))
 ;;;; Clocking
-  ;; (setq org-clock-continuously t)
-  ;; (setq org-clock-auto-clockout-timer 2600)
-  ;; (org-clock-auto-clockout-insinuate)
   (setq org-clock-idle-time 15)
   (setq org-clock-x11idle-program-name "xprintidle")
-   
+  
 ;;;; Refile targets
   (setq org-refile-targets
 	'(("Work.org"    :maxlevel . 3)
@@ -605,21 +403,13 @@ Version 2017-01-11"
 		  (org-level-2 . 1.05)
 		  (org-level-3 . 1.05)
 		  (org-level-4 . 1.05)))
-    (set-face-attribute (car face) nil :font "RobotoMono Nerd Font" :weight 'medium :height (cdr face))))
+    (set-face-attribute (car face) nil :font "Terminus" :weight 'medium :height (cdr face))))
 
 (use-package org-notify
   :ensure nil
   :after org
   :config
-  (org-notify-start)
-
-  ;; (org-notify-add
-  ;;  'default
-  ;;  '(:time "10m" :period "5s" :duration 100 :actions -notify))
-   ;; (org-notify-add
-   ;; 'reminder
-   ;; '(:time "10m" :period "5s" :duration 100 :actions -notify))
-   )
+  (org-notify-start))
 
 ;;;; Drag And Drop
 (use-package org-download
@@ -643,11 +433,6 @@ Version 2017-01-11"
   (add-to-list 'org-structure-template-alist '("sh"  . "src sh"))
   (add-to-list 'org-structure-template-alist '("el"  . "src emacs-lisp"))
   (add-to-list 'org-structure-template-alist '("vim"  . "src vim")))
-
-;;;; Indentation
-;; (use-package org-indent
-;;   :ensure nil
-;;   :defer t)
 
 ;;; Git
 (use-package magit
@@ -709,25 +494,40 @@ Version 2017-01-11"
   :mode "\\.fnl\\'")
 (use-package racket-mode
   :mode "\\.rkt\\'")
-(use-package meghanada
-  :bind (("M-."  . meghanada-jump-declaration)
-         ("M-," . meghanada-back-jump))
-  :config
-  (add-hook 'java-mode-hook
-            (lambda ()
-              ;; meghanada-mode on
-              (meghanada-mode t)
-              (flycheck-mode +1)
-              (setq c-basic-offset 2)
-              ;; use code format
-              (add-hook 'before-save-hook 'meghanada-code-beautify-before-save)))
-  (cond
-   ((eq system-type 'windows-nt)
-    (setq meghanada-java-path (expand-file-name "bin/java.exe" (getenv "JAVA_HOME")))
-    (setq meghanada-maven-path "mvn.cmd"))
-   (t
-    (setq meghanada-java-path "java")
-    (setq meghanada-maven-path "mvn"))))
+;; (use-package meghanada
+;;   :bind (("M-."  . meghanada-jump-declaration)
+;;          ("M-," . meghanada-back-jump))
+;;   :config
+;;   (add-hook 'java-mode-hook
+;;             (lambda ()
+;;               ;; meghanada-mode on
+;;               (meghanada-mode t)
+;;               (flycheck-mode +1)
+;;               (setq c-basic-offset 2)
+;;               ;; use code format
+;;               (add-hook 'before-save-hook 'meghanada-code-beautify-before-save)))
+;;   (cond
+;;    ((eq system-type 'windows-nt)
+;;     (setq meghanada-java-path (expand-file-name "bin/java.exe" (getenv "JAVA_HOME")))
+;;     (setq meghanada-maven-path "mvn.cmd"))
+;;    (t
+;;     (setq meghanada-java-path "java")
+;;     (setq meghanada-maven-path "mvn"))))
+
+(progn
+  (use-package projectile)
+  (use-package flycheck)
+  (use-package yasnippet :config (yas-global-mode))
+  (use-package lsp-mode :hook ((lsp-mode . lsp-enable-which-key-integration))
+    :config (setq lsp-completion-enable-additional-text-edit nil))
+  (use-package hydra)
+  (use-package company)
+  (use-package lsp-ui)
+  (use-package which-key :config (which-key-mode))
+  (use-package lsp-java :config (add-hook 'java-mode-hook 'lsp))
+  ;; (use-package dap-mode :after lsp-mode :config (dap-auto-configure-mode))
+  ;; (use-package dap-java :ensure nil)
+  (use-package consult-lsp))
 
 (use-package haskell-mode
   :ensure t
@@ -737,12 +537,12 @@ Version 2017-01-11"
   :ensure t
   :mode "\\.rs\\'")
 
-;;; LSP
-(use-package eglot
-  :commands eglot
-  :hook ((c-mode-common) . eglot-ensure)
-  :config
-  (add-to-list 'eglot-server-programs '(c-mode . ("ccls"))))
+;; ;;; LSP
+;; (use-package eglot
+;;   :commands eglot
+;;   :hook ((c-mode-common) . eglot-ensure)
+;;   :config
+;;   (add-to-list 'eglot-server-programs '(c-mode . ("ccls"))))
 
 ;; As the built-in project.el support expects to use vc-mode hooks to
 ;; find the root of projects we need to provide something equivalent
@@ -752,7 +552,7 @@ Version 2017-01-11"
   ;; Cannot use :init (must use :config) because otherwise
   ;; project-find-functions is not yet initialized.
   :ensure nil
-  :defer t
+  :defer 10
   :config
   (defun my-git-project-finder (dir)
     "Integrate .git project roots."
@@ -850,8 +650,6 @@ Version 2017-01-11"
          ("M-u" . upcase-dwim)
          ("M-l" . downcase-dwim))
   :config
-
-  (global-hl-line-mode t)
   ;; No delay when deleting pairs
   (setq delete-pair-blink-delay 0)
 
@@ -871,7 +669,7 @@ Version 2017-01-11"
      #b00010000])
   (define-fringe-bitmap 'left-curly-arrow
     [#b00000000])
-  (set-frame-font "RobotoMono Nerd Font 14" nil t)
+  (set-frame-font "Terminus 14" nil t)
 ;;;; Backups
   (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
 	vc-make-backup-files t
@@ -1340,6 +1138,8 @@ Containing LEFT, and RIGHT aligned respectively."
   (setq exwm-input-global-keys
 	`(([?\s-h] . windmove-left)
 	  ([?\s-l] . windmove-right)
+	  ([?\s-j] . other-window)
+	  ([?\s-k] . (lambda (&optional arg) (other-window -1)))
 	  ;; Window Managment
 	  (,(kbd "<s-tab>") . other-window)
 	  ([?\s-v] . crux-swap-windows)
@@ -1425,6 +1225,7 @@ Containing LEFT, and RIGHT aligned respectively."
   :config
   (exwm-systemtray-enable)
   (setq exwm-systemtray-height 23))
+
 (use-package exwm-randr
   :ensure nil
   :after exwm
@@ -1467,9 +1268,9 @@ Containing LEFT, and RIGHT aligned respectively."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(org-agenda-files
-   '("/home/gavinok/Documents/org/2021_canoekids_waitlist.org" "/home/gavinok/Documents/org/2021_flatwaternorth_executive_meeting.org" "/home/gavinok/Documents/org/2021_june_flatwaternorth_executive_meeting.org" "/home/gavinok/Documents/org/2021_may_flatwaternorth_executive_meeting.org" "/home/gavinok/Documents/org/Athletes.org" "/home/gavinok/Documents/org/Practices.org" "/home/gavinok/Documents/org/Work.org" "/home/gavinok/Documents/org/archive.org" "/home/gavinok/Documents/org/backlog.org" "/home/gavinok/Documents/org/c.org" "/home/gavinok/Documents/org/contacts.org" "/home/gavinok/Documents/org/divisionals_meeting.org" "/home/gavinok/Documents/org/elm.org" "/home/gavinok/Documents/org/fennel.org" "/home/gavinok/Documents/org/guile.org" "/home/gavinok/Documents/org/hy.org" "/home/gavinok/Documents/org/interviews_flatwaternorth.org" "/home/gavinok/Documents/org/janet.org" "/home/gavinok/Documents/org/joker.org" "/home/gavinok/Documents/org/june_ptso.org" "/home/gavinok/Documents/org/mylife.org" "/home/gavinok/Documents/org/nationals_prep.org" "/home/gavinok/Documents/org/parents_meeting.org" "/home/gavinok/Documents/org/racket.org" "/home/gavinok/Documents/org/rec.org" "/home/gavinok/Documents/org/refile.org" "/home/gavinok/Documents/org/reminders.org" "/home/gavinok/Documents/org/results.org" "/home/gavinok/Documents/org/roadshow.org" "/home/gavinok/Documents/org/staff_orientation.org" "/home/gavinok/Documents/org/staff_orientation_day.org" "/home/gavinok/Documents/org/today.org" "/home/gavinok/Documents/org/youtube.org" "/home/gavinok/Documents/org/yukon_river_quest.org"))
+   '("/home/gavinok/Documents/org/2021_canoekids_waitlist.org" "/home/gavinok/Documents/org/2021_flatwaternorth_executive_meeting.org" "/home/gavinok/Documents/org/2021_june_flatwaternorth_executive_meeting.org" "/home/gavinok/Documents/org/2021_may_flatwaternorth_executive_meeting.org" "/home/gavinok/Documents/org/Athletes.org" "/home/gavinok/Documents/org/Practices.org" "/home/gavinok/Documents/org/Work.org" "/home/gavinok/Documents/org/archive.org" "/home/gavinok/Documents/org/backlog.org" "/home/gavinok/Documents/org/c.org" "/home/gavinok/Documents/org/contacts.org" "/home/gavinok/Documents/org/divisionals_meeting.org" "/home/gavinok/Documents/org/elisp.org" "/home/gavinok/Documents/org/elm.org" "/home/gavinok/Documents/org/fennel.org" "/home/gavinok/Documents/org/graphviz.org" "/home/gavinok/Documents/org/guile.org" "/home/gavinok/Documents/org/haskell.org" "/home/gavinok/Documents/org/hy.org" "/home/gavinok/Documents/org/interviews_flatwaternorth.org" "/home/gavinok/Documents/org/janet.org" "/home/gavinok/Documents/org/java.org" "/home/gavinok/Documents/org/joker.org" "/home/gavinok/Documents/org/june_ptso.org" "/home/gavinok/Documents/org/mylife.org" "/home/gavinok/Documents/org/nationals_prep.org" "/home/gavinok/Documents/org/parents_meeting.org" "/home/gavinok/Documents/org/racket.org" "/home/gavinok/Documents/org/rec.org" "/home/gavinok/Documents/org/refile.org" "/home/gavinok/Documents/org/reminders.org" "/home/gavinok/Documents/org/results.org" "/home/gavinok/Documents/org/roadshow.org" "/home/gavinok/Documents/org/rust.org" "/home/gavinok/Documents/org/staff_orientation.org" "/home/gavinok/Documents/org/staff_orientation_day.org" "/home/gavinok/Documents/org/today.org" "/home/gavinok/Documents/org/youtube.org" "/home/gavinok/Documents/org/yukon_river_quest.org"))
  '(package-selected-packages
-   '(hl-todo rainbow-delimiters modus-operandi-theme all-the-icons-dired highlight-indent-guides typing-game c-c-combo corfu xah-fly-keys academic-phrases selected system-packages goto-chg writegood-mode which-key vterm vlf vimrc-mode vertico undo-fu-session undo-fu ujelly-theme tree-sitter-langs transmission rainbow-mode racket-mode quelpa-use-package pdf-tools pcre2el password-store outline-minor-faces org-superstar org-roam org-plus-contrib org-mime org-download org-alert orderless multiple-cursors modus-themes message-attachment-reminder marginalia magit lua-mode keycast jumplist god-mode flyspell-correct fish-completion fennel-mode expand-region esh-autosuggest epc eglot eaf diff-hl dashboard crux bicycle beacon all-the-icons affe)))
+   '(consult-lsp lsp-java hydra projectile lua-mode chess centered-window @ dot-mode kdeconnect org-ql embrace xah-replace-pairs pulseaudio-control page-break-lines lsp-ui lsp-haskell lsp-mode org-mime message-attachment-reminder ob-elm ob-hy ob-rust rust-mode eaf quelpa-use-package writegood-mode vterm vlf vertico use-package undo-fu-session undo-fu ujelly-theme tree-sitter-langs transmission selected rainbow-mode racket-mode pinentry password-store org-superstar org-plus-contrib org-download orderless multiple-cursors meghanada marginalia magit hl-todo flyspell-correct fish-completion fennel-mode exwm expand-region evil-surround evil-lion evil-commentary evil-collection esh-autosuggest epc diff-hl crux clipmon affe academic-phrases)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
