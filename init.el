@@ -587,7 +587,7 @@ Version 2017-01-11"
   ;; Cannot use :init (must use :config) because otherwise
   ;; project-find-functions is not yet initialized.
   :ensure nil
-  :defer 10
+  :demand t
   :bind ("C-x p g"     . my/project-affe-grep)
   :config
   ;; Optionally configure a function which returns the project root directory.
