@@ -239,7 +239,7 @@ Version 2017-01-11"
            ("M-y" . consult-yank-pop)
            ("M-g g" . consult-goto-line)
            ("M-g M-g" . consult-goto-line)
-           ("C-x C-@" . consult-global-mark)
+           ("C-x C-SPC" . consult-global-mark)
            ("C-x M-:" . consult-complex-command)
            ("C-c S-n" . consult-org-agenda))
     :custom
