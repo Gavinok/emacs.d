@@ -585,14 +585,36 @@ Version 2017-01-11"
   ;; project-find-functions is not yet initialized.
   :ensure nil
   :defer 10
+  :bind ("C-x p g"     . my/project-affe-grep)
   :config
+  ;; Optionally configure a function which returns the project root directory.
+  ;; There are multiple reasonable alternatives to chose from.
+  ;; 1. project.el (project-roots)
+  (setq consult-project-root-function
+        (lambda ()
+          (when-let (project (project-current))
+            (car (project-roots project)))))
+
+    (defun my/project-affe-grep (&optional arg)
+      "Use affe-grep instead of emacs's native grep with project.el"
+      (interactive)
+      (affe-grep (project-root (project-current t)) nil))
   (defun my-git-project-finder (dir)
     "Integrate .git project roots."
     (let ((dotgit (and (setq dir (locate-dominating-file dir ".git"))
-                       (expand-file-name dir))))
+		       (expand-file-name dir))))
       (and dotgit
-           (cons 'transient (file-name-directory dotgit)))))
-  (add-hook 'project-find-functions 'my-git-project-finder)) ; [built-in] Project Managment
+	   (cons 'transient (file-name-directory dotgit)))))
+  (add-hook 'project-find-functions 'my-git-project-finder)
+  (setq project-switch-commands
+        '((project-find-file "Find file" f)
+          (my/project-consult-ripgrep "Ripgrep" g)
+          (project-dired "Dired" d)
+          (project-vc-dir "VC-Dir" v)
+          (project-eshell "Eshell" e)
+          (magit-status (project-root (project-current t)) "Magit" m))
+        )) ; [built-in] Project Managment
+
 ;;; COMPILATION
 (use-package compile
   :bind ("C-x C-m" . recompile))
