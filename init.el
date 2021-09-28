@@ -813,9 +813,6 @@ Version 2017-01-11"
   :ensure nil
   :defer nil
   :hook (prog-mode . outline-minor-mode)
-  :bind (:map outline-minor-mode-map
-              ;; ("<tab>" . outline-cycle)
-              ("<backtab>" . outline-cycle-buffer))
   :init
   (setq outline-minor-mode-prefix "\C-c"))
 
