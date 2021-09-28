@@ -820,6 +820,7 @@ Version 2017-01-11"
 (use-package prog-mode
   :ensure nil
   :config
+  (add-hook 'prog-mode-hook 'electric-pair-local-mode)
   (add-hook 'emacs-lisp-mode-hook 'prettify-symbols-mode)
 ;;;;; Smart Indentation
   (defun infer-indentation-style ()
