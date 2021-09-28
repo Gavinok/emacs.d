@@ -44,7 +44,7 @@
   (not (display-graphic-p))
   "Truthy value indicating if emacs is currently running in a terminal")
 (defvar gv/my-system
-  (if (string-equal user-full-name "gavinok")
+  (if (string-equal user-login-name "gavinok")
       t
     nil)
   "non-nil value if this is my system")
