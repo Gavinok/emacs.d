@@ -93,7 +93,6 @@ Version 2017-01-11"
 
 ;; Text to speach script integratoin
 (bind-key (kbd "C-x C-M-;")  #'gv/read)
-
 (defun gv/read (&optional ARGS)
   "text to speech"
   (interactive)
@@ -196,7 +195,6 @@ Version 2017-01-11"
 (use-package evil-lion
   :bind (:map evil-normal-state-map
               ("gl" . evil-lion-left)))
-
 
 (use-package dot-mode
   :ensure t
@@ -844,6 +842,7 @@ Version 2017-01-11"
                      ;; scroll-down-command
                      recenter-top-bottom other-window))
     (advice-add command :after #'pulse-line))) ; Highlight cursor postion after movement
+
 ;;;; Display hex colors in emacs
 (use-package rainbow-mode
   :defer t
@@ -1061,7 +1060,6 @@ Containing LEFT, and RIGHT aligned respectively."
   (unless (server-running-p)
     (server-start)))
 
-
 ;;; Extras
 (use-package quelpa-use-package)
 ;; Don't forget to run M-x eaf-install-dependencies
@@ -1136,6 +1134,7 @@ Containing LEFT, and RIGHT aligned respectively."
   :commands transmission
   :config
   (add-hook 'transmission-mode-hook 'hl-line-mode))
+
 ;;;; proced [built-in] htop alternative
 (use-package proced
   :ensure nil
@@ -1306,7 +1305,6 @@ Containing LEFT, and RIGHT aligned respectively."
   :unless (and gv/is-termux (not (executable-find "clipmon")))
   :config
   (clipmon-mode-start))
-
 
 (use-package vlf
   :ensure t
