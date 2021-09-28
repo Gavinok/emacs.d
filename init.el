@@ -330,6 +330,35 @@ Version 2017-01-11"
 ;;; ORG
 (load "~/.emacs.d/lisp/org-config.el")
 
+;;; enhanced eww
+(use-package shrface
+  :ensure t
+  :defer t
+  :config
+  (shrface-basic)
+  (shrface-trial)
+  (shrface-default-keybindings) ; setup default keybindings
+  (setq shrface-href-versatile t)
+  (define-key eww-mode-map (kbd "<tab>") 'shrface-outline-cycle)
+  (define-key eww-mode-map (kbd "<backtab>") 'shrface-outline-cycle-buffer)) ; or 'shrface-headline-helm or 'shrface-headline-consult
+
+(use-package eww
+  :defer t
+  :init
+  (add-hook 'eww-after-render-hook #'shrface-mode)
+  :config
+  (require 'shrface))
+
+(use-package nov
+  :ensure t
+  :defer t
+  :init
+  (add-hook 'nov-mode-hook #'shrface-mode)
+  :config
+  (require 'shrface)
+  (setq nov-shr-rendering-functions '((img . nov-render-img) (title . nov-render-title)))
+  (setq nov-shr-rendering-functions (append nov-shr-rendering-functions shr-external-rendering-functions)))
+
 ;;; Git
 (use-package magit
   :bind ("C-x g" . magit-status)
