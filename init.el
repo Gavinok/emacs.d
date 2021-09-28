@@ -48,7 +48,7 @@
       t
     nil)
   "non-nil value if this is my system")
-  
+
 (defun gv/backward-whitespace ()
     "like forward-whitespace but backwards"
     (interactive)
@@ -421,7 +421,7 @@ Version 2017-01-11"
 ;;;; Clocking
   (setq org-clock-idle-time 15)
   (setq org-clock-x11idle-program-name "xprintidle")
-  
+
 ;;;; Refile targets
   (setq org-refile-targets
         '(("Work.org"    :maxlevel . 3)
