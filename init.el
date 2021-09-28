@@ -229,6 +229,7 @@ Version 2017-01-11"
   ;; Note that M-sn is used for searghing ang
   (use-package consult
     :bind (("C-c l"     . consult-line)
+           ("C-c L"     . consult-line-multi)
            ("C-c i"     . consult-imenu)
            ("C-c o"     . consult-outline)
            ("C-x b"     . consult-buffer)
@@ -237,7 +238,10 @@ Version 2017-01-11"
            ;; Clipboard Manager
            ("M-y" . consult-yank-pop)
            ("M-g g" . consult-goto-line)
-           ("M-g M-g" . consult-goto-line))
+           ("M-g M-g" . consult-goto-line)
+           ("C-x C-@" . consult-global-mark)
+           ("C-x M-:" . consult-complex-command)
+           ("C-c S-n" . consult-org-agenda))
     :custom
     (completion-in-region-function #'consult-completion-in-region)
     :config
