@@ -487,7 +487,8 @@ Version 2017-01-11"
 ;;; VTERM AND ESHELL
 (use-package vterm
   :commands vterm
-  :custom (vterm-max-scrollback 10000))
+  :custom (vterm-max-scrollback 10000)
+  :init (setq term-prompt-regexp ".*ᛋ"))
 
 (use-package esh-autosuggest
   :hook eshell-mode) ;company for eshell
