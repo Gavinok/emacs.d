@@ -570,6 +570,7 @@ Version 2017-01-11"
   :bind (
          ("C-c w" . fixup-whitespace)
          ("C-x C-d" . delete-pair)
+         ("C-x O" . other-other-window)
          ;; ("M-?" . help-command)
          ;; ("C-h" . delete-backward-char)
 
@@ -578,6 +579,11 @@ Version 2017-01-11"
          ("M-l" . downcase-dwim)
          ("M-f" . sim-vi-w))
   :config
+  (defun other-other-window (&optional arg)
+    (interactive)
+    (if arg
+        (other-window (- arg))
+        (other-window -1)))
   (defun sim-vi-w (&optional arg)
     "Simulate Vi's \"w\" behavior"
     (interactive "P")
