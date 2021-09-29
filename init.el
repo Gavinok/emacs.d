@@ -446,7 +446,6 @@ Version 2017-01-11"
 ;;     (setq meghanada-maven-path "mvn"))))
 
 (progn
-  ;; (use-package projectile)
   (use-package flycheck)
   (use-package yasnippet :config (yas-global-mode))
   (use-package lsp-mode :hook ((lsp-mode . lsp-enable-which-key-integration))
