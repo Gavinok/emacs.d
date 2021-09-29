@@ -599,6 +599,22 @@ Version 2017-01-11"
   :init
   (setq find-file-visit-truename t))
 
+(use-package popper
+  :ensure t ; or :straight t
+  :bind (("C-`"   . popper-toggle-latest)
+         ("M-`"   . popper-cycle)
+         ("C-M-`" . popper-toggle-type))
+  :init
+  (setq popper-reference-buffers
+        '("\\*Messages\\*"
+          "\\*Warnings\\*"
+          "Output\\*$"
+          "\\*Async Shell Command\\*"
+          help-mode
+          compilation-mode))
+  (setq popper-group-function #'popper-group-by-perspective)
+  (popper-mode +1))
+
 ;;; DEFAULTS
 (use-package emacs
   :ensure nil
