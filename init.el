@@ -603,6 +603,7 @@ Version 2017-01-11"
   :init
   (setq find-file-visit-truename t))
 
+;;; popup window managment
 (use-package popper
   :ensure t ; or :straight t
   :bind (("C-`"   . popper-toggle-latest)
