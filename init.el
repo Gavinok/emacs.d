@@ -603,7 +603,7 @@ Version 2017-01-11"
          ("C-x O" . other-other-window)
          ;; ("M-?" . help-command)
          ;; ("C-h" . delete-backward-char)
-
+         ("C-x C-e" . pp-eval-last-sexp)
          ("M-c" . capitalize-dwim)
          ("M-u" . upcase-dwim)
          ("M-l" . downcase-dwim)
