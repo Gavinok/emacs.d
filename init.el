@@ -514,6 +514,7 @@ Version 2017-01-11"
 (use-package compile
   :bind ("C-x C-m" . recompile)
   :config
+  (setq compilation-scroll-output t)
   (require 'ansi-color)
   (defun colorize-compilation-buffer ()
     (let ((inhibit-read-only t))
