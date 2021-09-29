@@ -367,7 +367,11 @@ Version 2017-01-11"
 (use-package diff-hl
   :unless gv/is-termux
   :defer 3
-  :init (global-diff-hl-mode))
+  :init (global-diff-hl-mode)
+  :config
+  (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
+  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
+  (diff-hl-flydiff-mode))
 ;;; As You Type Completion
 (use-package company
   :defer 3
