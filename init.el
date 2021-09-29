@@ -478,7 +478,7 @@ Version 2017-01-11"
   ;; Cannot use :hook because 'project-find-functions does not end in -hook
   ;; Cannot use :init (must use :config) because otherwise
   ;; project-find-functions is not yet initialized.
-  :ensure nil
+  :ensure t
   :demand t
   :bind ("C-x p g"     . my/project-affe-grep)
   :config
