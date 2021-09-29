@@ -451,6 +451,7 @@ Version 2017-01-11"
   (use-package company)
   (use-package lsp-ui)
   (use-package which-key :config (which-key-mode))
+  ;; Ensure java 11 is installed
   (use-package lsp-java
     :init
     ;; current VSCode defaults
