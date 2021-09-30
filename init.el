@@ -340,10 +340,12 @@ Version 2017-01-11"
   (shrface-default-keybindings) ; setup default keybindings
   (setq shrface-href-versatile t)
   (define-key eww-mode-map (kbd "<tab>") 'shrface-outline-cycle)
-  (define-key eww-mode-map (kbd "<backtab>") 'shrface-outline-cycle-buffer)) ; or 'shrface-headline-helm or 'shrface-headline-consult
+  (define-key eww-mode-map (kbd "<backtab>") 'shrface-outline-cycle-buffer)
+  ()) ; or 'shrface-headline-helm or 'shrface-headline-consult
 
 (use-package eww
   :defer t
+  :bind ("C-x w w" . eww)
   :init
   (add-hook 'eww-after-render-hook #'shrface-mode)
   :config
@@ -605,9 +607,9 @@ Version 2017-01-11"
 ;;; popup window managment
 (use-package popper
   :ensure t ; or :straight t
-  :bind (("C-`"   . popper-toggle-latest)
-         ("M-`"   . popper-cycle)
-         ("C-M-`" . popper-toggle-type))
+  :bind (("M-`"   . popper-toggle-latest)
+         ("M-~"   . popper-cycle)
+         ("C-x M-`" . popper-toggle-type))
   :init
   (setq popper-reference-buffers
         '("\\*Messages\\*"
@@ -623,12 +625,9 @@ Version 2017-01-11"
 (use-package emacs
   :ensure nil
   :defer nil
-  :bind (
-         ("C-c w" . fixup-whitespace)
+  :bind (("C-c w" . fixup-whitespace)
          ("C-x C-d" . delete-pair)
          ("C-x O" . other-other-window)
-         ;; ("M-?" . help-command)
-         ;; ("C-h" . delete-backward-char)
          ("C-x C-e" . pp-eval-last-sexp)
          ("M-c" . capitalize-dwim)
          ("M-u" . upcase-dwim)
