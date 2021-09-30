@@ -942,6 +942,7 @@ Containing LEFT, and RIGHT aligned respectively."
   :init (winner-mode 1)) ; Window Managment Undo
 ;;;; Use emacs instead of dmenu
 (setenv "LAUNCHER" "emenu -p ")
+(setenv "EDITOR" "emacsclient")
 ;;; Stuff To Ignore
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
