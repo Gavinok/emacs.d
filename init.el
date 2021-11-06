@@ -99,6 +99,22 @@ Version 2017-01-11"
   (async-shell-command
    (concat "tts.sh " (shell-quote-argument (x-get-clipboard)))))
 
+;;; General Key Bindings
+(use-package crux
+  :ensure t
+  :bind (;; Remove whitespace when killing at the end of a line
+        ([remap kill-line] . crux-kill-and-join-forward)
+
+        ;; Since C-j is so similar
+       ("C-x w v" . crux-swap-windows)
+        ("C-S-o" . crux-smart-open-line-above)
+        ("C-o" . crux-smart-open-line)
+        ("M-k" . crux-kill-whole-line)))
+
+(use-package simple
+  :ensure nil
+  :bind (("M-SPC" . cycle-spacing)))
+
 ;;; UNDO
 ;; Vim style undo not needed for emacs 28
 (use-package undo-fu
@@ -121,29 +137,6 @@ Version 2017-01-11"
   :init
   (global-undo-fu-session-mode))
 
-;;; General Key Bindings
-(use-package crux
-  :ensure t
-  :bind (;; Remove whitespace when killing at the end of a line
-        ([remap kill-line] . crux-kill-and-join-forward)
-
-        ;; Since C-j is so similar
-        ("C-x w v" . crux-swap-windows)
-        ("C-S-o" . crux-smart-open-line-above)
-        ("C-o" . crux-smart-open-line)
-        ("M-k" . crux-kill-whole-line)))
-
-(use-package simple
-  :ensure nil
-  :bind (("M-SPC" . cycle-spacing)))
-
-(use-package goto-chg
-  :ensure t
-  :demand t
-  :bind (("M-g o" . goto-last-change)
-         ("M-g i" . goto-last-change-reverse)))
-
-;;; Modal Bindings
 (use-package evil
   :ensure t
   :demand t
@@ -153,12 +146,13 @@ Version 2017-01-11"
          ;; vim vinigar style
          ("-"  . (lambda () (interactive)
                    (dired ".")))
+         ("C-s" . consult-line)
          ;; Better lisp bindings
-         ( "(" . evil-previous-open-paren)
-         ( ")" . evil-next-close-paren)
+         ("(" . evil-previous-open-paren)
+         (")" . evil-next-close-paren)
          :map evil-operator-state-map
-         ( "(" . evil-previous-open-paren)
-         ( ")" . evil-previous-close-paren))
+         ("(" . evil-previous-open-paren)
+         (")" . evil-previous-close-paren))
   :init
   (setq evil-want-keybinding nil)
   ;; no vim insert bindings
@@ -177,7 +171,11 @@ Version 2017-01-11"
   (evil-collection-init)
   ;; Dired
   (evil-collection-define-key 'normal 'dired-mode-map
-                              "-" 'dired-up-directory))
+    "-" 'dired-up-directory)
+  (evil-collection-define-key 'normal 'eww-mode-map
+    "<tab>" 'shrface-outline-cycle)
+  (evil-collection-define-key 'normal 'eww-mode-map
+    "<backtab>" 'shrface-outline-cycle-buffer))
 
 ;; Enable Commentary
 (use-package evil-commentary
@@ -195,13 +193,6 @@ Version 2017-01-11"
 (use-package evil-lion
   :bind (:map evil-normal-state-map
               ("gl" . evil-lion-left)))
-
-(use-package dot-mode
-  :ensure t
-  :demand t
-  :bind ("C-." . dot-mode-execute)
-  :config
-  (dot-mode-on))
 
 ;;; TERMINAL SETTINGS
 (when gv/is-terminal
@@ -279,11 +270,6 @@ Version 2017-01-11"
   ;; Enable recursive minibuffers
   (setq enable-recursive-minibuffers t))
 
-(use-package perspective
-  :ensure t
-  :init
-  (persp-mode))
-
 ;;; THEMEING
 (use-package ujelly-theme
   :config
@@ -303,17 +289,18 @@ Version 2017-01-11"
                       :background  "#0F0F0F")
   (setq-default header-line-format nil))
 
-;; (load-theme 'tsdh-light t)
+; (load-theme 'tsdh-light t)
 
 ;;; Aligning Text
-(use-package align
-  :ensure nil
-  ;; :bind ("C-x C-a" . align-regexp)
-  :config
-  ;; Align using spaces
-  (defadvice align-regexp (around align-regexp-with-spaces activate)
-    (let ((indent-tabs-mode nil))
-      ad-do-it)))
+;; (use-package align
+;;   :ensure nil
+;;   :defer t
+;;   ;; :bind ("C-x C-a" . align-regexp)
+;;   :config
+;;   ;; Align using spaces
+;;   (defadvice align-regexp (around align-regexp-with-spaces activate)
+;;     (let ((indent-tabs-mode nil))
+;;       ad-do-it)))
 
 ;;; WRITING
 (use-package writegood-mode
@@ -329,37 +316,6 @@ Version 2017-01-11"
 
 ;;; ORG
 (load "~/.emacs.d/lisp/org-config.el")
-
-;;; enhanced eww
-(use-package shrface
-  :ensure t
-  :defer t
-  :config
-  (shrface-basic)
-  (shrface-trial)
-  (shrface-default-keybindings) ; setup default keybindings
-  (setq shrface-href-versatile t)
-  (define-key eww-mode-map (kbd "<tab>") 'shrface-outline-cycle)
-  (define-key eww-mode-map (kbd "<backtab>") 'shrface-outline-cycle-buffer)
-  ()) ; or 'shrface-headline-helm or 'shrface-headline-consult
-
-(use-package eww
-  :defer t
-  :bind ("C-x w w" . eww)
-  :init
-  (add-hook 'eww-after-render-hook #'shrface-mode)
-  :config
-  (require 'shrface))
-
-(use-package nov
-  :ensure t
-  :defer t
-  :init
-  (add-hook 'nov-mode-hook #'shrface-mode)
-  :config
-  (require 'shrface)
-  (setq nov-shr-rendering-functions '((img . nov-render-img) (title . nov-render-title)))
-  (setq nov-shr-rendering-functions (append nov-shr-rendering-functions shr-external-rendering-functions)))
 
 ;;; Git
 (use-package magit
@@ -386,6 +342,7 @@ Version 2017-01-11"
 
 ;;; VTERM AND ESHELL
 (use-package vterm
+  :bind ("C-x t" . vterm)
   :commands vterm
   :custom (vterm-max-scrollback 10000)
   :init (when gv/my-system
@@ -427,45 +384,22 @@ Version 2017-01-11"
   :mode "\\.fnl\\'")
 (use-package racket-mode
   :mode "\\.rkt\\'")
-;; (use-package meghanada
-;;   :bind (("M-."  . meghanada-jump-declaration)
-;;          ("M-," . meghanada-back-jump))
-;;   :config
-;;   (add-hook 'java-mode-hook
-;;             (lambda ()
-;;               ;; meghanada-mode on
-;;               (meghanada-mode t)
-;;               (flycheck-mode +1)
-;;               (setq c-basic-offset 2)
-;;               ;; use code format
-;;               (add-hook 'before-save-hook 'meghanada-code-beautify-before-save)))
-;;   (cond
-;;    ((eq system-type 'windows-nt)
-;;     (setq meghanada-java-path (expand-file-name "bin/java.exe" (getenv "JAVA_HOME")))
-;;     (setq meghanada-maven-path "mvn.cmd"))
-;;    (t
-;;     (setq meghanada-java-path "java")
-;;     (setq meghanada-maven-path "mvn"))))
 
-(progn
-  (use-package flycheck)
-  (use-package yasnippet :config (yas-global-mode))
-  (use-package lsp-mode :hook ((lsp-mode . lsp-enable-which-key-integration))
-    :config (setq lsp-completion-enable-additional-text-edit nil))
-  (use-package hydra)
-  (use-package company)
-  (use-package lsp-ui)
-  (use-package which-key :config (which-key-mode))
-  ;; Ensure java 11 is installed
-  (use-package lsp-java
-    :init
-    ;; current VSCode defaults
-    (setq lsp-java-vmargs
-    '("-XX:+UseParallelGC" "-XX:GCTimeRatio=4" "-XX:AdaptiveSizePolicyWeight=90" "-Dsun.zip.disableMemoryMapping=true" "-Xmx2G" "-Xms100m"))
-    :config (add-hook 'java-mode-hook 'lsp))
-  (use-package dap-mode :after lsp-mode :config (dap-auto-configure-mode))
-  (use-package dap-java :ensure nil)
-  (use-package consult-lsp))
+;; (progn
+;;   (use-package flycheck)
+;;   (use-package yasnippet :config (yas-global-mode))
+;;   (use-package lsp-mode :hook ((lsp-mode . lsp-enable-which-key-integration))
+;;     :config (setq lsp-completion-enable-additional-text-edit nil))
+;;   (use-package lsp-ui)
+;;   ;; Ensure java 11 is installed
+;;   (use-package lsp-java
+;;     :init
+;;     ;; current VSCode defaults
+;;     (setq lsp-java-vmargs
+;;     '("-XX:+UseParallelGC" "-XX:GCTimeRatio=4" "-XX:AdaptiveSizePolicyWeight=90" "-Dsun.zip.disableMemoryMapping=true" "-Xmx2G" "-Xms100m"))
+;;     :config (add-hook 'java-mode-hook 'lsp))
+;;   (use-package dap-mode :after lsp-mode :config (dap-auto-configure-mode))
+;;   (use-package dap-java :ensure nil))
 
 (use-package haskell-mode
   :ensure t
@@ -475,13 +409,6 @@ Version 2017-01-11"
   :ensure t
   :mode "\\.rs\\'")
 
-;; ;;; LSP
-;; (use-package eglot
-;;   :commands eglot
-;;   :hook ((c-mode-common) . eglot-ensure)
-;;   :config
-;;   (add-to-list 'eglot-server-programs '(c-mode . ("ccls"))))
-
 ;; As the built-in project.el support expects to use vc-mode hooks to
 ;; find the root of projects we need to provide something equivalent
 ;; for it.
@@ -489,9 +416,7 @@ Version 2017-01-11"
   ;; Cannot use :hook because 'project-find-functions does not end in -hook
   ;; Cannot use :init (must use :config) because otherwise
   ;; project-find-functions is not yet initialized.
-  :ensure t
-  :demand t
-  :bind ("C-x p g"     . my/project-affe-grep)
+  :ensure nil
   :config
   ;; Optionally configure a function which returns the project root directory.
   ;; There are multiple reasonable alternatives to chose from.
@@ -523,6 +448,7 @@ Version 2017-01-11"
 
 ;;; COMPILATION
 (use-package compile
+  :bind ("C-x M-m" . compile)
   :bind ("C-x C-m" . recompile)
   :config
   (setq compilation-scroll-output t)
@@ -570,7 +496,8 @@ Version 2017-01-11"
          ("Help" (or (name . "\*Help\*")
                      (name . "\*Apropos\*")
                      (name . "\*info\*")))
-         ("Browser" (mode . eaf-mode)))))
+         ("Browser" (mode . eaf-mode))
+         ("Ement" (name . "\*Ement *")))))
   (add-hook 'ibuffer-mode-hook
           (lambda ()
              (ibuffer-switch-to-saved-filter-groups "home")))) ; [built-in] Powerful interface for managing buffers
@@ -625,14 +552,13 @@ Version 2017-01-11"
 (use-package emacs
   :ensure nil
   :defer nil
-  :bind (("C-c w" . fixup-whitespace)
+  :bind (("C-c w"   . fixup-whitespace)
          ("C-x C-d" . delete-pair)
-         ("C-x O" . other-other-window)
-         ("C-x C-e" . pp-eval-last-sexp)
-         ("M-c" . capitalize-dwim)
-         ("M-u" . upcase-dwim)
-         ("M-l" . downcase-dwim)
-         ("M-f" . sim-vi-w))
+         ("C-x O"   . other-other-window)
+         ("M-c"     . capitalize-dwim)
+         ("M-u"     . upcase-dwim)
+         ("M-l"     . downcase-dwim)
+         ("M-f"     . sim-vi-w))
   :config
   (defun other-other-window (&optional arg)
     (interactive)
@@ -663,8 +589,19 @@ Version 2017-01-11"
      #b00010000
      #b00010000])
   (define-fringe-bitmap 'left-curly-arrow
-    [#b00000000])
-  ;; (set-frame-font "Terminus 14" nil t)
+    [#b00010000
+     #b00010000
+     #b00010000
+     #b00100000
+     #b00100000
+     #b00100000
+     #b01000000
+     #b01000000
+     #b01000000
+     #b10000000
+     #b10000000
+     #b10000000])
+  (set-frame-font "Terminus 14" nil t)
 ;;;; Backups
   (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
         vc-make-backup-files t
@@ -740,6 +677,37 @@ Version 2017-01-11"
   :init
   (setq outline-minor-mode-prefix "\C-c"))
 
+;;; enhanced eww
+(use-package shrface
+  :ensure t
+  :defer t
+  :config
+  (shrface-basic)
+  (shrface-trial)
+  (shrface-default-keybindings) ; setup default keybindings
+  (setq shrface-href-versatile t)
+  (define-key eww-mode-map (kbd "<tab>") 'shrface-outline-cycle)
+  (define-key eww-mode-map (kbd "<backtab>") 'shrface-outline-cycle-buffer))
+
+(use-package eww
+  :defer t
+  :bind ("C-x w w" . eww)
+  :init
+  (add-hook 'eww-after-render-hook #'shrface-mode)
+  :config
+  (require 'shrface))
+
+(use-package nov
+  :ensure t
+  :defer t
+  :init
+  (add-hook 'nov-mode-hook #'shrface-mode)
+  :config
+  (require 'shrface)
+  (setq nov-shr-rendering-functions '((img . nov-render-img) (title . nov-render-title)))
+  (setq nov-shr-rendering-functions (append nov-shr-rendering-functions shr-external-rendering-functions)))
+
+
 ;;;; Setup Folding For Programming
 (use-package prog-mode
   :ensure nil
@@ -759,11 +727,6 @@ Version 2017-01-11"
 ;;; EXTRA UI
 (use-package hl-todo
   :hook (prog-mode . hl-todo-mode))
-
-;; replace ugly ^L with harazontal lines
-(use-package page-break-lines
-  :config
-  (global-page-break-lines-mode))
 
 (use-package pulse
   :unless gv/is-terminal
@@ -881,7 +844,6 @@ Containing LEFT, and RIGHT aligned respectively."
   (unless (server-running-p)
     (server-start)))
 
-
 ;;;; Better PDFs
 ;https://github.com/politza/pdf-tools
 ; annotate pdfs with c-c c-a
@@ -913,7 +875,7 @@ Containing LEFT, and RIGHT aligned respectively."
 (load "~/.emacs.d/lisp/mu4e-config.el")
 
 ;;; EXWM
-(load "~/.emacs.d/lisp/exwm-config.el")
+;; (load "~/.emacs.d/lisp/exwm-config.el")
 
 ;;; Workspace Like Workflow
 (use-package perspective
@@ -923,9 +885,35 @@ Containing LEFT, and RIGHT aligned respectively."
   :config
   (persp-mode t))
 
+(use-package websocket
+  :ensure t)
+(use-package obs-websocket
+  :ensure nil
+  :load-path "~/.emacs.d/lisp/obs-websocket.el/obs-websocket.el"
+  :config
+  (defun obs-sel-scene (&optional arg)
+    (interactive)
+    (unless obs-websocket
+      (obs-websocket-connect))
+    (let ((scene (completing-read "Select OBS Command"
+                                  '("Intermission"
+                                    "Desktop"))))
+      (obs-websocket-send "SetCurrentScene" :scene-name scene))))
+  
+(use-package keycast
+  :ensure t
+  :commands (keycast)
+  :config
+  (set-face-attribute 'keycast-key nil
+                      :weight 'normal
+                      :box '(:line-width 10 :color "#000")
+                      :foreground "000"
+                      :background  "#222"))
+
 ;; use emacs as a clipboard manager
 (use-package clipmon
   :unless (and gv/is-termux (not (executable-find "clipmon")))
+  :defer 5
   :config
   (clipmon-mode-start))
 
@@ -947,6 +935,21 @@ Containing LEFT, and RIGHT aligned respectively."
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 
+;; Install and load `quelpa-use-package'.
+(package-install 'quelpa-use-package)
+(require 'quelpa-use-package)
+
+;; Install Ement.
+(use-package ement
+  :commands (ement-connect)
+  :quelpa (ement :fetcher github :repo "alphapapa/ement.el")
+  :config
+  ;; Install `plz' HTTP library (not on MELPA yet).noSunnyday01!
+  (use-package plz
+    :quelpa (plz :fetcher github :repo "alphapapa/plz.el"))
+  (setq ement-room-sender-in-headers t)
+  (setq ement-room-retro-loading t))
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -956,9 +959,9 @@ Containing LEFT, and RIGHT aligned respectively."
    '("3a9f65e0004068ecf4cf31f4e68ba49af56993c20258f3a49e06638c825fbfb6" default))
  '(jumplist-hook-commands
    '(consult-line consult-line-multi consult-grep consult-ripgrep consult-outline affe-find affe-grep dired-jump isearch-forward end-of-buffer beginning-of-buffer find-file))
- '(org-agenda-files '("/home/lanre/m2m-setup.org"))
+ '(org-agenda-files nil)
  '(package-selected-packages
-   '(yasnippet flycheck evil-terminal-cursor-changer vdiff perspective ob-async kubel groovy-mode consult-lsp lsp-java lsp-ui hydra lsp-mode projectile evil-lion evil-surround evil-commentary evil-collection evil jest-test-mode typescript-mode jest markdown-mode centered-window cheat-sh dot-mode ob-elm ob-hy ob-rust hl-todo rainbow-delimiters modus-operandi-theme all-the-icons-dired highlight-indent-guides typing-game c-c-combo corfu xah-fly-keys academic-phrases selected system-packages goto-chg writegood-mode which-key vterm vlf vimrc-mode vertico undo-fu-session undo-fu ujelly-theme tree-sitter-langs transmission rainbow-mode racket-mode quelpa-use-package pdf-tools pcre2el password-store outline-minor-faces org-superstar org-roam org-plus-contrib org-mime org-download org-alert orderless multiple-cursors modus-themes message-attachment-reminder marginalia magit lua-mode keycast jumplist god-mode flyspell-correct fish-completion fennel-mode expand-region esh-autosuggest epc eaf diff-hl dashboard crux bicycle beacon all-the-icons affe))
+   '(dogears eglot plain-org-wiki phi-search visual-regexp kakoune ement plz websocket websockets popper yasnippet flycheck evil-terminal-cursor-changer vdiff perspective ob-async kubel groovy-mode consult-lsp lsp-java lsp-ui hydra lsp-mode projectile evil-lion evil-surround evil-commentary evil-collection evil jest-test-mode typescript-mode jest markdown-mode centered-window cheat-sh dot-mode ob-elm ob-hy ob-rust hl-todo rainbow-delimiters modus-operandi-theme all-the-icons-dired highlight-indent-guides typing-game c-c-combo corfu xah-fly-keys academic-phrases selected system-packages goto-chg writegood-mode which-key vterm vlf vimrc-mode vertico undo-fu-session undo-fu ujelly-theme tree-sitter-langs transmission rainbow-mode racket-mode quelpa-use-package pdf-tools pcre2el password-store outline-minor-faces org-superstar org-roam org-plus-contrib org-mime org-download org-alert orderless multiple-cursors modus-themes message-attachment-reminder marginalia magit lua-mode keycast jumplist god-mode flyspell-correct fish-completion fennel-mode expand-region esh-autosuggest epc eaf diff-hl dashboard crux bicycle beacon all-the-icons affe))
  '(persp-mode t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.

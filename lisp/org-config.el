@@ -54,6 +54,8 @@
     :ensure t)
   (setq org-confirm-babel-evaluate nil)
 ;;;; Agenda Views
+  (setq org-agenda-files (seq-filter (lambda (x) (not (string-match "completed.org" x)))
+                                     (directory-files-recursively org-directory "\\.org$")))
   (setq org-agenda-custom-commands
         '(("d" "Today's Tasks"
            ((agenda "" ((org-agenda-span 1)
@@ -122,10 +124,13 @@
   :bind ("C-c i" . org-download-screenshot)
   :hook ((org-mode dired-mode) . org-download-enable)
   :init
-  ;; (setq org-agenda-files (seq-filter (lambda (x) (not (string-match "completed.org" x)))
-  ;;                                 (directory-files-recursively org-directory "\\.org$")))
   (setq-default org-download-screenshot-method "gnome-screenshot -a -f %s")
   (setq-default org-download-image-dir "./pic"))
+
+(use-package plain-org-wiki
+  :bind ("C-c C-x C-m" . plain-org-wiki)
+  (setq plain-org-wiki-directory (concat org-directory "/wiki")))
+
 ;;;; Better Looking Bullets
 (use-package org-superstar
   :hook (org-mode . org-superstar-mode))

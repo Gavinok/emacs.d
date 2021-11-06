@@ -114,7 +114,8 @@
                                         ;: Start in char-mode
   ;; (setq exwm-manage-configurations '((t char-mode t)))
 
-  (fringe-mode 1)
+  (fringe-mode 'default)
+  (setq-default header-line-format "")
 ;;;; Start EXWM
   (exwm-enable)
 ;;;; Start Programs For EXWM
@@ -153,3 +154,18 @@
                "xrandr" nil "xrandr --output eDP1 --primary --auto --left-of HDMI2 --auto")))
   (exwm-randr-enable))
 
+;;; Streaming
+;; Needs OBS-Websockets Plugin
+;;   https://obsproject.com/forum/resources/obs-websocket-remote-control-obs-studio-from-websockets.466/
+;; Also will need this emacs package
+;;   https://github.com/sachac/obs-websocket-el
+(defun streaming (&optional)
+  "Setup Streaming Environment"
+  (interactive)
+    (keycast-mode 1)
+  (start-process-shell-command "obs " nil "obs")
+  (persp-new "demo")
+  (let ((spec "streaming"))
+    (persp-new spec)
+    (persp-switch spec))
+  (persp-set-buffer "obs"))
