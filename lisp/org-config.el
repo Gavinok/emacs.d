@@ -129,6 +129,7 @@
 
 (use-package plain-org-wiki
   :bind ("C-c C-x C-m" . plain-org-wiki)
+  :init
   (setq plain-org-wiki-directory (concat org-directory "/wiki")))
 
 ;;;; Better Looking Bullets

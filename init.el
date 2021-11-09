@@ -168,6 +168,7 @@ Version 2017-01-11"
 (use-package evil-collection
   :ensure t
   :config
+  (setq evil-want-integration t)
   (evil-collection-init)
   ;; Dired
   (evil-collection-define-key 'normal 'dired-mode-map
@@ -206,12 +207,6 @@ Version 2017-01-11"
 ;;; COMPLETION
 (use-package vertico
   :init
-  (use-package marginalia
-    :custom
-    (marginalia-annotators
-     '(marginalia-annotators-heavy marginalia-annotators-light nil))
-    :init
-    (marginalia-mode))
 ;;;; Out Of Order Compleiton
   (use-package orderless
     :commands (orderless)
@@ -219,6 +214,7 @@ Version 2017-01-11"
 ;;;; Extra Completion Functions
   ;; Note that M-sn is used for searghing ang
   (use-package consult
+    :defer t
     :bind (("C-c l"     . consult-line)
            ("C-c L"     . consult-line-multi)
            ("C-c i"     . consult-imenu)
@@ -237,7 +233,13 @@ Version 2017-01-11"
     (completion-in-region-function #'consult-completion-in-region)
     :config
     (add-hook 'completion-setup-hook #'hl-line-mode)
-    (recentf-mode t))
+    (recentf-mode t)
+    (use-package marginalia
+      :custom
+      (marginalia-annotators
+       '(marginalia-annotators-heavy marginalia-annotators-light nil))
+      :init
+      (marginalia-mode)))
 
 ;;;; Fuzzy Finding
   (use-package affe
@@ -277,8 +279,8 @@ Version 2017-01-11"
   (global-hl-line-mode t)
   (set-face-background hl-line-face "#111")
   (when gv/my-system
-    (set-frame-parameter (selected-frame) 'alpha '(90 90))
-    (add-to-list 'default-frame-alist '(alpha 90 90)))
+    (set-frame-parameter (selected-frame) 'alpha '(100 100))
+    (add-to-list 'default-frame-alist '(alpha 100 100)))
   (set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
   (set-face-attribute 'default nil :background "#000" :foreground "#eee")
   (set-face-attribute 'mode-line nil
@@ -289,6 +291,22 @@ Version 2017-01-11"
                       :background  "#0F0F0F")
   (setq-default header-line-format nil))
 
+;; (use-package nord-theme
+;;   :config
+;;   (load-theme 'nord t)
+;;   (global-hl-line-mode t)
+;;   (set-face-background hl-line-face "#111")
+;;   (when gv/my-system
+;;     (set-frame-parameter (selected-frame) 'alpha '(100 100))
+;;     (add-to-list 'default-frame-alist '(alpha 100 100)))
+;;   (set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
+;;   (set-face-attribute 'mode-line nil
+;;                       :box '(:line-width 10 :color "#000"))
+;;   (set-face-attribute 'mode-line-inactive nil
+;;                       :box '(:line-width 10 :color "#000"))
+;;   (set-face-attribute 'mode-line nil
+;;                       :background  "#0F0F0F")
+;;   (setq-default header-line-format nil))
 ; (load-theme 'tsdh-light t)
 
 ;;; Aligning Text
@@ -531,6 +549,14 @@ Version 2017-01-11"
   :init
   (setq find-file-visit-truename t))
 
+;;; Workspace Like Workflow
+(use-package perspective
+  :ensure t
+  :bind (("C-x x s" . persp-switch)
+         ("C-x x C-l" . persp-state-load))
+  :config
+  (persp-mode t))
+
 ;;; popup window managment
 (use-package popper
   :ensure t ; or :straight t
@@ -545,7 +571,7 @@ Version 2017-01-11"
           "\\*Async Shell Command\\*"
           help-mode
           compilation-mode))
-  (setq popper-group-function #'popper-group-by-perspective)
+  ;; (setq popper-group-function #'popper-group-by-perspective)
   (popper-mode +1))
 
 ;;; DEFAULTS
@@ -578,27 +604,27 @@ Version 2017-01-11"
   (define-fringe-bitmap 'right-curly-arrow
     [#b10000000
      #b10000000
-     #b10000000
      #b01000000
      #b01000000
-     #b01000000
-     #b00100000
      #b00100000
      #b00100000
      #b00010000
      #b00010000
-     #b00010000])
+     #b00001000
+     #b00001000
+     #b00000100
+     #b00000100])
   (define-fringe-bitmap 'left-curly-arrow
-    [#b00010000
+    [#b00000100
+     #b00000100
+     #b00001000
+     #b00001000
      #b00010000
      #b00010000
      #b00100000
      #b00100000
-     #b00100000
      #b01000000
      #b01000000
-     #b01000000
-     #b10000000
      #b10000000
      #b10000000])
   (set-frame-font "Terminus 14" nil t)
@@ -642,7 +668,9 @@ Version 2017-01-11"
         scroll-conservatively  10000)
   (setq next-screen-context-lines 5)
   ;; move by logical lines rather than visual lines (better for macros)
-  (setq line-move-visual nil))
+  (setq line-move-visual nil)
+  (fringe-mode)
+  (setq-default header-line-format ""))
 
 (use-package autorevert
   :ensure nil
@@ -877,28 +905,20 @@ Containing LEFT, and RIGHT aligned respectively."
 ;;; EXWM
 ;; (load "~/.emacs.d/lisp/exwm-config.el")
 
-;;; Workspace Like Workflow
-(use-package perspective
-  :ensure t
-  :bind (("C-x x s" . persp-switch)
-         ("C-x x C-l" . persp-state-load))
-  :config
-  (persp-mode t))
-
 (use-package websocket
   :ensure t)
-(use-package obs-websocket
-  :ensure nil
-  :load-path "~/.emacs.d/lisp/obs-websocket.el/obs-websocket.el"
-  :config
-  (defun obs-sel-scene (&optional arg)
-    (interactive)
-    (unless obs-websocket
-      (obs-websocket-connect))
-    (let ((scene (completing-read "Select OBS Command"
-                                  '("Intermission"
-                                    "Desktop"))))
-      (obs-websocket-send "SetCurrentScene" :scene-name scene))))
+;; (use-package obs-websocket
+;;   :ensure nil
+;;   :load-path "~/.emacs.d/lisp/obs-websocket.el/obs-websocket.el"
+;;   :config
+;;   (defun obs-sel-scene (&optional arg)
+;;     (interactive)
+;;     (unless obs-websocket
+;;       (obs-websocket-connect))
+;;     (let ((scene (completing-read "Select OBS Command"
+;;                                   '("Intermission"
+;;                                     "Desktop"))))
+;;       (obs-websocket-send "SetCurrentScene" :scene-name scene))))
   
 (use-package keycast
   :ensure t
@@ -936,6 +956,7 @@ Containing LEFT, and RIGHT aligned respectively."
 (put 'downcase-region 'disabled nil)
 
 ;; Install and load `quelpa-use-package'.
+(setq quelpa-update-melpa-p nil)
 (package-install 'quelpa-use-package)
 (require 'quelpa-use-package)
 
@@ -943,12 +964,13 @@ Containing LEFT, and RIGHT aligned respectively."
 (use-package ement
   :commands (ement-connect)
   :quelpa (ement :fetcher github :repo "alphapapa/ement.el")
+  :init
+  (setq ement-room-sender-headers t
+        ement-room-retro-loading t)
   :config
   ;; Install `plz' HTTP library (not on MELPA yet).noSunnyday01!
   (use-package plz
-    :quelpa (plz :fetcher github :repo "alphapapa/plz.el"))
-  (setq ement-room-sender-in-headers t)
-  (setq ement-room-retro-loading t))
+    :quelpa (plz :fetcher github :repo "alphapapa/plz.el")))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -956,12 +978,12 @@ Containing LEFT, and RIGHT aligned respectively."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-   '("3a9f65e0004068ecf4cf31f4e68ba49af56993c20258f3a49e06638c825fbfb6" default))
+   '("37768a79b479684b0756dec7c0fc7652082910c37d8863c35b702db3f16000f8" "3e200d49451ec4b8baa068c989e7fba2a97646091fd555eca0ee5a1386d56077" "7f1d414afda803f3244c6fb4c2c64bea44dac040ed3731ec9d75275b9e831fe5" "51ec7bfa54adf5fff5d466248ea6431097f5a18224788d0bd7eb1257a4f7b773" "d89e15a34261019eec9072575d8a924185c27d3da64899905f8548cbd9491a36" "3a9f65e0004068ecf4cf31f4e68ba49af56993c20258f3a49e06638c825fbfb6" default))
  '(jumplist-hook-commands
    '(consult-line consult-line-multi consult-grep consult-ripgrep consult-outline affe-find affe-grep dired-jump isearch-forward end-of-buffer beginning-of-buffer find-file))
  '(org-agenda-files nil)
  '(package-selected-packages
-   '(dogears eglot plain-org-wiki phi-search visual-regexp kakoune ement plz websocket websockets popper yasnippet flycheck evil-terminal-cursor-changer vdiff perspective ob-async kubel groovy-mode consult-lsp lsp-java lsp-ui hydra lsp-mode projectile evil-lion evil-surround evil-commentary evil-collection evil jest-test-mode typescript-mode jest markdown-mode centered-window cheat-sh dot-mode ob-elm ob-hy ob-rust hl-todo rainbow-delimiters modus-operandi-theme all-the-icons-dired highlight-indent-guides typing-game c-c-combo corfu xah-fly-keys academic-phrases selected system-packages goto-chg writegood-mode which-key vterm vlf vimrc-mode vertico undo-fu-session undo-fu ujelly-theme tree-sitter-langs transmission rainbow-mode racket-mode quelpa-use-package pdf-tools pcre2el password-store outline-minor-faces org-superstar org-roam org-plus-contrib org-mime org-download org-alert orderless multiple-cursors modus-themes message-attachment-reminder marginalia magit lua-mode keycast jumplist god-mode flyspell-correct fish-completion fennel-mode expand-region esh-autosuggest epc eaf diff-hl dashboard crux bicycle beacon all-the-icons affe))
+   '(stumpwm-mode iceberg-theme csv-mode dogears eglot plain-org-wiki phi-search visual-regexp kakoune ement plz websocket websockets popper yasnippet flycheck evil-terminal-cursor-changer vdiff perspective ob-async kubel groovy-mode consult-lsp lsp-java lsp-ui hydra lsp-mode projectile evil-lion evil-surround evil-commentary evil-collection evil jest-test-mode typescript-mode jest markdown-mode centered-window cheat-sh dot-mode ob-elm ob-hy ob-rust hl-todo rainbow-delimiters modus-operandi-theme all-the-icons-dired highlight-indent-guides typing-game c-c-combo corfu xah-fly-keys academic-phrases selected system-packages goto-chg writegood-mode which-key vterm vlf vimrc-mode vertico undo-fu-session undo-fu ujelly-theme tree-sitter-langs transmission rainbow-mode racket-mode quelpa-use-package pdf-tools pcre2el password-store outline-minor-faces org-superstar org-roam org-plus-contrib org-mime org-download org-alert orderless multiple-cursors modus-themes message-attachment-reminder marginalia magit lua-mode keycast jumplist god-mode flyspell-correct fish-completion fennel-mode expand-region esh-autosuggest epc eaf diff-hl dashboard crux bicycle beacon all-the-icons affe))
  '(persp-mode t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.

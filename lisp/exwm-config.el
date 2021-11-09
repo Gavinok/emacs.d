@@ -114,8 +114,6 @@
                                         ;: Start in char-mode
   ;; (setq exwm-manage-configurations '((t char-mode t)))
 
-  (fringe-mode 'default)
-  (setq-default header-line-format "")
 ;;;; Start EXWM
   (exwm-enable)
 ;;;; Start Programs For EXWM
