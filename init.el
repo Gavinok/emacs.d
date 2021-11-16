@@ -902,7 +902,7 @@ Containing LEFT, and RIGHT aligned respectively."
 ;;                                   '("Intermission"
 ;;                                     "Desktop"))))
 ;;       (obs-websocket-send "SetCurrentScene" :scene-name scene))))
-  
+
 (use-package keycast
   :ensure t
   :commands (keycast)
