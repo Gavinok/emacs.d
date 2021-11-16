@@ -758,7 +758,7 @@ Version 2017-01-11"
 ;;; DIRED
 (use-package dired
   :ensure nil
-  :defer nil
+  :commands (dired)
   :bind (:map dired-mode-map
               ("-" . dired-up-directory))
   :config
