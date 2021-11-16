@@ -94,13 +94,13 @@
 
 ;;;; Headers View
   (set-face-attribute 'mu4e-flagged-face nil
-                      :background "#900")
+                      :foreground "#BF6262")
   (set-face-attribute 'mu4e-flagged-face nil
-                      :foreground "#000")
+                      :background "#151515")
   (set-face-attribute 'mu4e-unread-face nil
-                      :background "#900")
+                      :foreground "#BF6262")
   (set-face-attribute 'mu4e-unread-face nil
-                      :foreground "#000")
+                      :background "#151515")
   (setq-default mu4e-use-fancy-chars t)
   (setq-default mu4e-header-sort-field :date)
   (setq-default mu4e-headers-show-threads nil)

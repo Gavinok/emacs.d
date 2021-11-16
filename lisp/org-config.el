@@ -111,6 +111,7 @@
   ;;              (org-level-3 . 1.05)
   ;;              (org-level-4 . 1.05)))
   ;;   (set-face-attribute (car face) nil :font "Terminus" :weight 'medium :height (cdr face)))
+  (set-face-attribute 'org-block nil :background "#101010")
   )
 
 ;; (use-package org-notify
