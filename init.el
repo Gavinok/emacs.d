@@ -548,6 +548,8 @@ Version 2017-01-11"
   (setq popper-reference-buffers
         '("\\*Messages\\*"
           "\\*Warnings\\*"
+          "\\*xref\\*"
+          "\\*Backtrace\\*"
           "Output\\*$"
           "\\*Async Shell Command\\*"
           help-mode
