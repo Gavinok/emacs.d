@@ -798,9 +798,6 @@ Version 2017-01-11"
   :config
   (auth-source-pass-enable))
 
-(use-package pinentry
-  :ensure t)
-
 ;;; MODELINE
 (unless gv/is-termux
   (require 'battery))
