@@ -138,7 +138,6 @@ Version 2017-01-11"
   :demand t
   :bind (("<escape>" . keyboard-escape-quit)
          :map evil-normal-state-map
-         ("gc" . evil-commentary)
          ;; vim vinigar style
          ("-"  . (lambda () (interactive)
                    (dired ".")))
@@ -146,10 +145,12 @@ Version 2017-01-11"
          ;; Better lisp bindings
          ("(" . evil-previous-open-paren)
          (")" . evil-next-close-paren)
+         ("<leader>/" . evil-ex-nohighlight)
          :map evil-operator-state-map
          ("(" . evil-previous-open-paren)
          (")" . evil-previous-close-paren))
   :init
+  (setq evil-search-module 'evil-search)
   (setq evil-want-keybinding nil)
   ;; no vim insert bindings
   (setq evil-disable-insert-state-bindings t)
