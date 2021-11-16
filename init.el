@@ -120,7 +120,7 @@ Version 2017-01-11"
 ;; Vim style undo not needed for emacs 28
 (use-package undo-fu
   :ensure t
-  :init (global-unset-key (kbd "C-/"))
+  :commands (undo-fu-onl-undo)
   :defer nil
   :bind (;; I hate it when I accidentl
          ("C-/" . undo-fu-only-undo)
@@ -129,13 +129,8 @@ Version 2017-01-11"
 (use-package undo-fu-session
   :ensure t
   :after undo-fu
-  :init (global-unset-key (kbd "C-/"))
-  :bind (("C-/" . undo-only)
-         ;; Uses emacs 28s
-         ;; ("C-?" . undo-redo)
-         ;; ("C-x /" . undo-redo)
-         )
   :init
+  (global-unset-key (kbd "C-/"))
   (global-undo-fu-session-mode))
 
 (use-package evil
