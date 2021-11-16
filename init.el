@@ -224,7 +224,7 @@ Version 2017-01-11"
            ("M-g M-g" . consult-goto-line)
            ("C-x C-SPC" . consult-mark)
            ("C-x M-:" . consult-complex-command)
-           ("C-c S-n" . consult-org-agenda))
+           ("C-c n" . consult-org-agenda))
     :custom
     (completion-in-region-function #'consult-completion-in-region)
     :config
@@ -241,7 +241,7 @@ Version 2017-01-11"
   (use-package affe
     :bind (("C-c f" . affe-find)
            ("C-c g" . affe-grep)
-           ("C-c n" . gv/notegrep))
+           ("C-c S-n" . gv/notegrep))
     :commands (affe-grep affe-find)
     :config
     (defun gv/notegrep ()
