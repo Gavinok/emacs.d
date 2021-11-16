@@ -722,6 +722,7 @@ Version 2017-01-11"
   :config
   (add-hook 'prog-mode-hook 'electric-pair-local-mode)
   (add-hook 'emacs-lisp-mode-hook 'prettify-symbols-mode)
+  (add-hook 'lisp-mode-hook 'stumpwm-mode)
 ;;;;; Smart Indentation
   (defun infer-indentation-style ()
     ;; if our source file uses tabs, we use tabs, if spaces spaces, and if
