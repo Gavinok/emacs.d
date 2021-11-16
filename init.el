@@ -288,25 +288,7 @@ Version 2017-01-11"
                       :box '(:line-width 10 :color "#000"))
   (set-face-attribute 'mode-line nil
                       :background  "#0F0F0F")
-  (setq-default header-line-format nil))
 
-;; (use-package nord-theme
-;;   :config
-;;   (load-theme 'nord t)
-;;   (global-hl-line-mode t)
-;;   (set-face-background hl-line-face "#111")
-;;   (when gv/my-system
-;;     (set-frame-parameter (selected-frame) 'alpha '(100 100))
-;;     (add-to-list 'default-frame-alist '(alpha 100 100)))
-;;   (set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
-;;   (set-face-attribute 'mode-line nil
-;;                       :box '(:line-width 10 :color "#000"))
-;;   (set-face-attribute 'mode-line-inactive nil
-;;                       :box '(:line-width 10 :color "#000"))
-;;   (set-face-attribute 'mode-line nil
-;;                       :background  "#0F0F0F")
-;;   (setq-default header-line-format nil))
-; (load-theme 'tsdh-light t)
 
 ;;; Aligning Text
 ;; (use-package align
@@ -328,9 +310,6 @@ Version 2017-01-11"
   :hook ((org-mode mu4e-compose-mode mail-mode git-commit-mode)
          . turn-on-flyspell))
 
-(use-package academic-phrases
-  :commands (academic-phrases))
-
 ;;; ORG
 (load "~/.emacs.d/lisp/org-config.el")
 
@@ -341,7 +320,7 @@ Version 2017-01-11"
 
 (use-package diff-hl
   :unless gv/is-termux
-  :defer 3
+  :defer 5
   :init (global-diff-hl-mode)
   :config
   (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
@@ -668,8 +647,7 @@ Version 2017-01-11"
   (setq next-screen-context-lines 5)
   ;; move by logical lines rather than visual lines (better for macros)
   (setq line-move-visual nil)
-  (fringe-mode)
-  (setq-default header-line-format ""))
+  (fringe-mode))
 
 (use-package autorevert
   :ensure nil
