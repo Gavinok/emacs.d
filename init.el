@@ -103,13 +103,14 @@ Version 2017-01-11"
 (use-package crux
   :ensure t
   :bind (;; Remove whitespace when killing at the end of a line
-        ([remap kill-line] . crux-kill-and-join-forward)
-
-        ;; Since C-j is so similar
-       ("C-x w v" . crux-swap-windows)
-        ("C-S-o" . crux-smart-open-line-above)
-        ("C-o" . crux-smart-open-line)
-        ("M-k" . crux-kill-whole-line)))
+         ([remap kill-line] . crux-kill-and-join-forward)
+         ;; Since C-j is so similar
+         ("C-x w v" . crux-swap-windows)
+         ("C-S-o" . crux-smart-open-line-above)
+         ("C-o" . crux-smart-open-line)
+         ("M-k" . crux-kill-whole-line)
+         :map dired-mode-map
+         ("O" . crux-open-with)))
 
 (use-package simple
   :ensure nil
