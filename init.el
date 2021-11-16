@@ -501,7 +501,8 @@ Version 2017-01-11"
 ;;; ISEARCH
 (use-package isearch
   :ensure nil
-  :commands (isearch-forward isearch-backward)
+  :bind (("C-s" . isearch-forward)
+         ("C-r" . isearch-backward))
   :config
   (defun isearch-save-and-exit ()
     "Exit search normally. and save the `search-string' on kill-ring."
