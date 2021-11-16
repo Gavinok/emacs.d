@@ -733,6 +733,9 @@ Version 2017-01-11"
       (if (> tab-count space-count) (setq indent-tabs-mode t))))
   (add-hook 'prog-mode-hook 'infer-indentation-style))
 
+(use-package clhs
+  :bind (:map help-map
+              ("C-l" . clhs-doc)))
 ;;; EXTRA UI
 (use-package hl-todo
   :hook (prog-mode . hl-todo-mode))
