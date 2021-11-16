@@ -289,6 +289,8 @@ Version 2017-01-11"
   (set-face-attribute 'mode-line nil
                       :background  "#0F0F0F")
 
+  ;; vertical padding
+  (setq-default header-line-format " "))
 
 ;;; Aligning Text
 ;; (use-package align
