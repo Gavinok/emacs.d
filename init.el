@@ -229,6 +229,8 @@ Version 2017-01-11"
     (completion-in-region-function #'consult-completion-in-region)
     :config
     (add-hook 'completion-setup-hook #'hl-line-mode)
+    (setq recentf-make-menu-items 50
+          recentf-make-saved-items 50)
     (recentf-mode t)
     (use-package marginalia
       :custom
