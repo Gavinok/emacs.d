@@ -972,18 +972,16 @@ Containing LEFT, and RIGHT aligned respectively."
 (setq quelpa-update-melpa-p nil)
 (package-install 'quelpa-use-package)
 (require 'quelpa-use-package)
-
+;; Install `plz' HTTP library (not on MELPA yet).
+(use-package plz
+    :quelpa (plz :fetcher github :repo "alphapapa/plz.el"))
 ;; Install Ement.
 (use-package ement
   :commands (ement-connect)
   :quelpa (ement :fetcher github :repo "alphapapa/ement.el")
   :init
   (setq ement-room-sender-headers t
-        ement-room-retro-loading t)
-  :config
-  ;; Install `plz' HTTP library (not on MELPA yet).noSunnyday01!
-  (use-package plz
-    :quelpa (plz :fetcher github :repo "alphapapa/plz.el")))
+        ement-room-retro-loading t))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
