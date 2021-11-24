@@ -128,10 +128,10 @@
   (setq-default org-download-screenshot-method "gnome-screenshot -a -f %s")
   (setq-default org-download-image-dir "./pic"))
 
-(use-package plain-org-wiki
-  :bind ("C-c C-x C-m" . plain-org-wiki)
-  :init
-  (setq plain-org-wiki-directory (concat org-directory "/wiki")))
+;; (use-package plain-org-wiki
+;;   :bind ("C-c C-x C-m" . plain-org-wiki)
+;;   :init
+;;   (setq plain-org-wiki-directory (concat org-directory "/wiki")))
 
 ;;;; Better Looking Bullets
 (use-package org-superstar
