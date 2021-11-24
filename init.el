@@ -918,8 +918,8 @@ Containing LEFT, and RIGHT aligned respectively."
 ;;; EXWM
 ;; (load "~/.emacs.d/lisp/exwm-config.el")
 
-(use-package websocket
-  :ensure t)
+;; (use-package websocket
+;;   :ensure t)
 ;; (use-package obs-websocket
 ;;   :ensure nil
 ;;   :load-path "~/.emacs.d/lisp/obs-websocket.el/obs-websocket.el"
