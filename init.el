@@ -545,6 +545,7 @@
           "\\*Warnings\\*"
           "\\*xref\\*"
           "\\*Backtrace\\*"
+          "^*sly"
           "Output\\*$"
           "\\*Async Shell Command\\*"
           help-mode
