@@ -905,7 +905,7 @@ Containing LEFT, and RIGHT aligned respectively."
 
 (use-package keycast
   :ensure t
-  :commands (keycast)
+  :commands (keycast-mode)
   :config
   (set-face-attribute 'keycast-key nil
                       :weight 'normal
