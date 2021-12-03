@@ -565,6 +565,8 @@
          ("M-l"     . downcase-dwim)
          ("M-f"     . sim-vi-w))
   :config
+  ;; set the title of the frame to the current file - Emacs
+  (setq-default frame-title-format '("%b - Emacs"))
   (defun other-other-window (&optional arg)
     (interactive)
     (if arg
