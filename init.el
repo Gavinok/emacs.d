@@ -287,16 +287,6 @@
   ;; vertical padding
   (setq-default header-line-format " "))
 
-;;; Aligning Text
-;; (use-package align
-;;   :ensure nil
-;;   :defer t
-;;   ;; :bind ("C-x C-a" . align-regexp)
-;;   :config
-;;   ;; Align using spaces
-;;   (defadvice align-regexp (around align-regexp-with-spaces activate)
-;;     (let ((indent-tabs-mode nil))
-;;       ad-do-it)))
 
 ;;; WRITING
 (use-package writegood-mode
