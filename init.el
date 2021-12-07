@@ -188,6 +188,16 @@
   (meow-setup)
   (meow-global-mode))
 
+;;; Aligning Text
+(use-package align
+  :ensure nil
+  :defer t
+  :bind ("C-x C-a" . align-regexp)
+  :config
+  ;; Align using spaces
+  (defadvice align-regexp (around align-regexp-with-spaces activate)
+    (let ((indent-tabs-mode nil))
+      ad-do-it)))
 ;;; COMPLETION
 (use-package vertico
   :init
