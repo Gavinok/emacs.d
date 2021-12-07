@@ -5,7 +5,6 @@
 
 ;;; ORG
 (use-package org
-  :pin org
   :ensure org-plus-contrib
   :commands (org-capture org-agenda)
   :bind (("C-c y" . org-store-link)
@@ -111,8 +110,7 @@
   ;;              (org-level-3 . 1.05)
   ;;              (org-level-4 . 1.05)))
   ;;   (set-face-attribute (car face) nil :font "Terminus" :weight 'medium :height (cdr face)))
-  (set-face-attribute 'org-block nil :background "#101010")
-  )
+  (set-face-attribute 'org-block nil :background "#101010"))
 
 ;; (use-package org-notify
 ;;   :ensure nil
