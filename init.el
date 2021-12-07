@@ -212,7 +212,6 @@
     :bind (("C-c l"       . consult-line)
            ("C-c L"       . consult-line-multi)
            ("C-c i"       . consult-imenu)
-           ("C-c o"       . consult-outline)
            ("C-x b"       . consult-buffer)
            ("C-x C-k C-k" . consult-kmacro)
            ;; Used with clipmon makes emacs act as a
