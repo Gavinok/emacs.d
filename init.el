@@ -663,7 +663,6 @@
   (tool-bar-mode -1)               ; To disable the toolbar, use the following line:
   (fset 'yes-or-no-p 'y-or-n-p)    ; don't ask to spell out "yes"
   (show-paren-mode 1)              ; Highlight parenthesis
-  (setq-default show-trailing-whitespace t)
   (setq x-select-enable-primary t) ; use primary as clipboard in emacs
   ;; avoid leaving a gap between the frame and the screen
   (setq-default frame-resize-pixelwise t)
