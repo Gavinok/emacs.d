@@ -65,6 +65,20 @@
   (async-shell-command
    (concat "tts.sh " (shell-quote-argument (x-get-clipboard)))))
 
+(defun gv/scroll-down (arg)
+  "Move cursor down half a screen"
+  (interactive "p")
+  (let ((dist (/ (window-height) 2)))
+    (next-line dist)))
+
+(defun gv/scroll-up (arg)
+  "Move cursor down half a screen"
+  (interactive "p")
+  (let ((dist (/ (window-height) 2)))
+    (previous-line dist)))
+
+(global-set-key (kbd "C-v") #'gv/scroll-down)
+(global-set-key (kbd "M-v") #'gv/scroll-up)
 ;;; General Key Bindings
 (use-package crux
   :ensure t
