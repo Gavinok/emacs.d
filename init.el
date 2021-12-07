@@ -393,11 +393,6 @@
   (setenv "TERM" "xterm-256color"))
 
 ;;; LANGS
-(use-package fennel-mode
-  :mode "\\.fnl\\'")
-(use-package racket-mode
-  :mode "\\.rkt\\'")
-
 ;; (progn
 ;;   (use-package flycheck)
 ;;   (use-package yasnippet :config (yas-global-mode))
