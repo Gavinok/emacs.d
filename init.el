@@ -209,20 +209,20 @@
   ;; Note that M-sn is used for searghing ang
   (use-package consult
     :defer t
-    :bind (("C-c l"     . consult-line)
-           ("C-c L"     . consult-line-multi)
-           ("C-c i"     . consult-imenu)
-           ("C-c o"     . consult-outline)
-           ("C-x b"     . consult-buffer)
+    :bind (("C-c l"       . consult-line)
+           ("C-c L"       . consult-line-multi)
+           ("C-c i"       . consult-imenu)
+           ("C-c o"       . consult-outline)
+           ("C-x b"       . consult-buffer)
            ("C-x C-k C-k" . consult-kmacro)
            ;; Used with clipmon makes emacs act as a
            ;; Clipboard Manager
-           ("M-y" . consult-yank-pop)
-           ("M-g g" . consult-goto-line)
-           ("M-g M-g" . consult-goto-line)
-           ("C-x C-SPC" . consult-mark)
-           ("C-x M-:" . consult-complex-command)
-           ("C-c n" . consult-org-agenda))
+           ("M-y"         . consult-yank-pop)
+           ("M-g g"       . consult-goto-line)
+           ("M-g M-g"     . consult-goto-line)
+           ("C-x C-SPC"   . consult-global-mark)
+           ("C-x M-:"     . consult-complex-command)
+           ("C-c n"       . consult-org-agenda))
     :custom
     (completion-in-region-function #'consult-completion-in-region)
     :config
