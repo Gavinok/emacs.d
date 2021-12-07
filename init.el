@@ -894,21 +894,6 @@ Containing LEFT, and RIGHT aligned respectively."
 ;;; EXWM
 ;; (load "~/.emacs.d/lisp/exwm-config.el")
 
-;; (use-package websocket
-;;   :ensure t)
-;; (use-package obs-websocket
-;;   :ensure nil
-;;   :load-path "~/.emacs.d/lisp/obs-websocket.el/obs-websocket.el"
-;;   :config
-;;   (defun obs-sel-scene (&optional arg)
-;;     (interactive)
-;;     (unless obs-websocket
-;;       (obs-websocket-connect))
-;;     (let ((scene (completing-read "Select OBS Command"
-;;                                   '("Intermission"
-;;                                     "Desktop"))))
-;;       (obs-websocket-send "SetCurrentScene" :scene-name scene))))
-
 (use-package keycast
   :ensure t
   :commands (keycast-mode)
@@ -950,7 +935,8 @@ Containing LEFT, and RIGHT aligned respectively."
 (require 'quelpa-use-package)
 ;; Install `plz' HTTP library (not on MELPA yet).
 (use-package plz
-    :quelpa (plz :fetcher github :repo "alphapapa/plz.el"))
+  :quelpa (plz :fetcher github :repo "alphapapa/plz.el")
+  :after ement)
 ;; Install Ement.
 (use-package ement
   :commands (ement-connect)
@@ -959,18 +945,39 @@ Containing LEFT, and RIGHT aligned respectively."
   (setq ement-room-sender-headers t
         ement-room-retro-loading t))
 
+(use-package obs-websocket
+  :ensure nil
+  :quelpa (obs-websocket :fetcher github :repo "sachac/obs-websocket-el")
+  :commands (obs-sel-scene)
+  :config
+  (use-package websocket :ensure t)
+  (defun obs-sel-scene (&optional arg)
+    (interactive)
+    (unless obs-websocket
+      (obs-websocket-connect))
+    (let ((scene (completing-read "Select OBS Command"
+                                  '("Intermission"
+                                    "Desktop"))))
+      (obs-websocket-send "SetCurrentScene" :scene-name scene))))
+
+;; Connect To Slime
+;; set output path
+;; NEWPATH=/tmp/nothere && sed -i -e "s|FilePath=.*|FilePath=$NEWPATH|" ~/.config/obs-studio/basic/profiles/Untitled/basic.ini
+;; Start obs
+;; Set display to intermission
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-   '("37768a79b479684b0756dec7c0fc7652082910c37d8863c35b702db3f16000f8" "3e200d49451ec4b8baa068c989e7fba2a97646091fd555eca0ee5a1386d56077" "7f1d414afda803f3244c6fb4c2c64bea44dac040ed3731ec9d75275b9e831fe5" "51ec7bfa54adf5fff5d466248ea6431097f5a18224788d0bd7eb1257a4f7b773" "d89e15a34261019eec9072575d8a924185c27d3da64899905f8548cbd9491a36" "3a9f65e0004068ecf4cf31f4e68ba49af56993c20258f3a49e06638c825fbfb6" default))
+   '("aca70b555c57572be1b4e4cec57bc0445dcb24920b12fb1fea5f6baa7f2cad02" "36ca8f60565af20ef4f30783aa16a26d96c02df7b4e54e9900a5138fb33808da" "37768a79b479684b0756dec7c0fc7652082910c37d8863c35b702db3f16000f8" "3e200d49451ec4b8baa068c989e7fba2a97646091fd555eca0ee5a1386d56077" "7f1d414afda803f3244c6fb4c2c64bea44dac040ed3731ec9d75275b9e831fe5" "51ec7bfa54adf5fff5d466248ea6431097f5a18224788d0bd7eb1257a4f7b773" "d89e15a34261019eec9072575d8a924185c27d3da64899905f8548cbd9491a36" "3a9f65e0004068ecf4cf31f4e68ba49af56993c20258f3a49e06638c825fbfb6" default))
  '(jumplist-hook-commands
    '(consult-line consult-line-multi consult-grep consult-ripgrep consult-outline affe-find affe-grep dired-jump isearch-forward end-of-buffer beginning-of-buffer find-file))
  '(org-agenda-files nil)
  '(package-selected-packages
-   '(stumpwm-mode iceberg-theme csv-mode dogears eglot plain-org-wiki phi-search visual-regexp kakoune ement plz websocket websockets popper yasnippet flycheck evil-terminal-cursor-changer vdiff perspective ob-async kubel groovy-mode consult-lsp lsp-java lsp-ui hydra lsp-mode projectile evil-lion evil-surround evil-commentary evil-collection evil jest-test-mode typescript-mode jest markdown-mode centered-window cheat-sh dot-mode ob-elm ob-hy ob-rust hl-todo rainbow-delimiters modus-operandi-theme all-the-icons-dired highlight-indent-guides typing-game c-c-combo corfu xah-fly-keys academic-phrases selected system-packages goto-chg writegood-mode which-key vterm vlf vimrc-mode vertico undo-fu-session undo-fu ujelly-theme tree-sitter-langs transmission rainbow-mode racket-mode quelpa-use-package pdf-tools pcre2el password-store outline-minor-faces org-superstar org-roam org-plus-contrib org-mime org-download org-alert orderless multiple-cursors modus-themes message-attachment-reminder marginalia magit lua-mode keycast jumplist god-mode flyspell-correct fish-completion fennel-mode expand-region esh-autosuggest epc eaf diff-hl dashboard crux bicycle beacon all-the-icons affe))
+   '(phi-rectangle meow moew vertico-posframe geiser-chez nano-modeline nano-theme ample-theme obs-websocket sly cape csv-mode dogears eglot plain-org-wiki phi-search visual-regexp kakoune ement plz websocket websockets popper yasnippet flycheck evil-terminal-cursor-changer vdiff perspective ob-async kubel groovy-mode consult-lsp lsp-java lsp-ui hydra lsp-mode projectile evil-lion evil-surround evil-commentary evil-collection evil jest-test-mode typescript-mode jest markdown-mode centered-window cheat-sh dot-mode ob-elm ob-hy ob-rust hl-todo rainbow-delimiters modus-operandi-theme all-the-icons-dired highlight-indent-guides typing-game c-c-combo corfu xah-fly-keys academic-phrases selected system-packages goto-chg writegood-mode which-key vterm vlf vimrc-mode vertico undo-fu-session undo-fu ujelly-theme tree-sitter-langs transmission rainbow-mode racket-mode quelpa-use-package pdf-tools pcre2el password-store outline-minor-faces org-superstar org-roam org-plus-contrib org-mime org-download org-alert orderless multiple-cursors modus-themes message-attachment-reminder marginalia magit lua-mode keycast jumplist god-mode flyspell-correct fish-completion fennel-mode expand-region esh-autosuggest epc eaf diff-hl dashboard crux bicycle beacon all-the-icons affe))
  '(persp-mode t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
