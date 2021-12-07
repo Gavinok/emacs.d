@@ -409,10 +409,12 @@
 ;;   (use-package dap-mode :after lsp-mode :config (dap-auto-configure-mode))
 ;;   (use-package dap-java :ensure nil))
 
+(use-package eglot
+  :ensure t
+  :commands (eglot))
 (use-package haskell-mode
   :ensure t
   :mode "\\.hs\\'")
-
 (use-package rust-mode
   :ensure t
   :mode "\\.rs\\'")
