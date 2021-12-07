@@ -103,9 +103,6 @@
 (use-package undo-fu-session
   :ensure t
   :after undo-fu
-  :init
-  (global-unset-key (kbd "C-/"))
-  (global-undo-fu-session-mode))
 
 (use-package evil
   :ensure t
