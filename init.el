@@ -723,17 +723,6 @@
   :config
   (require 'shrface))
 
-(use-package nov
-  :ensure t
-  :defer t
-  :init
-  (add-hook 'nov-mode-hook #'shrface-mode)
-  :config
-  (require 'shrface)
-  (setq nov-shr-rendering-functions '((img . nov-render-img) (title . nov-render-title)))
-  (setq nov-shr-rendering-functions (append nov-shr-rendering-functions shr-external-rendering-functions)))
-
-
 ;;;; Setup Folding For Programming
 (use-package prog-mode
   :ensure nil
