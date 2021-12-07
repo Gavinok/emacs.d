@@ -458,8 +458,8 @@
 
 ;;; COMPILATION
 (use-package compile
-  :bind ("C-x M-m" . compile)
-  :bind ("C-x C-m" . recompile)
+  :bind (("C-x M-m" . compile)
+         ("C-x C-m" . recompile))
   :config
   (setq compilation-scroll-output t)
   (require 'ansi-color)
