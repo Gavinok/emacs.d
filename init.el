@@ -103,65 +103,7 @@
 (use-package undo-fu-session
   :ensure t
   :after undo-fu
-
-(use-package evil
-  :ensure t
-  :demand t
-  :bind (("<escape>" . keyboard-escape-quit)
-         :map evil-normal-state-map
-         ;; vim vinigar style
-         ("-"  . (lambda () (interactive)
-                   (dired ".")))
-         ("C-s" . consult-line)
-         ;; Better lisp bindings
-         ("(" . evil-previous-open-paren)
-         (")" . evil-next-close-paren)
-         ("<leader>/" . evil-ex-nohighlight)
-         :map evil-operator-state-map
-         ("(" . evil-previous-open-paren)
-         (")" . evil-previous-close-paren))
-  :init
-  (setq evil-search-module 'evil-search)
-  (setq evil-want-keybinding nil)
-  ;; no vim insert bindings
-  (setq evil-disable-insert-state-bindings t)
-  (setq evil-want-Y-yank-to-eol t)
-  (setq evil-split-window-below t)
-  (setq evil-split-window-right t)
-  (setq evil-undo-system 'undo-fu)
-  :config
-  (evil-mode 1)
-  (evil-set-leader 'normal " "))
-
-(use-package evil-collection
-  :ensure t
-  :config
-  (setq evil-want-integration t)
-  (evil-collection-init)
-  ;; Dired
-  (evil-collection-define-key 'normal 'dired-mode-map
-    "-" 'dired-up-directory)
-  (evil-collection-define-key 'normal 'eww-mode-map
-    "<tab>" 'shrface-outline-cycle)
-  (evil-collection-define-key 'normal 'eww-mode-map
-    "<backtab>" 'shrface-outline-cycle-buffer))
-
-;; Enable Commentary
-(use-package evil-commentary
-  :ensure t
-  :after evil
-  :bind (:map evil-normal-state-map
-              ("gc" . evil-commentary)))
-
-;; Enable Surround
-(use-package evil-surround
-  :config
-  (global-evil-surround-mode 1))
-
-;; Enable Lion
-(use-package evil-lion
-  :bind (:map evil-normal-state-map
-              ("gl" . evil-lion-left)))
+  :init (global-undo-fu-session-mode))
 
 ;;; TERMINAL SETTINGS
 (when gv/is-terminal
