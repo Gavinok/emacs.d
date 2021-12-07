@@ -49,14 +49,6 @@
     nil)
   "non-nil value if this is my system")
 
-(defun gv/backward-whitespace ()
-    "like forward-whitespace but backwards"
-    (interactive)
-    ;; emulate C-u
-    (let ((current-prefix-arg -1))
-      ;; invoke forward-whitespace interactively
-      (call-interactively 'forward-whitespace)))
-
 ;; Text to speach script integratoin
 (bind-key (kbd "C-x C-M-;")  #'gv/read)
 (defun gv/read (&optional ARGS)
