@@ -646,6 +646,7 @@
         auto-save-default nil
         inhibit-startup-screen t
         ring-bell-function 'ignore)
+  (setq global-mark-ring-max 100)
 ;;;; UTF-8
   (prefer-coding-system 'utf-8)
   (setq locale-coding-system 'utf-8)
