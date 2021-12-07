@@ -760,8 +760,7 @@
 
 ;;;; Display hex colors in emacs
 (use-package rainbow-mode
-  :defer t
-  :commands (rainbow-mode))
+  :defer t :commands (rainbow-mode))
 
 ;;; DIRED
 (use-package dired
