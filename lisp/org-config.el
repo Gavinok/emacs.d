@@ -126,6 +126,15 @@
   (setq-default org-download-screenshot-method "gnome-screenshot -a -f %s")
   (setq-default org-download-image-dir "./pic"))
 
+;;; Xournal support in emacs
+(use-package org-xournalpp
+  :ensure t
+  :quelpa (org-xournalpp :fetcher gitlab :repo "vherrmann/org-xournalpp" :files ("*.el" "resources"))
+  :bind ("C-c x" . org-xournalpp-insert-new-image)
+  :config
+  (add-hook 'org-mode-hook 'org-xournalpp-mode))
+
+
 ;; (use-package plain-org-wiki
 ;;   :bind ("C-c C-x C-m" . plain-org-wiki)
 ;;   :init
