@@ -221,10 +221,17 @@
            ("M-g M-g"     . consult-goto-line)
            ("C-x C-SPC"   . consult-global-mark)
            ("C-x M-:"     . consult-complex-command)
-           ("C-c n"       . consult-org-agenda))
+           ("C-c n"       . consult-org-agenda)
+           ("C-c f"       . consult-find)
+           ("C-c g"       . consult-ripgrep)
+           ("C-c S-n"     . gv/notegrep))
     :custom
     (completion-in-region-function #'consult-completion-in-region)
     :config
+    (defun gv/notegrep ()
+      "Use interactive grepping to search my notes"
+      (interactive)
+      (consult-ripgrep org-directory))
     (add-hook 'completion-setup-hook #'hl-line-mode)
     (setq recentf-make-menu-items 150
           recentf-make-saved-items 150)
@@ -239,14 +246,10 @@
 ;;;; Fuzzy Finding
   (use-package affe
     :bind (("C-c f" . affe-find)
-           ("C-c g" . affe-grep)
-           ("C-c S-n" . gv/notegrep))
+           ("C-c g" . affe-grep))
     :commands (affe-grep affe-find)
     :config
-    (defun gv/notegrep ()
-      "Use interactive grepping to search my notes"
-      (interactive)
-      (affe-grep org-directory))
+
     ;; Only exclude git files
     (if (executable-find "fd")
         (setq affe-find-command "fd --hidden")
@@ -276,15 +279,7 @@
   :init
   ;; Optionally replace the key help with a completing-read interface
   (setq prefix-help-command #'embark-prefix-help-command)
-  (setq embark-prompter 'embark-completing-read-prompter)
-
-  :config
-  ;; Hide the mode line of the Embark live/completions buffers
-  ;; (add-to-list 'display-buffer-alist
-  ;;              '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-  ;;                nil
-  ;;                (window-parameters (mode-line-format . none))))
-  )
+  (setq embark-prompter 'embark-completing-read-prompter))
 
 
 ;; Consult users will also want the embark-consult package.
@@ -297,30 +292,38 @@
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 ;;; THEMEING
-(use-package ujelly-theme
+;; (use-package ujelly-theme
+;;   :config
+;;   (load-theme 'ujelly t)
+;;   (global-hl-line-mode t)
+;;   (set-face-background hl-line-face "#111")
+;;   (when gv/my-system
+;;     (set-frame-parameter (selected-frame) 'alpha '(100 100))
+;;     (add-to-list 'default-frame-alist '(alpha 100 100)))
+;;   (set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
+;;   (set-face-attribute 'default nil :background "#000" :foreground "#eee")
+;;   (set-face-attribute 'mode-line nil
+;;                       :box '(:line-width 10 :color "#000"))
+;;   (set-face-attribute 'mode-line-inactive nil
+;;                       :box '(:line-width 10 :color "#000"))
+;;   (set-face-attribute 'mode-line nil
+;;                       :background  "#0F0F0F")
+;;   ;; vertical padding
+;;   (setq-default header-line-format " "))
+
+(use-package modus-themes
   :config
-  (load-theme 'ujelly t)
-  (global-hl-line-mode t)
-  (set-face-background hl-line-face "#111")
-  (when gv/my-system
-    (set-frame-parameter (selected-frame) 'alpha '(100 100))
-    (add-to-list 'default-frame-alist '(alpha 100 100)))
-  (set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
-  (set-face-attribute 'default nil :background "#000" :foreground "#eee")
-  (set-face-attribute 'mode-line nil
-                      :box '(:line-width 10 :color "#000"))
-  (set-face-attribute 'mode-line-inactive nil
-                      :box '(:line-width 10 :color "#000"))
-  (set-face-attribute 'mode-line nil
-                      :background  "#0F0F0F")
-
-  ;; vertical padding
-  (setq-default header-line-format " "))
-
+  (modus-themes-load-vivendi)
+  (global-hl-line-mode t))
 
 ;;; WRITING
 (use-package writegood-mode
   :hook (flyspell-mode . writegood-mode))
+(use-package flymake-grammarly
+  :commands flymake-grammarly-load
+  :init (setq flyspell-use-meta-tab nil)
+  :config
+  (add-hook 'flyspell-mode-hook 'flymake-grammarly-load))
 
 (use-package flyspell-correct
   :bind ("C-c DEL" . flyspell-correct-previous)
@@ -371,7 +374,9 @@
   (add-hook 'eshell-mode-hook
             (lambda ()
               (eshell/alias "e" "find-file $1")
-              (eshell/alias "ee" "find-file-other-window $1"))))
+              (eshell/alias "ee" "find-file-other-window $1")
+              (eshell/alias "v" "view-file $1")
+              (eshell/alias "o" "consult-file-externally $1"))))
 
 (use-package fish-completion
   :hook eshell-mode
@@ -427,6 +432,7 @@
   ;; Cannot use :init (must use :config) because otherwise
   ;; project-find-functions is not yet initialized.
   :ensure nil
+  :demand t
   :config
   ;; Optionally configure a function which returns the project root directory.
   ;; There are multiple reasonable alternatives to chose from.
@@ -516,6 +522,7 @@
 (use-package isearch
   :ensure nil
   :bind (("C-s" . isearch-forward)
+         ("M-s M-%" . isearch-query-replace)
          ("C-r" . isearch-backward))
   :config
   (defun isearch-save-and-exit ()
@@ -562,9 +569,12 @@
           "\\*Warnings\\*"
           "\\*xref\\*"
           "\\*Backtrace\\*"
+          "\\*eldoc\\*"
           "^*sly"
+          "\\*Ement Notifications\\*"
           "Output\\*$"
           "\\*Async Shell Command\\*"
+          "\\*mu4e-update\\*"
           help-mode
           compilation-mode))
   ;; (setq popper-group-function #'popper-group-by-perspective)
@@ -580,7 +590,8 @@
          ("M-c"     . capitalize-dwim)
          ("M-u"     . upcase-dwim)
          ("M-l"     . downcase-dwim)
-         ("M-f"     . sim-vi-w))
+         ("M-f"     . sim-vi-w)
+         ("M-z"     . zap-up-to-char))
   :config
   ;; set the title of the frame to the current file - Emacs
   (setq-default frame-title-format '("%b - Emacs"))
@@ -636,13 +647,13 @@
         backup-by-copying t)
 ;;;; Defaults
   ;; Cursor Shape
-  (setq-default cursor-type 'bar)
+  ;; (setq-default cursor-type 'bar)
   (setq delete-by-moving-to-trash t
         create-lockfiles nil
         auto-save-default nil
         inhibit-startup-screen t
         ring-bell-function 'ignore)
-  (setq global-mark-ring-max 100)
+
 ;;;; UTF-8
   (prefer-coding-system 'utf-8)
   (setq locale-coding-system 'utf-8)
@@ -662,13 +673,49 @@
   (setq x-select-enable-primary t) ; use primary as clipboard in emacs
   ;; avoid leaving a gap between the frame and the screen
   (setq-default frame-resize-pixelwise t)
-;;;; Vim like scrolling
+
+  ;; Vim like scrolling
   (setq scroll-step            1
         scroll-conservatively  10000)
   (setq next-screen-context-lines 5)
   ;; move by logical lines rather than visual lines (better for macros)
   (setq line-move-visual nil)
-  (fringe-mode))
+  (fringe-mode)
+
+  ;;TRAMP
+  (setq tramp-default-method "ssh")
+
+  ;; Unify Marks
+  (setq global-mark-ring-max 256)
+  (setq set-mark-command-repeat-pop 256)
+  (defun push-mark (&optional location nomsg activate)
+    "Set mark at LOCATION (point, by default) and push old mark on mark ring.
+If the last global mark pushed was not in the current buffer,
+also push LOCATION on the global mark ring.
+Display `Mark set' unless the optional second arg NOMSG is non-nil.
+
+Novice Emacs Lisp programmers often try to use the mark for the wrong
+purposes.  See the documentation of `set-mark' for more information.
+
+In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
+    (when (mark t)
+      (let ((old (nth mark-ring-max mark-ring))
+            (history-delete-duplicates nil))
+        (add-to-history 'mark-ring (copy-marker (mark-marker)) mark-ring-max t)
+        (when old
+          (set-marker old nil))))
+    (set-marker (mark-marker) (or location (point)) (current-buffer))
+    (let ((old (nth global-mark-ring-max global-mark-ring))
+          (history-delete-duplicates nil))
+      (add-to-history
+       'global-mark-ring (copy-marker (mark-marker)) global-mark-ring-max t)
+      (when old
+        (set-marker old nil)))
+    (or nomsg executing-kbd-macro (> (minibuffer-depth) 0)
+        (message "Mark set"))
+    (if (or activate (not transient-mark-mode))
+        (set-mark (mark t)))
+    nil))
 
 (use-package autorevert
   :ensure nil
@@ -958,6 +1005,36 @@ Containing LEFT, and RIGHT aligned respectively."
                                   '("Intermission"
                                     "Desktop"))))
       (obs-websocket-send "SetCurrentScene" :scene-name scene))))
+
+;;; Xournal support in org files
+(use-package org-xournalpp
+  :ensure t
+  :quelpa (org-xournalpp :fetcher gitlab :repo "vherrmann/org-xournalpp" :files ("*.el" "resources"))
+  :bind ("C-c x" . org-xournalpp-insert-new-image)
+  :config
+  (add-hook 'org-mode-hook 'org-xournalpp-mode))
+
+(use-package project-x
+  :quelpa (project-x :fetcher github :repo "karthink/project-x")
+  :after project
+  :config
+  (setq project-x-save-interval 600)    ;Save project state every 10 min
+  (project-x-mode 1)
+  (setq project-x-local-identifier
+        '(".git" "package.json" "mix.exs" "Project.toml" ".project")))
+(use-package eglot-java
+  :ensure nil
+  :quelpa (eglot-java :fetcher github :repo "yveszoundi/eglot-java")
+  :after eglot
+  :config
+  (eglot-java-init))
+;; WIP
+;; (defvar my/slime-nyxt-delay "3")
+;; (defun nyxt-start-slynk (&optional arg)
+;;     (interactive)
+;;   (async-shell-command (format "nyxt -r -e \"(start-slynk)\""))
+;;   (sleep-for my/slime-nyxt-delay)
+;;   (sly-connect "localhost" "1984"))
 
 ;; Connect To Slime
 ;; set output path

@@ -4,12 +4,17 @@
   (setq org-directory "~/Documents/org"))
 
 ;;; ORG
+(use-package org-contrib
+  :after org)
 (use-package org
-  :ensure org-plus-contrib
+  :pin nongnu
+  ;; :ensure org-contrib
   :commands (org-capture org-agenda)
   :bind (("C-c y" . org-store-link)
          ("C-c c" . org-capture)
-         ("C-c a" . org-agenda))
+         ("C-c a" . org-agenda)
+         :map org-mode-map
+         ("C-M-i" . completion-at-point))
   :config
   (add-hook 'org-mode-hook (lambda () (setq indent-tabs-mode nil)))
 ;;;; Archive Completed Tasks
@@ -112,12 +117,6 @@
   ;;   (set-face-attribute (car face) nil :font "Terminus" :weight 'medium :height (cdr face)))
   (set-face-attribute 'org-block nil :background "#101010"))
 
-;; (use-package org-notify
-;;   :ensure nil
-;;   :after org
-;;   :config
-;;   (org-notify-start))
-
 ;;;; Drag And Drop
 (use-package org-download
   :bind ("C-c i" . org-download-screenshot)
@@ -125,15 +124,6 @@
   :init
   (setq-default org-download-screenshot-method "gnome-screenshot -a -f %s")
   (setq-default org-download-image-dir "./pic"))
-
-;;; Xournal support in emacs
-(use-package org-xournalpp
-  :ensure t
-  :quelpa (org-xournalpp :fetcher gitlab :repo "vherrmann/org-xournalpp" :files ("*.el" "resources"))
-  :bind ("C-c x" . org-xournalpp-insert-new-image)
-  :config
-  (add-hook 'org-mode-hook 'org-xournalpp-mode))
-
 
 ;; (use-package plain-org-wiki
 ;;   :bind ("C-c C-x C-m" . plain-org-wiki)
