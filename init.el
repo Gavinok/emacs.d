@@ -329,14 +329,78 @@
   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
   (diff-hl-flydiff-mode))
 ;;; As You Type Completion
-(use-package company
-  :defer 3
+;; (use-package company
+;;   :defer 3
+;;   :config
+;;   (global-company-mode nil)
+;;   (setq company-idle-delay 0.1
+;;         company-minimum-prefix-length 1)
+;;   ;; tab and go mode
+;;   (company-tng-mode))
+
+;; Enable Corfu completion UI
+;; See the Corfu README for more configuration tips.
+(use-package corfu
+  ;; Optional customizations
+  :custom
+  ;; (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
+  ;; (corfu-auto t)                 ;; Enable auto completion
+  ;; (corfu-auto-prefix 1)                 ;; Enable auto completion
+  ;; (corfu-auto-delay 0.1)                 ;; Enable auto completion
+  (corfu-echo-documentation 0.25)                 ;; Enable auto completion
+  ;; (corfu-commit-predicate nil)   ;; Do not commit selected candidates on next input
+  ;; (corfu-quit-at-boundary t)     ;; Automatically quit at word boundary
+  (corfu-quit-no-match t)        ;; Automatically quit if there is no match
+  ;; (corfu-echo-documentation nil) ;; Do not show documentation in the echo area
+  ;; (corfu-scroll-margin 5)        ;; Use scroll margin
+  ;; (corfu-preview-current nil)    ;; Do not preview current candidate
+
+  ;; Optionally use TAB for cycling, default is `corfu-complete'.
+  :bind (:map corfu-map
+         ("TAB" . corfu-next)
+         ([tab] . corfu-next)
+         ("S-TAB" . corfu-previous)
+         ([backtab] . corfu-previous)
+         ( "C-f" . corfu-insert))
+  ;; You may want to enable Corfu only for certain modes.
+  ;; :hook ((prog-mode . corfu-mode)
+  ;;        (shell-mode . corfu-mode)
+  ;;        (eshell-mode . corfu-mode))
+
+  ;; Recommended: Enable Corfu globally.
+  ;; This is recommended since dabbrev can be used globally (M-/).
+  :init
+  (corfu-global-mode))
+
+;; Add extensions
+(use-package cape
+  ;; Bind dedicated completion commands
+  :bind (("S-SPC o" . completion-at-point) ;; capf
+         ("S-SPC t" . complete-tag)        ;; etags
+         ("S-SPC f" . cape-file)
+         ("S-SPC k" . cape-keyword)
+         ("S-SPC s" . cape-symbol)
+         ("S-SPC a" . cape-abbrev)
+         ("S-SPC l" . cape-abbrev)
+         ("S-SPC i" . cape-ispell)
+         ("S-SPC w" . cape-dict)
+         ("S-SPC p" . (lambda (&optional)
+                    (interactive)
+                    (let ((dabbrev-backward-only t))
+                    (dabbrev-completion nil)))))
+
+  :init
+  ;; Add `completion-at-point-functions', used by `completion-at-point'.
+  (add-to-list 'completion-at-point-functions #'cape-file-capf)
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev-capf)
+  (add-to-list 'completion-at-point-functions #'cape-keyword-capf)
+  (add-to-list 'completion-at-point-functions #'cape-symbol)
+  ;;(add-to-list 'completion-at-point-functions #'cape-abbrev-capf)
+  ;;(add-to-list 'completion-at-point-functions #'cape-ispell-capf)
+  ;;(add-to-list 'completion-at-point-functions #'cape-dict-capf)
   :config
-  (global-company-mode nil)
-  (setq company-idle-delay 0.1
-        company-minimum-prefix-length 1)
-  ;; tab and go mode
-  (company-tng-mode))
+  (setq tab-always-indent 'complete)
+  (setq dabbrev-upcase-means-case-search t))
 
 ;;; VTERM AND ESHELL
 (use-package vterm
