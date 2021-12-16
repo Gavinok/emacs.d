@@ -1034,7 +1034,10 @@ Containing LEFT, and RIGHT aligned respectively."
   :quelpa (ement :fetcher github :repo "alphapapa/ement.el")
   :init
   (setq ement-room-sender-headers t
-        ement-room-retro-loading t))
+        ement-room-retro-loading t)
+  :config
+  (setf use-default-font-for-symbols nil)
+  (set-fontset-font t 'unicode "Noto Emoji" nil 'append))
 
 (use-package obs-websocket
   :ensure nil
