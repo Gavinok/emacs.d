@@ -372,6 +372,11 @@
   :init
   (corfu-global-mode))
 
+(use-package eldoc-box
+  :after eldoc
+  :config
+  (add-hook 'eldoc-mode-hook #'eldoc-box-hover-at-point-mode 1))
+
 ;; Add extensions
 (use-package cape
   ;; Bind dedicated completion commands
