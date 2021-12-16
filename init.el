@@ -674,7 +674,8 @@
      #b01000000
      #b10000000
      #b10000000])
-  (set-frame-font "Terminus 14" nil t)
+  (when gv/my-system
+    (set-frame-font "Terminus 14" nil t))
 ;;;; Backups
   (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
         vc-make-backup-files t
