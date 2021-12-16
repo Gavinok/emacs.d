@@ -424,10 +424,20 @@
               (eshell/alias "v" "view-file $1")
               (eshell/alias "o" "consult-file-externally $1"))))
 
-(use-package fish-completion
-  :hook eshell-mode
-  :when (executable-find "fish")
-  :config (global-fish-completion-mode))
+(use-package eshell
+  :commands eshell
+  :config
+  (add-to-list 'eshell-visual-commands '("htop" "top"))
+  (add-to-list 'eshell-visual-commands '("git" "log" "diff" "show" "less"))
+  (add-to-list 'eshell-visual-options '("git" "--help"))
+  (setenv "PAGER" "cat")
+  (setq eshell-destroy-buffer-when-process-dies t)
+  )
+
+;; (use-package fish-completion
+;;   :when (executable-find "fish")
+;;   :hook eshell-mode
+;;   :init (global-fish-completion-mode))
 
 ;; More accureate color representation than ansi-color.el
 (use-package xterm-color
