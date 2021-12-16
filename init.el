@@ -542,7 +542,6 @@
           "\\*mu4e-update\\*"
           help-mode
           compilation-mode))
-  ;; (setq popper-group-function #'popper-group-by-perspective)
   (popper-mode +1))
 
 ;;; DEFAULTS
@@ -877,11 +876,17 @@ Containing LEFT, and RIGHT aligned respectively."
 ; annotate pdfs with c-c c-a
 ; hl with c-c c-a h
 ; for help M-x pdf-tools-help RET
-;; (use-package pdf-tools
-;;   :mode "\\.pdf\\'"
-;;   :config
-;;   ;; pdf auto refresh
-;;   (add-hook 'doc-view-mode-hook 'auto-revert-mode))
+(use-package pdf-tools
+  :defer t
+  :commands (pdf-view-mode pdf-tools-install)
+  :mode ("\\.[pP][dD][fF]\\'" . pdf-view-mode)
+  :magic ("%PDF" . pdf-view-mode)
+  :config
+  (pdf-tools-install)
+  (define-pdf-cache-function pagelabels)
+  ;; pdf auto refresh
+  ;; (add-hook 'doc-view-mode-hook 'auto-revert-mode)
+  )
 
 ;;;; Torrents
 (use-package transmission
