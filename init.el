@@ -379,23 +379,6 @@
         (remove 'eshell-handle-ansi-color eshell-output-filter-functions))
   (setenv "TERM" "xterm-256color"))
 
-;;; LANGS
-;; (progn
-;;   (use-package flycheck)
-;;   (use-package yasnippet :config (yas-global-mode))
-;;   (use-package lsp-mode :hook ((lsp-mode . lsp-enable-which-key-integration))
-;;     :config (setq lsp-completion-enable-additional-text-edit nil))
-;;   (use-package lsp-ui)
-;;   ;; Ensure java 11 is installed
-;;   (use-package lsp-java
-;;     :init
-;;     ;; current VSCode defaults
-;;     (setq lsp-java-vmargs
-;;     '("-XX:+UseParallelGC" "-XX:GCTimeRatio=4" "-XX:AdaptiveSizePolicyWeight=90" "-Dsun.zip.disableMemoryMapping=true" "-Xmx2G" "-Xms100m"))
-;;     :config (add-hook 'java-mode-hook 'lsp))
-;;   (use-package dap-mode :after lsp-mode :config (dap-auto-configure-mode))
-;;   (use-package dap-java :ensure nil))
-
 (use-package eglot
   :ensure t
   :commands (eglot))
