@@ -460,7 +460,16 @@
 
 (use-package eglot
   :ensure t
-  :commands (eglot))
+  :hook (;; Whatever works
+         (c-mode          . eglot-ensure)
+         ;; M-x package-install eglot-java
+         (java-mode       . eglot-ensure)
+         ;; npm install -g typescript-language-server
+         (typescript-mode . eglot-ensure)
+         ;; pip install --user 'python-language-server[all]' -U
+         (python-mode . eglot-ensure))
+  :commands (eglot eglot-ensure))
+
 (use-package haskell-mode
   :ensure t
   :mode "\\.hs\\'")
