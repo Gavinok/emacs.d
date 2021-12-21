@@ -610,6 +610,7 @@
           "\\*xref\\*"
           "\\*Backtrace\\*"
           "\\*eldoc\\*"
+          "^*tex"
           "^*sly"
           "\\*Ement Notifications\\*"
           "Output\\*$"
