@@ -180,6 +180,10 @@
   (defadvice align-regexp (around align-regexp-with-spaces activate)
     (let ((indent-tabs-mode nil))
       ad-do-it)))
+(use-package easy-kill
+  :ensure t
+  :bind (([remap kill-ring-save] . 'easy-kill)))
+
 ;;; COMPLETION
 (use-package vertico
   :init
