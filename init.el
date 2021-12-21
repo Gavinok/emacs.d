@@ -493,17 +493,6 @@
           (when-let (project (project-current))
             (car (project-roots project)))))
 
-    (defun my/project-affe-grep (&optional arg)
-      "Use affe-grep instead of emacs's native grep with project.el"
-      (interactive)
-      (affe-grep (project-root (project-current t)) nil))
-  (defun my-git-project-finder (dir)
-    "Integrate .git project roots."
-    (let ((dotgit (and (setq dir (locate-dominating-file dir ".git"))
-		       (expand-file-name dir))))
-      (and dotgit
-	   (cons 'transient (file-name-directory dotgit)))))
-  (add-hook 'project-find-functions 'my-git-project-finder)
   (setq project-switch-commands
         '((project-find-file "Find file" f)
           (my/project-consult-ripgrep "Ripgrep" g)
