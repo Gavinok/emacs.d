@@ -215,8 +215,6 @@
       (interactive)
       (consult-ripgrep org-directory))
     (add-hook 'completion-setup-hook #'hl-line-mode)
-    (setq recentf-make-menu-items 150
-          recentf-make-saved-items 150)
     (recentf-mode t)
     (use-package marginalia
       :custom
@@ -737,6 +735,10 @@
 
   ;;TRAMP
   (setq tramp-default-method "ssh")
+
+  ;; recentf
+  (setq recentf-make-menu-items 150
+        recentf-make-saved-items 150)
 
   ;; Unify Marks
   (setq global-mark-ring-max 256)
