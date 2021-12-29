@@ -869,6 +869,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
          ("C-k"   . sp-kill-hybrid-sexp)
          ("M-k"   . sp-backward-kill-sexp)
          ("C-M-w" . sp-copy-sexp)
+         ("M-C"   . sp-clone-sexp)
          ("C-M-z" . sp-rewrap-sexp)
          ("M-["   . sp-splice-sexp)
          ("M-]"   . sp-split-sexp)
