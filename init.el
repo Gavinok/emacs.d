@@ -230,23 +230,6 @@
       (marginalia-mode)))
 
 ;;;; Fuzzy Finding
-  (use-package affe
-    :bind (("C-c f" . affe-find)
-           ("C-c g" . affe-grep))
-    :commands (affe-grep affe-find)
-    :config
-
-    ;; Only exclude git files
-    (if (executable-find "fd")
-        (setq affe-find-command "fd --hidden")
-      ;; else
-      (setq affe-find-command
-            (concat "find  "
-                   "-not -path '*/\\.nnn*' -not -path '*/\\.git*' "
-                   "-type f")))
-
-    ;; Manual preview key for `affe-grep'
-    (consult-customize affe-grep :preview-key (kbd "M-.")))
   (vertico-mode)
   :config
   ;; Do not allow the cursor in the minibuffer prompt
