@@ -5,7 +5,9 @@
 
 ;;; ORG
 (use-package org-contrib
-  :after org)
+  :after org
+  :config
+  (setq org-babel-clojure-backend 'cider))
 (use-package org
   :pin nongnu
   ;; :ensure org-contrib
