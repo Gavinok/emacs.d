@@ -819,13 +819,73 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :config
   (require 'shrface))
 
+(defmacro def-pairs (pairs)
+    "Define functions for pairing. PAIRS is an alist of (NAME . STRING)
+conses, where NAME is the function name that will be created and
+STRING is a single-character string that marks the opening character.
+
+  (def-pairs ((paren . \"(\")
+              (bracket . \"[\"))
+
+defines the functions WRAP-WITH-PAREN and WRAP-WITH-BRACKET,
+respectively."
+    `(progn
+       ,@(cl-loop for (key . val) in pairs
+               collect
+               `(defun ,(read (concat
+                               "wrap-with-"
+                               (prin1-to-string key)
+                               "s"))
+                    (&optional arg)
+                  (interactive "p")
+                  (sp-wrap-with-pair ,val)))))
+(def-pairs ((paren . "(")
+            (bracket . "[")
+            (brace . "{")
+            (single-quote . "'")
+            (double-quote . "\"")
+            (back-quote . "`")))
+(use-package smartparens
+  :hook (prog-mode . smartparens-strict-mode)
+  :bind (("C-c s" . smartparens-strict-mode)
+         :map smartparens-mode-map
+         ("M-(" . sp-beginning-of-sexp)
+         ("M-)" . sp-end-of-sexp)
+
+         ("C-M-d" . sp-down-sexp)
+         ("C-M-u"   . sp-backward-up-sexp)
+
+         ("C-M-f" . sp-forward-sexp)
+         ("C-M-b" . sp-backward-sexp)
+
+         ("C-M-n" . sp-next-sexp)
+         ("C-M-p" . sp-previous-sexp)
+
+         ("C-)"  . sp-forward-slurp-sexp)
+         ("C-}"  . sp-forward-barf-sexp)
+         ("C-("  . sp-backward-slurp-sexp)
+         ("C-{"  . sp-backward-barf-sexp)
+         ("C-M-j" . sp-join-sexp)
+         ("C-M-t" . sp-transpose-sexp)
+         ("C-M-k" . sp-kill-sexp)
+         ("C-k"   . sp-kill-hybrid-sexp)
+         ("M-k"   . sp-backward-kill-sexp)
+         ("C-M-w" . sp-copy-sexp)
+         ("M-<backspace>" . backward-kill-word)
+         ("C-<backspace>" . sp-backward-kill-word)
+         ([remap sp-backward-kill-word] . backward-kill-word)
+
+         ("C-M-z" .  sp-rewrap-sexp)
+         ("M-]" .  sp-unwrap-sexp)
+         ("M-[" .  sp-backward-unwrap-sexp))
+  :init
+  (setq sp-hybrid-kill-excessive-whitespace t))
 ;;;; Setup Folding For Programming
 (use-package prog-mode
   :ensure nil
   :config
   (add-hook 'prog-mode-hook (lambda ()
                               (setq show-trailing-whitespace t)))
-  (add-hook 'prog-mode-hook 'electric-pair-local-mode)
   (add-hook 'emacs-lisp-mode-hook 'prettify-symbols-mode)
 ;;;;; Smart Indentation
   (defun infer-indentation-style ()
