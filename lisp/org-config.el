@@ -49,7 +49,8 @@
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((haskell . t) (emacs-lisp . t) (shell . t)
-     (C . t) (lua . t) (dot . t) (java . t)))
+     (C . t) (lua . t) (dot . t) (java . t)
+     (lisp . t) (clojure . t)))
   (use-package ob-async
     :ensure t)
   (use-package ob-rust
