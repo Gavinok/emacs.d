@@ -1168,7 +1168,7 @@ Containing LEFT, and RIGHT aligned respectively."
   (setq project-x-save-interval 600)    ;Save project state every 10 min
   (project-x-mode 1)
   (setq project-x-local-identifier
-        '(".git" "package.json" "mix.exs" "Project.toml" ".project")))
+        '(".git" "package.clj" "package.json" "mix.exs" "Project.toml" ".project")))
 (use-package eglot-java
   :ensure nil
   :quelpa (eglot-java :fetcher github :repo "yveszoundi/eglot-java")
