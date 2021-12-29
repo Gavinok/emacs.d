@@ -126,32 +126,6 @@
          ("n" . next-line)
          ("p" . previous-line)))
 
-;; Smarter marking
-;; (defun activate-mark-hook@set-transient-map ()
-;;   (set-transient-map
-;;    (let ((map (make-sparse-keymap)))
-;;      (define-key map "c"  #'kill-region)
-;;      (define-key map "d"  #'kill-region)
-;;      (define-key map "k"  #'kill-region)
-;;      (define-key map "y"  #'kill-ring-save)
-;;      (define-key map "w"  #'kill-ring-save)
-;;      (define-key map "-"  #'er/contract-region)
-;;      (define-key map "\\" #'indent-region)
-;;      (define-key map "\\" #'indent-region)
-;;      (define-key map "e" #'er/expand-region)
-;;      (define-key map "DEL" #'er/contract-region)
-;;      (define-key map "w" #'er/mark-word)
-;;      (define-key map "s" #'er/mark-symbol)
-;;      (define-key map (kbd "a (") #'er/mark-outside-pairs)
-;;      (define-key map (kbd "a )") #'er/mark-outside-pairs)
-;;      (define-key map (kbd "a p") #'er/mark-outside-pairs)
-;;      (define-key map (kbd "i (") #'er/mark-inside-pairs)
-;;      (define-key map (kbd "i )") #'er/mark-inside-pairs)
-;;      (define-key map (kbd "i p") #'er/mark-inside-pairs)
-;;      map)
-;;    #'region-active-p))
-;; (add-hook 'activate-mark-hook #'activate-mark-hook@set-transient-map)
-
 (when (require 'auto-mark nil t)
   (setq auto-mark-command-class-alist
         '((anything . anything)
