@@ -846,6 +846,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :ensure t
   :hook (clojure-mode . flymake-kondor-setup))
 
+;;;; Setup Folding For Programming
 (use-package smartparens
   :hook (prog-mode . smartparens-strict-mode)
   :bind (("C-c s" . smartparens-strict-mode)
@@ -903,7 +904,11 @@ respectively."
               (single-quote . "'")
               (double-quote . "\"")
               (back-quote . "`"))))
-;;;; Setup Folding For Programming
+(use-package flymake
+  :ensure nil
+  :hook (prog-mode . (lambda () (flymake-mode t)))
+  :config
+  (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
 (use-package prog-mode
   :ensure nil
   :config
