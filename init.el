@@ -200,11 +200,13 @@
            ("C-c i"       . consult-imenu)
            ("C-x b"       . consult-buffer)
            ("C-x C-k C-k" . consult-kmacro)
-           ;; Used with clipmon makes emacs act as a
-           ;; Clipboard Manager
            ("M-y"         . consult-yank-pop)
            ("M-g g"       . consult-goto-line)
            ("M-g M-g"     . consult-goto-line)
+           ("M-g f"       . consult-flymake)
+           ("M-g i"       . consult-imenu)
+           ("M-s l"       . consult-line)
+           ("M-s L"       . consult-line-multi)
            ("C-x C-SPC"   . consult-global-mark)
            ("C-x M-:"     . consult-complex-command)
            ("C-c n"       . consult-org-agenda)
