@@ -834,6 +834,18 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
 (use-package rust-mode
   :ensure t
   :mode "\\.rs\\'")
+
+;;; Clojure
+(use-package clojure-mode
+  :ensure t
+  :mode "\\.clj\\'")
+(use-package cider :ensure t)
+(use-package flymake-kondor
+  ;; Install clj-kondo
+  ;; https://github.com/clj-kondo/clj-kondo/blob/master/doc/install.md
+  :ensure t
+  :hook (clojure-mode . flymake-kondor-setup))
+
 (use-package smartparens
   :hook (prog-mode . smartparens-strict-mode)
   :bind (("C-c s" . smartparens-strict-mode)
