@@ -39,7 +39,7 @@
 (defvar gv/is-termux
       (string-suffix-p
        "Android" (string-trim (shell-command-to-string "uname -a")))
-      "Truthy value indicating if emacs is currently running in termux")
+      "Truthy value indicating if Emacs is currently running in termux")
 (defvar gv/is-terminal
   (not (display-graphic-p))
   "Truthy value indicating if emacs is currently running in a terminal")
@@ -418,25 +418,6 @@
   (setq eshell-output-filter-functions
         (remove 'eshell-handle-ansi-color eshell-output-filter-functions))
   (setenv "TERM" "xterm-256color"))
-
-(use-package eglot
-  :ensure t
-  :hook (;; Whatever works
-         (c-mode          . eglot-ensure)
-         ;; M-x package-install eglot-java
-         (java-mode       . eglot-ensure)
-         ;; npm install -g typescript-language-server
-         (typescript-mode . eglot-ensure)
-         ;; pip install --user 'python-language-server[all]' -U
-         (python-mode . eglot-ensure))
-  :commands (eglot eglot-ensure))
-
-(use-package haskell-mode
-  :ensure t
-  :mode "\\.hs\\'")
-(use-package rust-mode
-  :ensure t
-  :mode "\\.rs\\'")
 
 ;; As the built-in project.el support expects to use vc-mode hooks to
 ;; find the root of projects we need to provide something equivalent
@@ -835,6 +816,24 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :config
   (require 'shrface))
 
+(use-package eglot
+  :ensure t
+  :hook (;; Whatever works
+         (c-mode          . eglot-ensure)
+         ;; M-x package-install eglot-java
+         (java-mode       . eglot-ensure)
+         ;; npm install -g typescript-language-server
+         (typescript-mode . eglot-ensure)
+         ;; pip install --user 'python-language-server[all]' -U
+         (python-mode . eglot-ensure))
+  :commands (eglot eglot-ensure))
+
+(use-package haskell-mode
+  :ensure t
+  :mode "\\.hs\\'")
+(use-package rust-mode
+  :ensure t
+  :mode "\\.rs\\'")
 (use-package smartparens
   :hook (prog-mode . smartparens-strict-mode)
   :bind (("C-c s" . smartparens-strict-mode)
