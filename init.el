@@ -377,7 +377,7 @@
 (use-package eldoc-box
   :after eldoc
   :config
-  (add-hook 'eldoc-mode-hook #'eldoc-box-hover-at-point-mode 1))
+  (add-hook 'eldoc-mode-hook #'eldoc-box-hover-mode 1))
 
 ;; Add extensions
 (use-package cape
