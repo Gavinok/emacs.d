@@ -589,17 +589,11 @@
     (setq meow-expand-hint-counts
           '((word . 0) (line . 0) (block . 0) (find . 0) (till . 0)))
     (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
-    ;; (meow-motion-overwrite-define-key
-    ;;  '("j" . meow-next)
-    ;;  '("k" . meow-prev))
     (meow-normal-define-key
      '("2" . meow-expand-2)
      '("1" . meow-expand-1)
      '("-" . negative-argument)
      '(";" . meow-reverse)
-     ("a" . meow-bounds-of-thing)
-     '("[" . meow-beginning-of-thing)
-     '("]" . meow-end-of-thing)
      '("b" . meow-back-symbol)
      '("B" . meow-back-word)
      '("c" . meow-change)
