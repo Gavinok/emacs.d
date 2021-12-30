@@ -586,7 +586,6 @@
      '("g" . meow-grab)
      '("G" . meow-cancel-selection)
      '("h" . meow-left)
-     '("H" . meow-left-expand)
      '("i" . meow-insert)
      '("I" . meow-append)
      '("j" . meow-next)
@@ -594,10 +593,7 @@
      '("N" . meow-next-expand)
      '("k" . meow-prev)
      '("p" . meow-prev)
-     '("P" . meow-prev-expand)
      '("l" . meow-right)
-     '("L" . meow-right-expand)
-     '("J" . meow-join)
      '("s" . meow-search)
      '("o" . meow-block)
      '("O" . meow-to-block)
@@ -611,13 +607,10 @@
      '("u" . meow-undo)
      '("U" . meow-undo-in-selection)
      '("v" . meow-visit)
-     '("W" . meow-mark-word)
      '("w" . meow-mark-symbol)
      '("V" . meow-line)
      '("x" . meow-line)
-     '("Y" . meow-sync-grab)
-     '("z" . meow-pop-selection)
-     '("'" . repeat)))
+     '("Y" . meow-sync-grab)))
   (meow-setup)
   (meow-global-mode))
 
@@ -851,7 +844,6 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :mode "\\.clj\\'")
 (use-package cider :ensure t)
 (use-package flymake-kondor
-  :when (executable-find "clj-kondo")
   ;; Install clj-kondo
   ;; https://github.com/clj-kondo/clj-kondo/blob/master/doc/install.md
   :ensure t
