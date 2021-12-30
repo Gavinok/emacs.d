@@ -817,6 +817,10 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   (require 'shrface))
 
 (use-package eglot
+  :bind (:map eglot-mode-map
+              ("C-h ." . display-local-help)
+              ("C-h d" . eldoc-doc-buffer)
+              ("M-RET" . eglot-code-actions))
   :ensure t
   :hook (;; Whatever works
          (c-mode          . eglot-ensure)
@@ -825,8 +829,14 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
          ;; npm install -g typescript-language-server
          (typescript-mode . eglot-ensure)
          ;; pip install --user 'python-language-server[all]' -U
-         (python-mode . eglot-ensure))
-  :commands (eglot eglot-ensure))
+         (python-mode . eglot-ensure)
+         ;; npm install -g yaml-language-server
+         (yaml-mode . eglot-ensure))
+  :commands (eglot eglot-ensure)
+  :config
+  (add-to-list 'eglot-server-programs '(clojure-mode . ("clojure-lsp")))
+  (add-to-list 'eglot-server-programs
+               '(yaml-mode . ("yaml-language-server" "--stdio"))))
 
 (use-package haskell-mode
   :ensure t
