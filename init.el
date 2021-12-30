@@ -851,6 +851,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :mode "\\.clj\\'")
 (use-package cider :ensure t)
 (use-package flymake-kondor
+  :when (executable-find "clj-kondo")
   ;; Install clj-kondo
   ;; https://github.com/clj-kondo/clj-kondo/blob/master/doc/install.md
   :ensure t
