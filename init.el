@@ -563,56 +563,12 @@
           help-mode
           compilation-mode))
   (popper-mode +1))
-(use-package meow
+
+(use-package god-mode
   :ensure t
-  :config
-  (defun meow-setup ()
-    (setq meow-expand-hint-counts
-          '((word . 0) (line . 0) (block . 0) (find . 0) (till . 0)))
-    (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
-    (meow-normal-define-key
-     '("2" . meow-expand-2)
-     '("1" . meow-expand-1)
-     '("-" . negative-argument)
-     '(";" . meow-reverse)
-     '("b" . meow-back-symbol)
-     '("B" . meow-back-word)
-     '("c" . meow-change)
-     '("d" . meow-kill)
-     '("D" . meow-backward-delete)
-     '("E" . meow-next-word)
-     '("e" . meow-next-symbol)
-     '("f" . meow-find)
-     '("g" . meow-grab)
-     '("G" . meow-cancel-selection)
-     '("h" . meow-left)
-     '("i" . meow-insert)
-     '("I" . meow-append)
-     '("j" . meow-next)
-     '("n" . meow-next)
-     '("N" . meow-next-expand)
-     '("k" . meow-prev)
-     '("p" . meow-prev)
-     '("l" . meow-right)
-     '("s" . meow-search)
-     '("o" . meow-block)
-     '("O" . meow-to-block)
-     '("y" . meow-yank)
-     '("q" . meow-quit)
-     '("Q" . (lambda () (interactive)
-               (delete-overlay mouse-secondary-overlay)))
-     '("r" . meow-replace)
-     '("R" . meow-swap-grab)
-     '("t" . meow-till)
-     '("u" . meow-undo)
-     '("U" . meow-undo-in-selection)
-     '("v" . meow-visit)
-     '("w" . meow-mark-symbol)
-     '("V" . meow-line)
-     '("x" . meow-line)
-     '("Y" . meow-sync-grab)))
-  (meow-setup)
-  (meow-global-mode))
+  :bind (("<escape>" . god-mode)
+         :map god-local-mode-map
+         (";" . repeat)))
 
 ;;; DEFAULTS
 (use-package emacs
