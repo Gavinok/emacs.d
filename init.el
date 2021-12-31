@@ -787,14 +787,22 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :ensure t
   :hook (clojure-mode . flymake-kondor-setup))
 
+(defadvice kill-ring-save (before slick-copy activate compile)
+  "When called interactively with no active region, copy a single line
+  instead."
+  (interactive
+   (if mark-active (list (region-beginning) (region-end))
+     (message "Single line killed")
+     (list (line-beginning-position)
+       (line-beginning-position 2)))))
+
 ;;;; Setup Folding For Programming
 (use-package smartparens
   :hook (prog-mode . smartparens-strict-mode)
   :bind (("C-c s" . smartparens-strict-mode)
          :map smartparens-mode-map
-         ("C-w"   . sp-kill-region)
-         ("M-a"   . sp-beginning-of-sexp)
          ("M-e"   . sp-end-of-sexp)
+         ("M-a"   . sp-beginning-of-sexp)
          ("C-M-d" . sp-down-sexp)
          ("C-M-u" . sp-backward-up-sexp)
          ("C-M-f" . sp-forward-sexp)
@@ -818,9 +826,20 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
          ("M-<backspace>" . backward-kill-word)
          ("C-<backspace>" . sp-backward-kill-word)
          ("C-c i" . sp-change-inner)
-         ([remap sp-backward-kill-word] . backward-kill-word))
+         ([remap sp-backward-kill-word] . backward-kill-word)
+         ("C-w" . my/kill-region))
   :config
-  (require 'smartparens-config))
+  (require 'smartparens-config)
+  (setq rectangle-mark-mode nil)
+  (defun my/kill-region (BEG END &optional REGION)
+    (interactive (list (mark) (point) 'region))
+    (cond
+     (rectangle-mark-mode (kill-rectangle
+                           (region-beginning) (region-end)))
+     (mark-active (sp-kill-region
+                   (region-beginning) (region-end)))
+     (t (sp-kill-region
+         (line-beginning-position) (line-beginning-position 2))))))
 
 (use-package flymake
   :ensure nil
