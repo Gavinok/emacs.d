@@ -1105,19 +1105,6 @@ Containing LEFT, and RIGHT aligned respectively."
   :after eglot
   :config
   (eglot-java-init))
-;; WIP
-;; (defvar my/slime-nyxt-delay "3")
-;; (defun nyxt-start-slynk (&optional arg)
-;;     (interactive)
-;;   (async-shell-command (format "nyxt -r -e \"(start-slynk)\""))
-;;   (sleep-for my/slime-nyxt-delay)
-;;   (sly-connect "localhost" "1984"))
-
-;; Connect To Slime
-;; set output path
-;; NEWPATH=/tmp/nothere && sed -i -e "s|FilePath=.*|FilePath=$NEWPATH|" ~/.config/obs-studio/basic/profiles/Untitled/basic.ini
-;; Start obs
-;; Set display to intermission
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
