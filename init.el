@@ -39,32 +39,27 @@
 (defvar gv/is-termux
       (string-suffix-p
        "Android" (string-trim (shell-command-to-string "uname -a")))
-      "Truthy value indicating if Emacs is currently running in termux")
+      "Truthy value indicating if Emacs is currently running in termux.")
 (defvar gv/is-terminal
   (not (display-graphic-p))
-  "Truthy value indicating if emacs is currently running in a terminal")
+  "Truthy value indicating if emacs is currently running in a terminal.")
 (defvar gv/my-system
   (if (string-equal user-login-name "gavinok")
       t
     nil)
-  "non-nil value if this is my system")
+  "Non-nil value if this is my system.")
 
 ;; Text to speach script integratoin
 (bind-key (kbd "C-x C-M-;")  #'gv/read)
-(defun gv/read (&optional ARGS)
-  "text to speech"
-  (interactive)
-  (async-shell-command
-   (concat "tts.sh " (shell-quote-argument (x-get-clipboard)))))
 
 (defun gv/scroll-down (arg)
-  "Move cursor down half a screen"
+  "Move cursor down half a screen."
   (interactive "p")
   (let ((dist (/ (window-height) 2)))
     (next-line dist)))
 
 (defun gv/scroll-up (arg)
-  "Move cursor down half a screen"
+  "Move cursor up half a screen ARG times."
   (interactive "p")
   (let ((dist (/ (window-height) 2)))
     (previous-line dist)))
