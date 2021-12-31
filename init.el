@@ -805,6 +805,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :hook (prog-mode . smartparens-strict-mode)
   :bind (("C-c s" . smartparens-strict-mode)
          :map smartparens-mode-map
+         ("C-w"   . sp-kill-region)
          ("M-a"   . sp-beginning-of-sexp)
          ("M-e"   . sp-end-of-sexp)
          ("C-M-d" . sp-down-sexp)
@@ -829,36 +830,11 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
          ("M-]"   . sp-split-sexp)
          ("M-<backspace>" . backward-kill-word)
          ("C-<backspace>" . sp-backward-kill-word)
+         ("C-c i" . sp-change-inner)
          ([remap sp-backward-kill-word] . backward-kill-word))
-  :init
-  (setq sp-hybrid-kill-excessive-whitespace t)
   :config
-  (defmacro def-pairs (pairs)
-    "Define functions for pairing. PAIRS is an alist of (NAME . STRING)
-conses, where NAME is the function name that will be created and
-STRING is a single-character string that marks the opening character.
+  (require 'smartparens-config))
 
-  (def-pairs ((paren . \"(\")
-              (bracket . \"[\"))
-
-defines the functions WRAP-WITH-PAREN and WRAP-WITH-BRACKET,
-respectively."
-    `(progn
-       ,@(cl-loop for (key . val) in pairs
-                  collect
-                  `(defun ,(read (concat
-                                  "wrap-with-"
-                                  (prin1-to-string key)
-                                  "s"))
-                       (&optional arg)
-                     (interactive "p")
-                     (sp-wrap-with-pair ,val)))))
-  (def-pairs ((paren . "(")
-              (bracket . "[")
-              (brace . "{")
-              (single-quote . "'")
-              (double-quote . "\"")
-              (back-quote . "`"))))
 (use-package flymake
   :ensure nil
   :hook (prog-mode . (lambda () (flymake-mode t)))
