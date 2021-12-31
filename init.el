@@ -815,13 +815,14 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
          ("C-M-j" . sp-join-sexp)
          ("C-M-t" . sp-transpose-sexp)
          ("C-M-k" . sp-kill-sexp)
+         ("C-M-?" . sp-convolute-sexp)
          ("C-k"   . sp-kill-hybrid-sexp)
-         ("M-k"   . sp-backward-kill-sexp)
+         ("M-k"   . kill-sexp)
          ("C-M-w" . sp-copy-sexp)
          ("M-C"   . sp-clone-sexp)
          ("C-M-z" . sp-rewrap-sexp)
          ("M-["   . sp-splice-sexp)
-         ("M-]"   . sp-split-sexp)
+         ("M-]"   . sp-split-exp)
          ("M-<backspace>" . backward-kill-word)
          ("C-<backspace>" . sp-backward-kill-word)
          ("C-c i" . sp-change-inner)
@@ -837,8 +838,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
                            (region-beginning) (region-end)))
      (mark-active (sp-kill-region
                    (region-beginning) (region-end)))
-     (t (sp-kill-region
-         (line-beginning-position) (line-beginning-position 2))))))
+     (t (sp-backward-kill-symbol 1)))))
 
 (use-package flymake
   :ensure nil
