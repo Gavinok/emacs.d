@@ -49,9 +49,6 @@
     nil)
   "Non-nil value if this is my system.")
 
-;; Text to speach script integratoin
-(bind-key (kbd "C-x C-M-;")  #'gv/read)
-
 (defun gv/scroll-down (arg)
   "Move cursor down half a screen."
   (interactive "p")
@@ -69,15 +66,9 @@
 ;;; General Key Bindings
 (use-package crux
   :ensure t
-  :bind (;; Remove whitespace when killing at the end of a line
-         ([remap kill-line] . crux-kill-and-join-forward)
-         ;; Since C-j is so similar
-         ("C-x w v" . crux-swap-windows)
+  :bind (("C-x w v" . crux-swap-windows)
          ("C-S-o" . crux-smart-open-line-above)
-         ("C-o" . crux-smart-open-line)
-         ("M-k" . crux-kill-whole-line)
-         :map dired-mode-map
-         ("O" . crux-open-with)))
+         ("C-o" . crux-smart-open-line)))
 
 (use-package simple
   :ensure nil
@@ -149,9 +140,6 @@
   (defadvice align-regexp (around align-regexp-with-spaces activate)
     (let ((indent-tabs-mode nil))
       ad-do-it)))
-(use-package easy-kill
-  :ensure t
-  :bind (([remap kill-ring-save] . 'easy-kill)))
 
 ;;; COMPLETION
 (use-package vertico
