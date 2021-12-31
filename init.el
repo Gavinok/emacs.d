@@ -788,8 +788,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :hook (clojure-mode . flymake-kondor-setup))
 
 (defadvice kill-ring-save (before slick-copy activate compile)
-  "When called interactively with no active region, copy a single line
-  instead."
+  "When called interactively with no active region, copy a single line instead."
   (interactive
    (if mark-active (list (region-beginning) (region-end))
      (message "Single line killed")
