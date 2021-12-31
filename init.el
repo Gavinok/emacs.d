@@ -169,7 +169,9 @@
            ("C-c n"       . consult-org-agenda)
            ("C-c f"       . consult-find)
            ("C-c g"       . consult-ripgrep)
-           ("C-c S-n"     . gv/notegrep))
+           ("C-c S-n"     . gv/notegrep)
+           :map dired-mode-map
+           ("O" . consult-file-externally))
     :custom
     (completion-in-region-function #'consult-completion-in-region)
     :config
@@ -178,15 +180,13 @@
       (interactive)
       (consult-ripgrep org-directory))
     (add-hook 'completion-setup-hook #'hl-line-mode)
-    (recentf-mode t)
-    (use-package marginalia
+    (recentf-mode t))
+  (use-package marginalia
       :custom
       (marginalia-annotators
        '(marginalia-annotators-heavy marginalia-annotators-light nil))
       :init
-      (marginalia-mode)))
-
-;;;; Fuzzy Finding
+      (marginalia-mode))
   (vertico-mode)
   :config
   ;; Do not allow the cursor in the minibuffer prompt
@@ -621,7 +621,6 @@
         backup-by-copying t)
 ;;;; Defaults
   ;; Cursor Shape
-  ;; (setq-default cursor-type 'bar)
   (setq delete-by-moving-to-trash t
         create-lockfiles nil
         auto-save-default nil
@@ -856,9 +855,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :defer t
   :init (defun pulse-line (&rest _)
           (pulse-momentary-highlight-one-line (point)))
-  (dolist (command '(;; scroll-up-command
-                     ;; scroll-down-command
-                     recenter-top-bottom other-window))
+  (dolist (command '(recenter-top-bottom other-window))
     (advice-add command :after #'pulse-line))) ; Highlight cursor postion after movement
 
 ;;;; Display hex colors in emacs
@@ -884,14 +881,6 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   (add-hook 'dired-mode-hook 'dired-hide-details-mode)
 ;;;;; xdg-open integration
   (require 'dired-x)
-  (defun gv/dired-xdg-open ()
-    "Open the file at point with xdg-open."
-    (interactive)
-    (let ((file (dired-get-filename nil t)))
-      (message "Opening %s..." file)
-      (call-process "xdg-open" nil 0 nil file)
-      (message "Opening %s done" file)))
-  (define-key dired-mode-map (kbd "O") 'gv/dired-xdg-open)
   ;; prevent opening extra dired buffers
   ;; emacs 28
   (setq dired-kill-when-opening-new-dired-buffer t))
