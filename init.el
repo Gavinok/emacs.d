@@ -800,6 +800,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
          :map smartparens-mode-map
          ("M-e"   . sp-end-of-sexp)
          ("M-a"   . sp-beginning-of-sexp)
+         ("M-("   . sp-wrap-round)
          ("C-M-d" . sp-down-sexp)
          ("C-M-u" . sp-backward-up-sexp)
          ("C-M-f" . sp-forward-sexp)
