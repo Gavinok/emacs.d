@@ -776,23 +776,14 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   (add-to-list 'eglot-server-programs
                '(yaml-mode . ("yaml-language-server" "--stdio"))))
 
-(use-package haskell-mode
-  :ensure t
-  :mode "\\.hs\\'")
-(use-package rust-mode
-  :ensure t
-  :mode "\\.rs\\'")
+(use-package haskell-mode :ensure t :mode "\\.hs\\'")
+(use-package rust-mode :ensure t :mode "\\.rs\\'")
 
 ;;; Clojure
 (use-package clojure-mode
   :ensure t
   :mode "\\.clj\\'")
-(use-package cider :ensure t)
-(use-package flymake-kondor
-  ;; Install clj-kondo
-  ;; https://github.com/clj-kondo/clj-kondo/blob/master/doc/install.md
-  :ensure t
-  :hook (clojure-mode . flymake-kondor-setup))
+(use-package cider :ensure t :hook clojure-mode)
 
 (defadvice kill-ring-save (before slick-copy activate compile)
   "When called interactively with no active region, copy a single line instead."
