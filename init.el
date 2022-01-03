@@ -61,8 +61,8 @@
   (let ((dist (/ (window-height) 2)))
     (previous-line dist)))
 
-(global-set-key (kbd "C-v") #'gv/scroll-down)
-(global-set-key (kbd "M-v") #'gv/scroll-up)
+(global-set-key [remap scroll-up-command] #'gv/scroll-down)
+(global-set-key [remap scroll-down-command] #'gv/scroll-up)
 ;;; General Key Bindings
 (use-package crux
   :ensure t
