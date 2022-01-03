@@ -558,14 +558,19 @@
 (use-package emacs
   :ensure nil
   :defer nil
-  :bind (("C-c w"   . fixup-whitespace)
-         ("C-x C-d" . delete-pair)
-         ("C-x O"   . other-other-window)
-         ("M-c"     . capitalize-dwim)
-         ("M-u"     . upcase-dwim)
-         ("M-l"     . downcase-dwim)
-         ("M-f"     . sim-vi-w)
-         ("M-z"     . zap-up-to-char))
+  :bind (("C-c w"        . fixup-whitespace)
+         ("C-x C-d"      . delete-pair)
+         ("C-x O"        . other-other-window)
+         ("M-c"          . capitalize-dwim)
+         ("M-u"          . upcase-dwim)
+         ("M-l"          . downcase-dwim)
+         ("M-f"          . sim-vi-w)
+         ("M-z"          . zap-up-to-char))
+  :init
+  (define-key key-translation-map (kbd "<wheel-4>") (kbd "<wheel-up>"))
+  (define-key key-translation-map (kbd "<wheel-5>") (kbd "<wheel-down>"))
+  (bind-key (kbd "<wheel-up>") #'previous-line)
+  (bind-key (kbd "<wheel-down>") #'next-line)
   :config
   ;; set the title of the frame to the current file - Emacs
   (setq-default frame-title-format '("%b - Emacs"))
