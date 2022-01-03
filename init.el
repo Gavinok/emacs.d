@@ -551,7 +551,8 @@
   :ensure t
   :bind (("<escape>" . god-mode)
          :map god-local-mode-map
-         (";" . repeat)))
+         (";" . repeat)
+         ("i" . god-mode)))
 
 ;;; DEFAULTS
 (use-package emacs
