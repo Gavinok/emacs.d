@@ -659,7 +659,8 @@
   (setq next-screen-context-lines 5)
   ;; move by logical lines rather than visual lines (better for macros)
   (setq line-move-visual nil)
-  (fringe-mode)
+  (unless gv/is-termux
+    (fringe-mode))
 
   ;;TRAMP
   (setq tramp-default-method "ssh")
