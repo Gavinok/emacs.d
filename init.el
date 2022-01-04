@@ -538,7 +538,7 @@
           "\\*Backtrace\\*"
           "\\*eldoc\\*"
           "^*tex"
-          "^*sly"
+          "^\\*sly-[^s]"
           "\\*Ement Notifications\\*"
           "Output\\*$"
           "\\*Async Shell Command\\*"
