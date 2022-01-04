@@ -549,10 +549,27 @@
 
 (use-package god-mode
   :ensure t
-  :bind (("<escape>" . god-mode)
+  :bind (("C-z" . god-mode)
          :map god-local-mode-map
          (";" . repeat)
-         ("i" . god-mode)))
+         ("i" . god-mode)
+         ("]" . forward-paragraph)
+         ("[" . backward-paragraph))
+  :config
+  (defun my-god-mode-update-mode-line ()
+  (cond
+   (god-local-mode
+    (set-face-attribute 'mode-line nil
+                        :box "#323232")
+    (set-face-attribute 'mode-line-inactive nil
+                        :box "#1e1e1e"))
+   (t
+    (set-face-attribute 'mode-line nil
+                        :box "#d7d7d7")
+    (set-face-attribute 'mode-line-inactive nil
+                        :box "#efefef"))))
+
+(add-hook 'post-command-hook 'my-god-mode-update-mode-line))
 
 ;;; DEFAULTS
 (use-package emacs
