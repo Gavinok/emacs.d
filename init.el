@@ -584,8 +584,8 @@
          ("M-f"          . sim-vi-w)
          ("M-z"          . zap-up-to-char))
   :init
-  (define-key key-translation-map (kbd "<wheel-4>") (kbd "<wheel-up>"))
-  (define-key key-translation-map (kbd "<wheel-5>") (kbd "<wheel-down>"))
+  (define-key key-translation-map (kbd "<mouse-4>") (kbd "<wheel-up>"))
+  (define-key key-translation-map (kbd "<mouse-5>") (kbd "<wheel-down>"))
   (bind-key (kbd "<wheel-up>") #'previous-line)
   (bind-key (kbd "<wheel-down>") #'next-line)
   :config
