@@ -812,7 +812,11 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
 
 ;;;; Setup Folding For Programming
 (use-package smartparens
-  :hook (prog-mode . smartparens-strict-mode)
+  :hook ((prog-mode cider-repl-mode eshell-mode
+                    fennel-repl-mode geiser-repl-mode inferior-emacs-lisp-mode
+                    inferior-lisp-mode inferior-scheme-mode lisp-interaction-mode
+                    racket-repl-mode scheme-interaction-mode sly-mrepl-mode)
+         . smartparens-strict-mode)
   :bind (("C-c s" . smartparens-strict-mode)
          :map smartparens-mode-map
          ("M-e"   . sp-end-of-sexp)
