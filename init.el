@@ -884,9 +884,16 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
       (if (> tab-count space-count) (setq indent-tabs-mode t))))
   (add-hook 'prog-mode-hook 'infer-indentation-style))
 
-(use-package clhs
-  :bind (:map help-map
-              ("C-l" . clhs-doc)))
+(use-package sly
+  :commands sly
+  :init
+  (setq inferior-lisp-program "sbcl")
+  (setq sly-lisp-implementations
+        `((sbcl ("sbcl") :coding-system utf-8-unix)
+          (roswell ("ros" "-Q" "run"))
+          (roswell-sbcl ("ros" "-L" "sbcl" "-Q" "-l" "~/.sbclrc" "run") :coding-system utf-8-unix)))
+  (setq sly-default-lisp 'roswell-sbcl))
+
 ;;; EXTRA UI
 (use-package hl-todo
   :hook (prog-mode . hl-todo-mode))
