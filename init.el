@@ -105,17 +105,6 @@
   (global-set-key (kbd "<mouse-5>") 'previous-line))
 
 
-(use-package view
-  :bind (("S-SPC v" . view-mode)
-         :map view-mode-map
-         ([remap View-scroll-half-page-forward] . gv/scroll-down)
-         ([remap View-scroll-half-page-backward] . gv/scroll-up)
-         ([remap View-scroll-page-forward] . gv/scroll-down)
-         ([remap View-search-regexp-forward] . isearch-forward-regexp)
-         ([remap View-quit] . View-exit-and-edit)
-         ("n" . next-line)
-         ("p" . previous-line)))
-
 (when (require 'auto-mark nil t)
   (setq auto-mark-command-class-alist
         '((anything . anything)
