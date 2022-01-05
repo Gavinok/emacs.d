@@ -263,17 +263,13 @@
 (use-package corfu
   ;; Optional customizations
   :custom
-  ;; (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
-  ;; (corfu-auto t)                 ;; Enable auto completion
-  ;; (corfu-auto-prefix 1)                 ;; Enable auto completion
-  ;; (corfu-auto-delay 0.1)                 ;; Enable auto completion
-  (corfu-echo-documentation 0.25)                 ;; Enable auto completion
-  ;; (corfu-commit-predicate nil)   ;; Do not commit selected candidates on next input
-  ;; (corfu-quit-at-boundary t)     ;; Automatically quit at word boundary
-  (corfu-quit-no-match t)        ;; Automatically quit if there is no match
-  ;; (corfu-echo-documentation nil) ;; Do not show documentation in the echo area
-  ;; (corfu-scroll-margin 5)        ;; Use scroll margin
-  ;; (corfu-preview-current nil)    ;; Do not preview current candidate
+  ;; (corfu-cycle t)                ; Enable cycling for `corfu-next/previous'
+  ;; (corfu-auto t)                 ; Enable auto completion
+  ;; (corfu-auto-prefix 1)                ; Enable auto completion
+  ;; (corfu-auto-delay 0.1)                 ; Enable auto completion
+  (corfu-echo-documentation 0.25)                 ; Enable auto completion
+  (corfu-scroll-margin 5)        ; Use scroll margin
+  (corfu-preview-current t)    ; Do not preview current candidate
 
   ;; Optionally use TAB for cycling, default is `corfu-complete'.
   :bind (:map corfu-map
