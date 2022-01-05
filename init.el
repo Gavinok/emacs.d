@@ -859,7 +859,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
                            (region-beginning) (region-end)))
      (mark-active (sp-kill-region
                    (region-beginning) (region-end)))
-     (t (sp-backward-kill-symbol 1))))
+     (t (sp-backward-kill-sexp 1))))
 
   ;; Avoid terminal binding confilct
   (unless gv/is-termux
