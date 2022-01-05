@@ -562,9 +562,7 @@
 
 (use-package dot-mode
   :ensure t
-  :demand t
-  :init
-  (dot-mode-on))
+  :hook (find-file . dot-mode-on))
 
 ;;; DEFAULTS
 (use-package emacs
