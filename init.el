@@ -63,6 +63,7 @@
 
 (global-set-key [remap scroll-up-command] #'gv/scroll-down)
 (global-set-key [remap scroll-down-command] #'gv/scroll-up)
+
 ;;; General Key Bindings
 (use-package crux
   :ensure t
@@ -144,12 +145,13 @@
 ;;; COMPLETION
 (use-package vertico
   :init
+
 ;;;; Out Of Order Compleiton
   (use-package orderless
     :commands (orderless)
     :custom (completion-styles '(orderless)))
+
 ;;;; Extra Completion Functions
-  ;; Note that M-sn is used for searghing ang
   (use-package consult
     :defer t
     :bind (("C-c l"       . consult-line)
@@ -181,6 +183,7 @@
       (consult-ripgrep org-directory))
     (add-hook 'completion-setup-hook #'hl-line-mode)
     (recentf-mode t))
+
   (use-package marginalia
       :custom
       (marginalia-annotators
@@ -206,7 +209,6 @@
   ;; Optionally replace the key help with a completing-read interface
   (setq prefix-help-command #'embark-prefix-help-command)
   (setq embark-prompter 'embark-completing-read-prompter))
-
 
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
@@ -245,6 +247,7 @@
 ;;; WRITING
 (use-package writegood-mode
   :hook (flyspell-mode . writegood-mode))
+
 (use-package flymake-grammarly
   :commands flymake-grammarly-load
   :init (setq flyspell-use-meta-tab nil)
@@ -868,6 +871,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :hook (prog-mode . (lambda () (flymake-mode t)))
   :config
   (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
+
 (use-package prog-mode
   :ensure nil
   :config
@@ -1078,10 +1082,12 @@ Containing LEFT, and RIGHT aligned respectively."
 (setq quelpa-update-melpa-p nil)
 (package-install 'quelpa-use-package)
 (require 'quelpa-use-package)
+
 ;; Install `plz' HTTP library (not on MELPA yet).
 (use-package plz
   :quelpa (plz :fetcher github :repo "alphapapa/plz.el")
   :after ement)
+
 ;; Install Ement.
 (use-package ement
   :commands (ement-connect)
@@ -1124,9 +1130,11 @@ Containing LEFT, and RIGHT aligned respectively."
   (project-x-mode 1)
   (setq project-x-local-identifier
         '(".git" "package.clj" "package.json" "mix.exs" "Project.toml" ".project")))
+
 (use-package eglot-java
   :ensure nil
   :quelpa (eglot-java :fetcher github :repo "yveszoundi/eglot-java")
   :after eglot
   :config
   (eglot-java-init))
+
