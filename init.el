@@ -23,8 +23,11 @@
 (setq use-package-verbose t)
 (setq package-native-compile t)
 (setq comp-deferred-compilation t)
-;;; ASYNC
 
+;; Keep custom-set-variables and friends out of my init.el
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+
+;;; ASYNC
 ;; Emacs look SIGNIFICANTLY less often which is a good thing.
 ;; asynchronous bytecode compilation and various other actions makes
 (use-package async
@@ -1125,4 +1128,3 @@ Containing LEFT, and RIGHT aligned respectively."
 ;;; Stuff To Ignore
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
-
