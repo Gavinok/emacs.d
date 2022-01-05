@@ -776,6 +776,17 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :mode "\\.clj\\'")
 (use-package cider :ensure t :hook clojure-mode)
 
+;;; Lisp
+(use-package sly
+  :commands sly
+  :init
+  (setq inferior-lisp-program "sbcl")
+  (setq sly-lisp-implementations
+        `((sbcl ("sbcl") :coding-system utf-8-unix)
+          (roswell ("ros" "-Q" "run"))
+          (roswell-sbcl ("ros" "-L" "sbcl" "-Q" "-l" "~/.sbclrc" "run") :coding-system utf-8-unix)))
+  (setq sly-default-lisp 'roswell-sbcl))
+
 (defadvice kill-ring-save (before slick-copy activate compile)
   "When called interactively with no active region, copy a single line instead."
   (interactive
@@ -858,16 +869,6 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
       (if (> space-count tab-count) (setq indent-tabs-mode nil))
       (if (> tab-count space-count) (setq indent-tabs-mode t))))
   (add-hook 'prog-mode-hook 'infer-indentation-style))
-
-(use-package sly
-  :commands sly
-  :init
-  (setq inferior-lisp-program "sbcl")
-  (setq sly-lisp-implementations
-        `((sbcl ("sbcl") :coding-system utf-8-unix)
-          (roswell ("ros" "-Q" "run"))
-          (roswell-sbcl ("ros" "-L" "sbcl" "-Q" "-l" "~/.sbclrc" "run") :coding-system utf-8-unix)))
-  (setq sly-default-lisp 'roswell-sbcl))
 
 ;;; EXTRA UI
 (use-package hl-todo
