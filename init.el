@@ -539,6 +539,12 @@
 
 (add-hook 'post-command-hook 'my-god-mode-update-mode-line))
 
+(use-package dot-mode
+  :ensure t
+  :demand t
+  :init
+  (dot-mode-on))
+
 ;;; DEFAULTS
 (use-package emacs
   :ensure nil
