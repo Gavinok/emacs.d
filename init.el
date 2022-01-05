@@ -219,26 +219,8 @@
   ;; auto-updating embark collect buffer
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
-;;; THEMEING
-;; (use-package ujelly-theme
-;;   :config
-;;   (load-theme 'ujelly t)
-;;   (global-hl-line-mode t)
-;;   (set-face-background hl-line-face "#111")
-;;   (when gv/my-system
-;;     (set-frame-parameter (selected-frame) 'alpha '(100 100))
-;;     (add-to-list 'default-frame-alist '(alpha 100 100)))
-;;   (set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
-;;   (set-face-attribute 'default nil :background "#000" :foreground "#eee")
-;;   (set-face-attribute 'mode-line nil
-;;                       :box '(:line-width 10 :color "#000"))
-;;   (set-face-attribute 'mode-line-inactive nil
-;;                       :box '(:line-width 10 :color "#000"))
-;;   (set-face-attribute 'mode-line nil
-;;                       :background  "#0F0F0F")
-;;   ;; vertical padding
-;;   (setq-default header-line-format " "))
 
+;;; THEMEING
 (use-package modus-themes
   :config
   (modus-themes-load-vivendi)
