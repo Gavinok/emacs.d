@@ -352,12 +352,9 @@
   :init (when gv/my-system
           (setq term-prompt-regexp ".*ᛋ")))
 
-(use-package esh-autosuggest
-  :hook eshell-mode) ;company for eshell
-
 (use-package em-alias
   :ensure nil
-  :hook eshell-mode
+  :after eshell
   :config
   (add-hook 'eshell-mode-hook
             (lambda ()
@@ -369,22 +366,27 @@
 (use-package eshell
   :commands eshell
   :config
-  (add-to-list 'eshell-visual-commands '("htop" "top"))
-  (add-to-list 'eshell-visual-commands '("git" "log" "diff" "show" "less"))
-  (add-to-list 'eshell-visual-options '("git" "--help"))
   (setenv "PAGER" "cat")
-  (setq eshell-destroy-buffer-when-process-dies t)
-  )
+  (setq eshell-destroy-buffer-when-process-dies t))
 
-;; (use-package fish-completion
-;;   :when (executable-find "fish")
-;;   :hook eshell-mode
-;;   :init (global-fish-completion-mode))
+(use-package em-term
+  :ensure nil
+  :after eshell
+  :config
+  (add-to-list 'eshell-visual-options '("git" "--help" "--paginate"))
+  (add-to-list 'eshell-visual-commands '("htop" "top" "git" "log" "diff" "show" "less")))
+
+(use-package fish-completion
+  :after eshell
+  :config
+  (when (and (executable-find "fish")
+             (require 'fish-completion nil t)))
+  (global-fish-completion-mode))
 
 ;; More accureate color representation than ansi-color.el
 (use-package xterm-color
   :ensure t
-  :after eshell
+  :after esh-mode
   :config
   (add-hook 'eshell-before-prompt-hook
             (lambda ()
