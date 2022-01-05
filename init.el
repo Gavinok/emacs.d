@@ -1011,9 +1011,6 @@ Containing LEFT, and RIGHT aligned respectively."
 ;;; mu4e
 (load "~/.emacs.d/lisp/mu4e-config.el")
 
-;;; EXWM
-;; (load "~/.emacs.d/lisp/exwm-config.el")
-
 (use-package keycast
   :ensure t
   :commands (keycast-mode)
