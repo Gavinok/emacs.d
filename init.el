@@ -37,11 +37,11 @@
 
 ;;; MY STUFF
 (defvar gv/is-termux
-      (string-suffix-p
-       "Android" (string-trim (shell-command-to-string "uname -a")))
-      "Truthy value indicating if Emacs is currently running in termux.")
+  (string-suffix-p
+   "Android" (string-trim (shell-command-to-string "uname -a")))
+  "Truthy value indicating if Emacs is currently running in termux.")
 (defvar gv/is-terminal
-  (not (display-graphic-p))
+  (not window-system)
   "Truthy value indicating if emacs is currently running in a terminal.")
 (defvar gv/my-system
   (if (string-equal user-login-name "gavinok")
