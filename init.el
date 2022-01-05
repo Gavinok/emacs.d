@@ -257,15 +257,6 @@
   (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
   (diff-hl-flydiff-mode))
-;;; As You Type Completion
-;; (use-package company
-;;   :defer 3
-;;   :config
-;;   (global-company-mode nil)
-;;   (setq company-idle-delay 0.1
-;;         company-minimum-prefix-length 1)
-;;   ;; tab and go mode
-;;   (company-tng-mode))
 
 ;; Enable Corfu completion UI
 ;; See the Corfu README for more configuration tips.
