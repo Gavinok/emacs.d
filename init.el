@@ -769,11 +769,10 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
 
 (use-package haskell-mode :ensure t :mode "\\.hs\\'")
 (use-package rust-mode :ensure t :mode "\\.rs\\'")
+(use-package racket-mode :ensure t :mode "\\.rkt\\'")
 
 ;;; Clojure
-(use-package clojure-mode
-  :ensure t
-  :mode "\\.clj\\'")
+(use-package clojure-mode :ensure t :mode "\\.clj\\'")
 (use-package cider :ensure t :hook clojure-mode)
 
 ;;; Lisp
