@@ -569,7 +569,7 @@
     (interactive)
     (if arg
         (other-window (- arg))
-        (other-window -1)))
+      (other-window -1)))
   (defun sim-vi-w (&optional arg)
     "Simulate Vi's \"w\" behavior"
     (interactive "P")
