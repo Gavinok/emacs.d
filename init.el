@@ -144,8 +144,11 @@
 
 ;;; COMPLETION
 (use-package vertico
+  :bind (:map vertico-map
+              ("RET"   . vertico-directory-enter)
+              ("DEL"   . vertico-directory-delete-char)
+              ("M-DEL" . vertico-directory-delete-word))
   :init
-
 ;;;; Out Of Order Compleiton
   (use-package orderless
     :commands (orderless)
@@ -192,6 +195,9 @@
       (marginalia-mode))
   (vertico-mode)
   :config
+  ;; Used for the vertico-directory extension
+  (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy)
+
   ;; Do not allow the cursor in the minibuffer prompt
   (setq minibuffer-prompt-properties
         '(read-only t cursor-intangible t face minibuffer-prompt))
