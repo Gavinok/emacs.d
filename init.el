@@ -192,11 +192,11 @@
     (recentf-mode t))
 
   (use-package marginalia
-      :custom
-      (marginalia-annotators
-       '(marginalia-annotators-heavy marginalia-annotators-light nil))
-      :init
-      (marginalia-mode))
+    :custom
+    (marginalia-annotators
+     '(marginalia-annotators-heavy marginalia-annotators-light nil))
+    :init
+    (marginalia-mode))
   (vertico-mode)
   :config
   ;; Used for the vertico-directory extension
