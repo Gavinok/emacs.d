@@ -214,11 +214,22 @@
   :bind
   (("C-=" . embark-act)         ;; pick some comfortable binding
    ("C-;" . embark-dwim)        ;; good alternative: M-.
-   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+   ([remap describe-bindings] . embark-bindings)
+   :map embark-file-map
+   ("C-d" . dragon-drop)) ;; alternative for `describe-bindings'
+  :custom
+  (embark-indicators
+   '(embark-highlight-indicator
+     embark-isearch-highlight-indicator
+     embark-minimal-indicator))
   :init
   ;; Optionally replace the key help with a completing-read interface
   (setq prefix-help-command #'embark-prefix-help-command)
-  (setq embark-prompter 'embark-completing-read-prompter))
+  (setq embark-prompter 'embark-completing-read-prompter)
+  :config
+  (defun dragon-drop (file)
+    (start-process-shell-command "dragon-drop" nil
+                                 (concat "dragon-drag-and-drop " file))))
 
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
