@@ -266,7 +266,8 @@
          . turn-on-flyspell))
 
 ;;; ORG
-(load "~/.emacs.d/lisp/org-config.el")
+(load (concat user-emacs-directory
+              "lisp/org-config.el"))
 
 ;;; Git
 (use-package magit
@@ -1031,7 +1032,8 @@ Containing LEFT, and RIGHT aligned respectively."
         proced-decend t))
 
 ;;; mu4e
-(load "~/.emacs.d/lisp/mu4e-config.el")
+(load (concat user-emacs-directory
+              "lisp/mu4e-config.el"))
 
 (use-package keycast
   :ensure t
