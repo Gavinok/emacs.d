@@ -169,6 +169,8 @@
            ("M-g i"       . consult-imenu)
            ("M-s l"       . consult-line)
            ("M-s L"       . consult-line-multi)
+           ("M-s u"       . consult-focus-lines)
+           ("M-s g"       . consult-ripgrep)
            ("C-x C-SPC"   . consult-global-mark)
            ("C-x M-:"     . consult-complex-command)
            ("C-c n"       . consult-org-agenda)
@@ -176,7 +178,9 @@
            ("C-c g"       . consult-ripgrep)
            ("C-c S-n"     . gv/notegrep)
            :map dired-mode-map
-           ("O" . consult-file-externally))
+           ("O" . consult-file-externally)
+           :map help-map
+           ("a" . consult-apropos))
     :custom
     (completion-in-region-function #'consult-completion-in-region)
     :config
