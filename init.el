@@ -541,19 +541,19 @@
          ("[" . backward-paragraph))
   :config
   (defun my-god-mode-update-mode-line ()
-  (cond
-   (god-local-mode
-    (set-face-attribute 'mode-line nil
-                        :box "#323232")
-    (set-face-attribute 'mode-line-inactive nil
-                        :box "#1e1e1e"))
-   (t
-    (set-face-attribute 'mode-line nil
-                        :box "#d7d7d7")
-    (set-face-attribute 'mode-line-inactive nil
-                        :box "#efefef"))))
+    (cond
+     (god-local-mode
+      (set-face-attribute 'mode-line nil
+                          :box "#97d7d7")
+      (set-face-attribute 'mode-line-inactive nil
+                          :box "#75b5c6"))
+     (t
+      (set-face-attribute 'mode-line nil
+                          :box "#d7d7d7")
+      (set-face-attribute 'mode-line-inactive nil
+                          :box "#efefef"))))
 
-(add-hook 'post-command-hook 'my-god-mode-update-mode-line))
+  (add-hook 'post-command-hook 'my-god-mode-update-mode-line))
 
 (use-package dot-mode
   :ensure t
@@ -1005,13 +1005,6 @@ Containing LEFT, and RIGHT aligned respectively."
   ;; pdf auto refresh
   ;; (add-hook 'doc-view-mode-hook 'auto-revert-mode)
   )
-
-;;;; Torrents
-(use-package transmission
-  :defer t
-  :commands transmission
-  :config
-  (add-hook 'transmission-mode-hook 'hl-line-mode))
 
 ;;;; proced [built-in] htop alternative
 (use-package proced
