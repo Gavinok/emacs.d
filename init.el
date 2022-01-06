@@ -265,7 +265,8 @@
 (use-package modus-themes
   :config
   (modus-themes-load-vivendi)
-  (global-hl-line-mode t))
+  (global-hl-line-mode t)
+  (set-cursor-color "red"))
 
 ;;; WRITING
 (use-package writegood-mode
