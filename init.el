@@ -225,6 +225,11 @@
     (start-process-shell-command "dragon-drop" nil
                                  (concat "dragon-drag-and-drop " file))))
 
+;; For uploading files
+(use-package 0x0
+  :ensure t
+  :commands (0x0-dwim 0x0-upload-file))
+
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
   :ensure t
