@@ -61,8 +61,9 @@
     :ensure t)
   (setq org-confirm-babel-evaluate nil)
 ;;;; Agenda Views
-  (setq org-agenda-files (seq-filter (lambda (x) (not (string-match "completed.org" x)))
-                                     (directory-files-recursively org-directory "\\.org$")))
+  (when gv/my-system
+    (setq org-agenda-files (seq-filter (lambda (x) (not (string-match "completed.org" x)))
+                                     (directory-files-recursively org-directory "\\.org$"))))
   (setq org-agenda-custom-commands
         '(("d" "Today's Tasks"
            ((agenda "" ((org-agenda-span 1)
@@ -79,28 +80,29 @@
             (org-agenda-max-todos 20)
             (org-agenda-files org-agenda-files)))))
 ;;;; Capture
-  (setq org-default-notes-file (concat org-directory "/refile.org"))
-  (setq org-capture-templates
-        '(("t" "Todo" entry (file (lambda () (concat org-directory "/refile.org")))
-           "* TODO %?\nDEADLINE: %T\n  %a")
-          ("M" "movie" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
-           "* Meeting with  %?\nSCHEDULED: %T\n")
-          ("s" "Scheduled Event")
-          ("sm" "Meeting" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
-           "* Meeting with  %?\nSCHEDULED: %T\n")
-          ("se" "Event" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
-           "* Meeting with  %?\nSCHEDULED: %T\n")
-          ("v" "Video Idea" entry (file+olp (lambda () (concat org-directory "/youtube.org"))
-                                            "YouTube" "Video Ideas")
-           "* %?\n%? %a\n")
-          ("c" "Cool Thing" entry (file (lambda () (concat org-directory "/refile.org")))
-           "* %?\nEntered on %U\n  %i\n  %a")
-          ;; Email Stuff
-          ("m" "Email Workflow")
-          ("mf" "Follow Up" entry (file+olp (lambda () (concat org-directory "/Work.org")) "Follow Up")
-           "* TODO Follow up with %:fromname on %a\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%i")
-          ("mr" "Read Later" entry (file+olp (lambda () (concat org-directory "/Work.org")) "Read Later")
-           "* TODO Read %:subject\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%a\n%i")))
+  (when gv/my-system
+    (setq org-default-notes-file (concat org-directory "/refile.org"))
+    (setq org-capture-templates
+          '(("t" "Todo" entry (file (lambda () (concat org-directory "/refile.org")))
+             "* TODO %?\nDEADLINE: %T\n  %a")
+            ("M" "movie" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
+             "* Meeting with  %?\nSCHEDULED: %T\n")
+            ("s" "Scheduled Event")
+            ("sm" "Meeting" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
+             "* Meeting with  %?\nSCHEDULED: %T\n")
+            ("se" "Event" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
+             "* Meeting with  %?\nSCHEDULED: %T\n")
+            ("v" "Video Idea" entry (file+olp (lambda () (concat org-directory "/youtube.org"))
+                                              "YouTube" "Video Ideas")
+             "* %?\n%? %a\n")
+            ("c" "Cool Thing" entry (file (lambda () (concat org-directory "/refile.org")))
+             "* %?\nEntered on %U\n  %i\n  %a")
+            ;; Email Stuff
+            ("m" "Email Workflow")
+            ("mf" "Follow Up" entry (file+olp (lambda () (concat org-directory "/Work.org")) "Follow Up")
+             "* TODO Follow up with %:fromname on %a\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%i")
+            ("mr" "Read Later" entry (file+olp (lambda () (concat org-directory "/Work.org")) "Read Later")
+             "* TODO Read %:subject\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%a\n%i"))))
 ;;;; Clocking
   (setq org-clock-idle-time 15)
   (setq org-clock-x11idle-program-name "xprintidle")
