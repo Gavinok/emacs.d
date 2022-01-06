@@ -205,10 +205,12 @@
   :ensure t
   :bind
   (("C-=" . embark-act)         ;; pick some comfortable binding
-   ("C-;" . embark-dwim)        ;; good alternative: M-.
    ([remap describe-bindings] . embark-bindings)
    :map embark-file-map
-   ("C-d" . dragon-drop)) ;; alternative for `describe-bindings'
+   ("C-d" . dragon-drop) ;; alternative for `describe-bindings'
+   ("U"   . 0x0-upload-file)
+   :map embark-region-map
+   ("U"   . 0x0-dwim))
   :custom
   (embark-indicators
    '(embark-highlight-indicator
