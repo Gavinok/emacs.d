@@ -574,8 +574,12 @@
   :init
   (define-key key-translation-map (kbd "<mouse-4>") (kbd "<wheel-up>"))
   (define-key key-translation-map (kbd "<mouse-5>") (kbd "<wheel-down>"))
+  (define-key key-translation-map (kbd "<mouse-6>") (kbd "<wheel-left>"))
+  (define-key key-translation-map (kbd "<mouse-7>") (kbd "<wheel-right>"))
   (bind-key (kbd "<wheel-up>") #'previous-line)
   (bind-key (kbd "<wheel-down>") #'next-line)
+  (bind-key (kbd "<wheel-left>") #'backward-char)
+  (bind-key (kbd "<wheel-right>") #'forward-char)
   :config
   ;; set the title of the frame to the current file - Emacs
   (setq-default frame-title-format '("%b - Emacs"))
