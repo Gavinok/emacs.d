@@ -329,6 +329,8 @@
 
 (use-package eldoc-box
   :after eldoc
+  :init
+  (setq eldoc-box-only-multi-line t)
   :config
   (add-hook 'eldoc-mode-hook #'eldoc-box-hover-mode 1))
 
