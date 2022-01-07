@@ -240,6 +240,13 @@
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
+;;; More native feeling alternative to multiple cursors
+(use-package iedit
+  :bind (:map rectangle-mark-mode-map
+              ("C-;" . iedit-rectangle-mode))
+  :init
+  (setq iedit-increment-format-string "%03d"))
+
 (use-package avy
   :ensure
   :bind ("M-j" . avy-goto-char-timer)
