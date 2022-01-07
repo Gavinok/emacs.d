@@ -344,29 +344,14 @@
 ;; Add extensions
 (use-package cape
   ;; Bind dedicated completion commands
-  :bind (("S-SPC o" . completion-at-point) ;; capf
-         ("S-SPC t" . complete-tag)        ;; etags
-         ("S-SPC f" . cape-file)
-         ("S-SPC k" . cape-keyword)
-         ("S-SPC s" . cape-symbol)
-         ("S-SPC a" . cape-abbrev)
-         ("S-SPC l" . cape-abbrev)
-         ("S-SPC i" . cape-ispell)
-         ("S-SPC w" . cape-dict)
-         ("S-SPC p" . (lambda (&optional)
-                    (interactive)
-                    (let ((dabbrev-backward-only t))
-                    (dabbrev-completion nil)))))
-
+  :bind (("S-SPC" . completion-at-point))
   :init
   ;; Add `completion-at-point-functions', used by `completion-at-point'.
-  (add-to-list 'completion-at-point-functions #'cape-file-capf)
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev-capf)
-  (add-to-list 'completion-at-point-functions #'cape-keyword-capf)
-  (add-to-list 'completion-at-point-functions #'cape-symbol)
-  ;;(add-to-list 'completion-at-point-functions #'cape-abbrev-capf)
-  ;;(add-to-list 'completion-at-point-functions #'cape-ispell-capf)
-  ;;(add-to-list 'completion-at-point-functions #'cape-dict-capf)
+  (setq completion-at-point-functions
+        (list
+         #'cape-file
+         #'cape-symbol
+         #'cape-dabbrev))
   :config
   (setq tab-always-indent 'complete)
   (setq dabbrev-upcase-means-case-search t))
