@@ -254,27 +254,6 @@
   :init
   (setq iedit-increment-format-string "%03d"))
 
-(use-package avy
-  :ensure
-  :bind ("M-j" . avy-goto-char-timer)
-  :config
-  (defun avy-action-mark-to-char (pt)
-    (activate-mark)
-    (goto-char pt))
-
-  (setf (alist-get ?  avy-dispatch-alist) 'avy-action-mark-to-char)
-  (defun avy-action-embark (pt)
-    (unwind-protect
-        (save-excursion
-          (goto-char pt)
-          (embark-act))
-      (select-window
-       (cdr (ring-ref avy-ring 0))))
-    t)
-
-  (setf (alist-get ?. avy-dispatch-alist) 'avy-action-embark)
-  )
-
 ;;; THEMEING
 (use-package modus-themes
   :config
