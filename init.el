@@ -249,8 +249,9 @@
 
 ;;; More native feeling alternative to multiple cursors
 (use-package iedit
-  :bind (:map rectangle-mark-mode-map
-              ("C-;" . iedit-rectangle-mode))
+  :bind (("C-;" . iedit-rectangle-mode)
+         :map rectangle-mark-mode-map
+         ("C-;" . iedit-rectangle-mode))
   :init
   (setq iedit-increment-format-string "%03d"))
 
