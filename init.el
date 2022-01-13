@@ -437,12 +437,30 @@
 
   (setq project-switch-commands
         '((project-find-file "Find file" f)
-          (my/project-consult-ripgrep "Ripgrep" g)
           (project-dired "Dired" d)
           (project-vc-dir "VC-Dir" v)
           (project-eshell "Eshell" e)
-          (magit-status (project-root (project-current t)) "Magit" m))
-        )) ; [built-in] Project Managment
+          (magit-status (project-root (project-current t)) "Magit" m)))
+
+  (defvar project-root-markers
+  '(".git" "package.clj" "package.json" "mix.exs" "Project.toml" ".project" "Cargo.toml"))
+
+  (defun gv/project-find-root (path)
+    (let* ((this-dir (file-name-as-directory (file-truename path)))
+           (parent-dir (expand-file-name (concat this-dir "../")))
+           (system-root-dir (expand-file-name "/")))
+      (cond
+       ((gv/project-root-p this-dir) (cons 'transient this-dir))
+       ((equal system-root-dir this-dir) nil)
+       (t (gv/project-find-root parent-dir)))))
+
+  (defun gv/project-root-p (path)
+    (let ((results (mapcar (lambda (marker)
+                             (file-exists-p (concat path marker)))
+                           project-root-markers)))
+      (eval `(or ,@ results))))
+
+  (add-to-list 'project-find-functions #'gv/project-find-root)) ; [built-in] Project Managment
 
 ;;; COMPILATION
 (use-package compile
@@ -1125,20 +1143,21 @@ Containing LEFT, and RIGHT aligned respectively."
   :config
   (add-hook 'org-mode-hook 'org-xournalpp-mode))
 
-(use-package project-x
-  :quelpa (project-x :fetcher github :repo "karthink/project-x")
-  :after project
-  :config
-  (setq project-x-save-interval 600)    ;Save project state every 10 min
-  (project-x-mode 1)
-  (setq project-x-local-identifier
-        '(".git" "package.clj" "package.json" "mix.exs" "Project.toml" ".project")))
+;; (use-package project-x
+;;   :quelpa (project-x :fetcher github :repo "karthink/project-x")
+;;   :after project
+;;   :config
+;;   (setq project-x-save-interval 600)    ;Save project state every 10 min
+;;   (project-x-mode 1)
+;;   (setq project-x-local-identifier
+;;         '(".git" "package.clj" "package.json" "mix.exs" "Project.toml" ".project")))
 
 (use-package eglot-java
   :ensure nil
   :quelpa (eglot-java :fetcher github :repo "yveszoundi/eglot-java")
   :after eglot
   :config
+  (setq eglot-java-prefix-key "C-c e")
   (eglot-java-init))
 
 ;;;; Use emacs instead of dmenu
