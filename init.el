@@ -835,21 +835,15 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
           (roswell-sbcl ("ros" "-L" "sbcl" "-Q" "-l" "~/.sbclrc" "run") :coding-system utf-8-unix)))
   (setq sly-default-lisp 'roswell-sbcl))
 
-(defadvice kill-ring-save (before slick-copy activate compile)
-  "When called interactively with no active region, copy a single line instead."
-  (interactive
-   (if mark-active (list (region-beginning) (region-end))
-     (message "Single line killed")
-     (list (line-beginning-position)
-       (line-beginning-position 2)))))
-
 ;;;; Setup Folding For Programming
 (use-package smartparens
-  :hook ((prog-mode cider-repl-mode eshell-mode
+  :hook (;; use strict mode for programming languages and repls
+         (prog-mode cider-repl-mode eshell-mode
                     fennel-repl-mode geiser-repl-mode inferior-emacs-lisp-mode
                     inferior-lisp-mode inferior-scheme-mode lisp-interaction-mode
                     racket-repl-mode scheme-interaction-mode sly-mrepl-mode)
          . smartparens-strict-mode)
+
   :bind (("C-c s" . smartparens-strict-mode)
          :map smartparens-mode-map
          ("M-e"   . sp-end-of-sexp)
