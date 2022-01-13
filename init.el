@@ -182,6 +182,13 @@
       (consult-ripgrep org-directory))
     (add-hook 'completion-setup-hook #'hl-line-mode)
     (recentf-mode t))
+  (use-package consult-dir
+    :ensure t
+    :bind (("C-x C-j" . consult-dir)
+           ;; :map minibuffer-local-completion-map
+           :map vertico-map
+           ("C-x C-j" . consult-dir)
+           ("C-x C-j" . consult-dir)))
 
   (use-package marginalia
     :custom
