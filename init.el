@@ -319,21 +319,23 @@
 (use-package corfu
   ;; Optional customizations
   :custom
-  ;; (corfu-cycle t)                ; Enable cycling for `corfu-next/previous'
+  (corfu-cycle t)                ; Enable cycling for `corfu-next/previous'
   ;; (corfu-auto t)                 ; Enable auto completion
   ;; (corfu-auto-prefix 1)                ; Enable auto completion
   ;; (corfu-auto-delay 0.1)                 ; Enable auto completion
   (corfu-echo-documentation 0.25)                 ; Enable auto completion
   (corfu-scroll-margin 5)        ; Use scroll margin
   (corfu-preview-current t)    ; Do not preview current candidate
+  (corfu-preselect-first nil)
 
   ;; Optionally use TAB for cycling, default is `corfu-complete'.
   :bind (:map corfu-map
-         ("TAB" . corfu-next)
-         ([tab] . corfu-next)
-         ("S-TAB" . corfu-previous)
+         ("TAB"     . corfu-next)
+         ([tab]     . corfu-next)
+         ("S-SPC"   . corfu-next)
+         ("S-TAB"   . corfu-previous)
          ([backtab] . corfu-previous)
-         ( "C-f" . corfu-insert))
+         ( "C-f"    . corfu-insert))
 
   ;; Recommended: Enable Corfu globally.
   ;; This is recommended since dabbrev can be used globally (M-/).
