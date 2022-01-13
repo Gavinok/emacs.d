@@ -881,6 +881,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
          ("C-w" . my/kill-region))
   :config
   (require 'smartparens-config)
+  (smartparens-global-mode t)
   (setq rectangle-mark-mode nil)
   (defun my/kill-region (BEG END &optional REGION)
     (interactive (list (mark) (point) 'region))
