@@ -1092,12 +1092,13 @@ Containing LEFT, and RIGHT aligned respectively."
 
 ;; Install Ement.
 (use-package ement
-  :commands (ement-connect)
+  :commands (gv/ement-connect)
   :quelpa (ement :fetcher github :repo "alphapapa/ement.el")
   :init
-  (setq ement-room-sender-headers t
-        ement-room-retro-loading t)
-  :config
+  (setq ement-room-sender-headers t)
+  (defun gv/ement-connect ()
+    (ement-connect :user-id "@gavinok:matrix.org"
+                   :password (password-store-get "riot.im/gavinok")))
   (setf use-default-font-for-symbols nil)
   (set-fontset-font t 'unicode "Noto Emoji" nil 'append))
 
