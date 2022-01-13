@@ -30,6 +30,7 @@
         org-special-ctrl-a/e t
         org-special-ctrl-k t
         org-src-fontify-natively t
+        org-fontify-whole-heading-line t
         org-fontify-quote-and-verse-blocks t
         org-src-tab-acts-natively t
         org-edit-src-content-indentation 2
