@@ -552,11 +552,13 @@
           "\\*xref\\*"
           "\\*Backtrace\\*"
           "\\*eldoc\\*"
+          "\\*compilation\\*"
           "^*tex"
           "^\\*sly-[^s]"
           "\\*Ement Notifications\\*"
           "Output\\*$"
           "\\*Async Shell Command\\*"
+          "\\*Dtache Shell Command\\*"
           "\\*mu4e-update\\*"
           help-mode
           compilation-mode))
