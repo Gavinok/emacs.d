@@ -342,6 +342,32 @@
   :init
   (corfu-global-mode))
 
+;; Templates takes advantage of emacs's tempo
+(use-package tempel
+  :bind (("M-+" . tempel-complete) ;; Alternative tempel-expand
+         ("M-*" . tempel-insert))
+
+  :init
+  ;; Setup completion at point
+  (defun tempel-setup-capf ()
+    ;; Add the Tempel Capf to `completion-at-point-functions'.
+    ;; The depth is set to -1, such that `tempel-expand' is tried *before* the
+    ;; programming mode Capf. If a template name can be completed it takes
+    ;; precedence over the programming mode completion. `tempel-expand' only
+    ;; triggers on exact matches. Alternatively use `tempel-complete' if you
+    ;; want to see all matches, but then Tempel will probably trigger too
+    ;; often when you don't expect it.
+    (add-hook 'completion-at-point-functions #'tempel-expand -1 'local))
+
+  (add-hook 'prog-mode-hook 'tempel-setup-capf)
+  (add-hook 'text-mode-hook 'tempel-setup-capf)
+
+  ;; Optionally make the Tempel templates available to Abbrev,
+  ;; either locally or globally. `expand-abbrev' is bound to C-x '.
+  ;; (add-hook 'prog-mode-hook #'tempel-abbrev-mode)
+  ;; (tempel-global-abbrev-mode)
+  )
+
 (use-package eldoc-box
   :after eldoc
   :init
@@ -834,11 +860,20 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :config
   (add-to-list 'eglot-server-programs '(clojure-mode . ("clojure-lsp")))
   (add-to-list 'eglot-server-programs
-               '(yaml-mode . ("yaml-language-server" "--stdio"))))
+               '(yaml-mode . ("yaml-language-server" "--stdio")))
+  ;; TODO get this working properly
+  ;; (add-hook 'eglot-connect-hook
+  ;;           (setq-local completion-at-point-functions
+  ;;                       (list
+  ;;                        #'cape-file
+  ;;                        (cape-capf-buster
+  ;;                         #'eglot-completion-at-point)
+  ;;                        #'cape-dabbrev)))
+  )
 
 (use-package haskell-mode :ensure t :mode "\\.hs\\'")
-(use-package rust-mode :ensure t :mode "\\.rs\\'")
-(use-package racket-mode :ensure t :mode "\\.rkt\\'")
+(use-package rust-mode    :ensure t :mode "\\.rs\\'")
+(use-package racket-mode  :ensure t :mode "\\.rkt\\'")
 
 ;;; Clojure
 (use-package clojure-mode :ensure t :mode "\\.clj\\'")
