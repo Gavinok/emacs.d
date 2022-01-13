@@ -147,3 +147,6 @@
   (add-to-list 'org-structure-template-alist '("sh"  . "src sh"))
   (add-to-list 'org-structure-template-alist '("el"  . "src emacs-lisp"))
   (add-to-list 'org-structure-template-alist '("vim"  . "src vim")))
+(use-package org-transclusion
+  :after org
+  :bind ("C-c t" . org-transclusion-add))
