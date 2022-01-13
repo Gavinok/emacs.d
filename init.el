@@ -301,7 +301,7 @@
 
 ;;; Git
 (use-package magit
-  :bind ("C-x g" . magit-status)
+  :bind ("C-x v SPC" . magit-status)
   :commands magit)
 
 (use-package diff-hl
