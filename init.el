@@ -958,6 +958,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   (add-hook 'prog-mode-hook (lambda ()
                               (setq show-trailing-whitespace t)))
   (add-hook 'emacs-lisp-mode-hook 'prettify-symbols-mode)
+  (add-hook 'lisp-mode-hook 'prettify-symbols-mode)
 ;;;;; Smart Indentation
   (defun infer-indentation-style ()
     ;; if our source file uses tabs, we use tabs, if spaces spaces, and if

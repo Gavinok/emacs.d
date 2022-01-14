@@ -11,6 +11,14 @@ prog-mode
 (bug (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "BUG ")
 (hack (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "HACK ")
 
+c-mode
+
+(if "if ("  (p "true") ") {" n> r> (p "true") n "}")
+(print "printf("  (p "\"your text here\"" text) ")")
+(for "for (" int (p "i" var) "=" (p "0") "; " (s var) "< " (p "max" max) "; " (s var) "++" ")"
+     n> (p "/* your code here*/h")
+     n "}")
+
 latex-mode
 
 (begin "\\begin{" (s env) "}" > n> r> "\\end{" (s env) "}")
@@ -33,26 +41,15 @@ emacs-lisp-mode
 (rec "(letrec (" p ")" n> r> ")")
 (command "(defun " p " (" p ")\n  \"" p "\"" n> "(interactive)" n> r> ")")
 
-text-mode
-
-(cut "--8<---------------cut here---------------start------------->8---" n r n
-     "--8<---------------cut here---------------end--------------->8---" n)
-(asciibox "+-" (make-string (length str) ?-) "-+" n
-          "| " (s str)                       " |" n
-          "+-" (make-string (length str) ?-) "-+" n)
-
-rst-mode
-
-(title (make-string (length title) ?=) n (p "Title: " title) n (make-string (length title) ?=) n)
-
 java-mode
 
 (class "public class " (p (file-name-base (or (buffer-file-name) (buffer-name)))) " {" n> r> n "}")
 (print "System.out.println(" (p "What to print" print) ");")
 
 org-mode
+(title (make-string (length title) ?=) n (p "Title: " title) n (make-string (length title) ?=) n)
 
-(title "#+title: " p n "#+author: Daniel Mendler" n "#+language: en" n n)
+;; (title "#+title: " p n "#+author: Daniel Mendler" n "#+language: en" n n)
 (quote "#+begin_quote" n> r> n> "#+end_quote")
 (example "#+begin_example" n> r> n> "#+end_example")
 (center "#+begin_center" n> r> n> "#+end_center")
