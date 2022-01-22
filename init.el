@@ -182,13 +182,7 @@
       (consult-ripgrep org-directory))
     (add-hook 'completion-setup-hook #'hl-line-mode)
     (recentf-mode t))
-  (use-package consult-dir
-    :ensure t
-    :bind (("C-x C-j" . consult-dir)
-           ;; :map minibuffer-local-completion-map
-           :map vertico-map
-           ("C-x C-j" . consult-dir)
-           ("C-x C-j" . consult-dir)))
+
 
   (use-package marginalia
     :custom
@@ -1004,9 +998,16 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   (add-hook 'dired-mode-hook 'dired-hide-details-mode)
 ;;;;; xdg-open integration
   (require 'dired-x)
+  (setq dired-bind-jump nil)
   ;; prevent opening extra dired buffers
   ;; emacs 28
   (setq dired-kill-when-opening-new-dired-buffer t))
+  (use-package consult-dir
+    :ensure t
+    :bind (("C-x C-j" . consult-dir)
+           ;; :map minibuffer-local-completion-map
+           :map vertico-map
+           ("C-x C-j" . consult-dir)))
 
 ;;; PASS
 (use-package password-store
