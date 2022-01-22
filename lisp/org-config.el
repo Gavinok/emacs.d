@@ -47,6 +47,7 @@
                     "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)"
                     "|" "DELEGATED(D)" "CANCELLED(c)")))
 ;;;; Babel
+  (setq org-babel-lisp-eval-fn #'sly-eval)
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((haskell . t) (emacs-lisp . t) (shell . t)
