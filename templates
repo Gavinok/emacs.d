@@ -57,3 +57,25 @@ org-mode
 (verse "#+begin_verse" n> r> n> "#+end_verse")
 (src "#+begin_src " p n> r> n> "#+end_src")
 (elisp "#+begin_src emacs-lisp" n> r> n "#+end_src")
+(java "#+begin_src java" n> r> n "#+end_src")
+
+sh-mode
+
+(env "#!/bin/env sh")
+(for "for " (p "needle") " in " (p "haystack")"; do" n>
+     (p "#code")n
+     "done")
+(if "if [ " (p "condition")" ]; then"n> (r "#code")n "fi")
+(case "case "(p "var")" in"
+      n> (p "1") ")" n>(p "# code")";;"
+      n> (p "2") ")" n>(p "# code")";;"
+      n>    "*)"     n>(p "# default")";;"
+      n"esac")
+
+(readfile "while IFS= read -r line || [ -n "(p "\"$line\"")" ]; do"n>
+          (p "printf '%s\\n' \"$line\"")n
+          "done < \"file\"")
+
+(while "while [ "(p "\"$start\"") " -le " (p "\"$end\"")" ]; do"n>
+       (p "#code")n
+       "done")
