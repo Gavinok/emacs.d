@@ -731,7 +731,7 @@
 
   ;;TRAMP
   (setq tramp-default-method "ssh")
-
+  (setq shell-file-name "/usr/bin/bash")
   ;; recentf
   (setq recentf-make-menu-items 150
         recentf-make-saved-items 150)
