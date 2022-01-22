@@ -14,10 +14,20 @@ prog-mode
 c-mode
 
 (if "if ("  (p "true") ") {" n> r> (p "true") n "}")
-(print "printf("  (p "\"your text here\"" text) ")")
-(for "for (" int (p "i" var) "=" (p "0") "; " (s var) "< " (p "max" max) "; " (s var) "++" ")"
+(print "printf(" (p "\"The value of ___ is\"" text) (r ", ")")")
+(for "for (" "int" (p "i" var) "=" (p "0") "; "
+     (s var) "< " (p "max" max) "; "
+     (s var) "++" ")"
      n> (p "/* your code here*/h")
      n "}")
+(main "int main(int argc, char* argv[])"n"{" n> (r "/*Your Code Here*/") n"}")
+
+python-mode
+
+(for "for " (p "needle") " in " (p "heystack") ":"n>
+     (p "# code goes here"))
+(if "if " (p "condition" var) ":"n>
+     (p "# code goes here"))
 
 latex-mode
 
@@ -37,19 +47,31 @@ emacs-lisp-mode
 (macro "(defmacro " p " (" p ")\n  \"" p "\"" n> r> ")")
 (fun "(defun " p " (" p ")\n  \"" p "\"" n> r> ")")
 (let "(let (" p ")" n> r> ")")
-(star "(let* (" p ")" n> r> ")")
 (rec "(letrec (" p ")" n> r> ")")
 (command "(defun " p " (" p ")\n  \"" p "\"" n> "(interactive)" n> r> ")")
 
 java-mode
 
-(class "public class " (p (file-name-base (or (buffer-file-name) (buffer-name)))) " {" n> r> n "}")
-(print "System.out.println(" (p "What to print" print) ");")
+(class "public class "
+       (p (file-name-base (or (buffer-file-name) (buffer-name))))
+       " {" n> r> n "}")
+(print "System.out.println(" (r "What to print" print) ");")
+(debug "System.out.println(""\"The value of "
+       (p "var") " is \" + "
+       (r "var" print) ");")
+
+;; (switch
+;;  "switch ("(p "{{+condition+}}")") {"n>
+;;  "case " (p "{{++case1+}}")": "(p "{{+//code+}}")n>
+;;  "break;"n>
+;;  "case " (p "{{+case2+}}")": "(p "{{+//code+}}")n>
+;;  "break;"n>
+;;  "default: "(p "{{+//code+}}")n>
+;;  "break;"n>"}")
 
 org-mode
-(title (make-string (length title) ?=) n (p "Title: " title) n (make-string (length title) ?=) n)
 
-;; (title "#+title: " p n "#+author: Daniel Mendler" n "#+language: en" n n)
+(title "#+title: " p n "#+author: Daniel Mendler" n "#+language: en" n n)
 (quote "#+begin_quote" n> r> n> "#+end_quote")
 (example "#+begin_example" n> r> n> "#+end_example")
 (center "#+begin_center" n> r> n> "#+end_center")

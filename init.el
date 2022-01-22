@@ -250,30 +250,29 @@
   (setq iedit-increment-format-string "%03d"))
 
 ;;; THEMEING
-(use-package ujelly-theme
-  :config
-  (load-theme 'ujelly t)
-  (global-hl-line-mode t)
-  (set-face-background hl-line-face "#111")
-  (when gv/my-system
-    (set-frame-parameter (selected-frame) 'alpha '(100 100))
-    (add-to-list 'default-frame-alist '(alpha 100 100)))
-  (set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
-  (set-face-attribute 'default nil :background "#000" :foreground "#eee")
-  (set-face-attribute 'mode-line nil
-                      :box '(:line-width 10 :color "#000"))
-  (set-face-attribute 'mode-line-inactive nil
-                      :box '(:line-width 10 :color "#000"))
-  (set-face-attribute 'mode-line nil
-                      :background  "#0F0F0F")
-  ;; vertical padding
-  (setq-default header-line-format " "))
-
-;; (use-package modus-themes
+;; (use-package ujelly-theme
 ;;   :config
-;;   (modus-themes-load-vivendi)
-;;   (global-hl-line-mode t)
-;;   (set-cursor-color "red"))
+;;   (load-theme 'ujelly t)
+;;   (set-face-attribute 'mode-line nil
+;;                       :box '(;; :line-width 10
+;;                                          :color "#000"))
+;;   (set-face-attribute 'mode-line-inactive nil
+;;                       :box '(;; :line-width 10
+;;                                          :color "#000"))
+;;   (set-face-attribute 'mode-line nil
+;;                       :background  "#0F0F0F")
+;;   ;; vertical padding
+;;   (setq-default header-line-format " "))
+
+(use-package spaceway-theme
+  :ensure nil
+  :load-path "lisp/spaceway/"
+  :config
+  (global-hl-line-mode t)
+  ;; (when gv/my-system
+  ;;   (set-frame-parameter (selected-frame) 'alpha '(90 90))
+  ;;   (add-to-list 'default-frame-alist '(alpha 90 90)))
+  (load-theme 'spaceway t))
 
 ;;; WRITING
 (use-package writegood-mode
