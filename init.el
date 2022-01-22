@@ -559,7 +559,8 @@
 (use-package perspective
   :ensure t
   :bind (("C-x x s" . persp-switch)
-         ("C-x x C-l" . persp-state-load))
+         ("C-x x C-l" . persp-state-load)
+         ("C-x x B" . persp-switch-to-scratch-buffer))
   :config
   (persp-mode t))
 
