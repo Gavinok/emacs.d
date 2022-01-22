@@ -328,7 +328,7 @@
          ("S-SPC"   . corfu-next)
          ("S-TAB"   . corfu-previous)
          ([backtab] . corfu-previous)
-         ( "C-f"    . corfu-insert))
+         ("C-f"     . corfu-insert))
 
   ;; Recommended: Enable Corfu globally.
   ;; This is recommended since dabbrev can be used globally (M-/).
