@@ -92,7 +92,6 @@
 
 (use-package undo-fu-session
   :ensure t
-  :after undo-fu
   :init (global-undo-fu-session-mode))
 
 ;;; TERMINAL SETTINGS
@@ -598,6 +597,10 @@
          ("]" . forward-paragraph)
          ("[" . backward-paragraph))
   :config
+  (setq god-og-mode-line
+        (face-attribute 'mode-line :box)
+        god-og-mode-line-inactive
+        (face-attribute 'mode-line-inactive :box))
   (defun my-god-mode-update-mode-line ()
     (cond
      (god-local-mode
@@ -607,9 +610,9 @@
                           :box "#75b5c6"))
      (t
       (set-face-attribute 'mode-line nil
-                          :box "#d7d7d7")
+                          :box god-og-mode-line)
       (set-face-attribute 'mode-line-inactive nil
-                          :box "#efefef"))))
+                          :box god-og-mode-line-inactive))))
 
   (add-hook 'post-command-hook 'my-god-mode-update-mode-line))
 
@@ -683,7 +686,8 @@
      #b10000000
      #b10000000])
   (when gv/my-system
-    (set-frame-font "Terminus 14" nil t))
+    (set-frame-font "PragmataPro Mono:pixelsize=20:antialias=true:autohint=true"
+                    nil t))
 ;;;; Backups
   (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
         vc-make-backup-files t
@@ -1055,6 +1059,7 @@ Containing LEFT, and RIGHT aligned respectively."
                        (funcall battery-status-function))) )
              "    "))))))
 
+
 ;;; Server Setup
 (use-package server
   :ensure nil
@@ -1092,6 +1097,8 @@ Containing LEFT, and RIGHT aligned respectively."
 ;;; mu4e
 (load (concat user-emacs-directory
               "lisp/mu4e-config.el"))
+
+(add-to-list 'load-path "/usr/share/emacs/site-lisp/")
 
 (use-package keycast
   :ensure t
@@ -1139,11 +1146,16 @@ Containing LEFT, and RIGHT aligned respectively."
   :init
   (setq ement-room-sender-headers t)
   (defun gv/ement-connect ()
+    (interactive)
     (ement-connect :user-id "@gavinok:matrix.org"
                    :password (password-store-get "riot.im/gavinok")))
   (setf use-default-font-for-symbols nil)
   (set-fontset-font t 'unicode "Noto Emoji" nil 'append))
 
+;; (defun screenshot (&optional args)
+;;   (interactive)
+;;   (start-process-shell-command "dragon-drop" nil
+;;                                  (concat "dragon-drag-and-drop " file)))
 (use-package obs-websocket
   :ensure nil
   :quelpa (obs-websocket :fetcher github :repo "sachac/obs-websocket-el")
@@ -1190,3 +1202,6 @@ Containing LEFT, and RIGHT aligned respectively."
 ;;; Stuff To Ignore
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
+
+(load (concat user-emacs-directory
+              "lisp/termux.el"))

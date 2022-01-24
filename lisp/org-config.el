@@ -110,7 +110,7 @@
              "* TODO Follow up with %:fromname on %a\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%i")
             ("mr" "Read Later" entry (file+olp (lambda () (concat org-directory "/Work.org")) "Read Later")
              "* TODO Read %:subject\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%a\n%i"))))
-;;;; Clocking
+  ;;;; Clocking
   (setq org-clock-idle-time 15)
   (setq org-clock-x11idle-program-name "xprintidle")
 

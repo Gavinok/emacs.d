@@ -34,6 +34,7 @@
   (use-package message-attachment-reminder)
 ;;;; Org In Emails
   (use-package org-mime
+    :ensure t
     :config
     (setq org-mime-export-options '(:section-numbers nil
                                                      :with-author nil
