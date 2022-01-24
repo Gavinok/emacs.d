@@ -86,7 +86,11 @@
   (when gv/my-system
     (setq org-default-notes-file (concat org-directory "/refile.org"))
     (setq org-capture-templates
-          '(("t" "Todo" entry (file (lambda () (concat org-directory "/refile.org")))
+          '(("P" "Protocol")
+            ("Pi" "Important")
+            ("Pit" "Today" entry (file+headline "~/Documents/Org/Agenda/notes.org" "Websites")
+             "* TODO %:annotation \t:important:\n\tSCHEDULED:%(org-insert-time-stamp (org-read-date nil t \"\"))\n:PROPERTIES:\n:Effort: 1h\n:SCORE_ON_DONE: 30\n:END:\n  %i\n  %a")
+            ("t" "Todo" entry (file (lambda () (concat org-directory "/refile.org")))
              "* TODO %?\nDEADLINE: %T\n  %a")
             ("M" "movie" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
              "* Meeting with  %?\nSCHEDULED: %T\n")
