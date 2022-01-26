@@ -249,28 +249,15 @@
   (setq iedit-increment-format-string "%03d"))
 
 ;;; THEMEING
-;; (use-package ujelly-theme
-;;   :config
-;;   (load-theme 'ujelly t)
-;;   (set-face-attribute 'mode-line nil
-;;                       :box '(;; :line-width 10
-;;                                          :color "#000"))
-;;   (set-face-attribute 'mode-line-inactive nil
-;;                       :box '(;; :line-width 10
-;;                                          :color "#000"))
-;;   (set-face-attribute 'mode-line nil
-;;                       :background  "#0F0F0F")
-;;   ;; vertical padding
-;;   (setq-default header-line-format " "))
-
 (use-package spaceway-theme
   :ensure nil
   :load-path "lisp/spaceway/"
   :config
   (global-hl-line-mode t)
-  ;; (when gv/my-system
-  ;;   (set-frame-parameter (selected-frame) 'alpha '(90 90))
-  ;;   (add-to-list 'default-frame-alist '(alpha 90 90)))
+  (set-cursor-color "#dc322f")
+  (when gv/my-system
+    (set-frame-parameter (selected-frame) 'alpha '(100 100))
+    (add-to-list 'default-frame-alist '(alpha 100 100)))
   (load-theme 'spaceway t))
 
 ;;; WRITING
@@ -697,6 +684,12 @@
         delete-old-versions t
         backup-by-copying t)
 ;;;; Defaults
+  ;; Handle long lines
+  (setq-default bidi-paragraph-direction 'left-to-right)
+  (when (version<= "27.1" emacs-version)
+    (setq bidi-inhibit-bpa t)
+    (global-so-long-mode 1))
+
   ;; Cursor Shape
   (setq delete-by-moving-to-trash t
         create-lockfiles nil
@@ -798,12 +791,12 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
           try-expand-line)))
 
 ;;; FOLDING
-(use-package outline
-  :ensure nil
-  :defer nil
-  :hook (prog-mode . outline-minor-mode)
-  :init
-  (setq outline-minor-mode-prefix "\C-c"))
+;; (use-package outline
+;;   :ensure nil
+;;   :defer nil
+;;   :hook (prog-mode . outline-minor-mode)
+;;   :init
+;;   (setq outline-minor-mode-prefix "\C-c"))
 
 ;;; enhanced eww
 (use-package shrface
@@ -862,7 +855,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
 
 ;;; Clojure
 (use-package clojure-mode :ensure t :mode "\\.clj\\'")
-(use-package cider :ensure t :hook clojure-mode)
+;; (use-package cider :ensure t :hook clojure-mode)
 
 ;;; Lisp
 (use-package sly
@@ -942,6 +935,8 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :config
   (add-hook 'prog-mode-hook (lambda ()
                               (setq show-trailing-whitespace t)))
+  (add-hook 'emacs-lisp-mode-hook
+            (lambda () (add-hook 'local-write-file-hooks 'check-parens)))
   (add-hook 'emacs-lisp-mode-hook 'prettify-symbols-mode)
   (add-hook 'lisp-mode-hook 'prettify-symbols-mode)
 ;;;;; Smart Indentation
@@ -1149,8 +1144,9 @@ Containing LEFT, and RIGHT aligned respectively."
     (interactive)
     (ement-connect :user-id "@gavinok:matrix.org"
                    :password (password-store-get "riot.im/gavinok")))
-  (setf use-default-font-for-symbols nil)
-  (set-fontset-font t 'unicode "Noto Emoji" nil 'append))
+  ;; (setf use-default-font-for-symbols nil)
+  ;; (set-fontset-font t 'unicode "Noto Emoji" nil 'append)
+  )
 
 ;; (defun screenshot (&optional args)
 ;;   (interactive)
@@ -1178,15 +1174,6 @@ Containing LEFT, and RIGHT aligned respectively."
   :bind ("C-c x" . org-xournalpp-insert-new-image)
   :config
   (add-hook 'org-mode-hook 'org-xournalpp-mode))
-
-;; (use-package project-x
-;;   :quelpa (project-x :fetcher github :repo "karthink/project-x")
-;;   :after project
-;;   :config
-;;   (setq project-x-save-interval 600)    ;Save project state every 10 min
-;;   (project-x-mode 1)
-;;   (setq project-x-local-identifier
-;;         '(".git" "package.clj" "package.json" "mix.exs" "Project.toml" ".project")))
 
 (use-package eglot-java
   :ensure nil

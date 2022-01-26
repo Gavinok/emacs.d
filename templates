@@ -50,6 +50,28 @@ emacs-lisp-mode
 (rec "(letrec (" p ")" n> r> ")")
 (command "(defun " p " (" p ")\n  \"" p "\"" n> "(interactive)" n> r> ")")
 
+lisp-mode
+
+(lambda "(lambda (" p ")" n> r> ")")
+
+(ftype "(declaim (ftype (function (" (p "arg-type-1 arg-type-2 ..." )") "
+       (p "return-type") ") "
+       (p "function-name" func-name)"))"n>
+       "(defun " (s func-name) " (" p ")\n  \"" p "\"" n> r> ")")
+
+(the "(the "(p "type") " " (r "variable") ")")
+
+(deftype "(deftype " (p "Name Of Type") " ()"n>
+  "`(satisfies " (p "Predicate To Check Type") "))")
+
+(typecase "(typecase " (r "variable")n>
+          "(" (p "type")" "(p "(do this)")")"n>
+          "(t "           (p "default")"))")
+
+(cond "(cond"n>
+      "("(p "(condition)")" "(p "return")")"n>
+      "(t"                   (p "default")"))")
+
 java-mode
 
 (class "public class "
