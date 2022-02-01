@@ -123,3 +123,8 @@ sh-mode
 (while "while [ "(p "\"$start\"") " -le " (p "\"$end\"")" ]; do"n>
        (p "#code")n
        "done")
+
+haskell-mode
+
+(main "main :: IO ()"n
+      "main = do print " (p "hello world"))
