@@ -114,6 +114,7 @@
        `(git-commit-comment-file ((,class (:foreground ,spaceway-fg))))
        `(git-commit-comment-heading ((,class (:foreground ,spaceway-yellow-0))))
        `(git-commit-summary ((,class (:foreground ,spaceway-fg))))
+       `(parenthesis ((,class (:foreground ,spaceway-grey-5))))
        `(header-line ((,class (:foreground ,spaceway-fg))))
        `(helm-buffer-file ((,class (:foreground ,spaceway-fg))))
        `(helm-buffer-process ((,class (:foreground ,spaceway-yellow-0))))
