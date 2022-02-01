@@ -293,33 +293,23 @@
   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
   (diff-hl-flydiff-mode))
 
-;; Enable Corfu completion UI
-;; See the Corfu README for more configuration tips.
-(use-package corfu
-  ;; Optional customizations
-  :custom
-  (corfu-cycle t)                ; Enable cycling for `corfu-next/previous'
-  ;; (corfu-auto t)                 ; Enable auto completion
-  ;; (corfu-auto-prefix 1)                ; Enable auto completion
-  ;; (corfu-auto-delay 0.1)                 ; Enable auto completion
-  (corfu-echo-documentation 0.25)                 ; Enable auto completion
-  (corfu-scroll-margin 5)        ; Use scroll margin
-  (corfu-preview-current t)    ; Do not preview current candidate
-  (corfu-preselect-first nil)
+;;; As You Type Completion
+ (use-package company
+   :ensure t
+   :demand t
+   :bind (:map company-active-map
+               ("S-SPC" . company-search-candidates))
+   :config
+   (global-company-mode nil)
+   (setq company-idle-delay 0.1
+         company-minimum-prefix-length 1)
+   ;; tab and go mode
+   (company-tng-configure-default))
 
-  ;; Optionally use TAB for cycling, default is `corfu-complete'.
-  :bind (:map corfu-map
-         ("TAB"     . corfu-next)
-         ([tab]     . corfu-next)
-         ("S-SPC"   . corfu-next)
-         ("S-TAB"   . corfu-previous)
-         ([backtab] . corfu-previous)
-         ("C-f"     . corfu-insert))
-
-  ;; Recommended: Enable Corfu globally.
-  ;; This is recommended since dabbrev can be used globally (M-/).
-  :init
-  (corfu-global-mode))
+;;;; better completion options
+(use-package prescient  :ensure t)
+(use-package company-prescient  :ensure t
+  :hook (company-mode . company-prescient-mode))
 
 ;; Templates takes advantage of emacs's tempo
 (use-package tempel
@@ -340,21 +330,6 @@
   (setq eldoc-box-only-multi-line t)
   :config
   (add-hook 'eldoc-mode-hook #'eldoc-box-hover-mode 1))
-
-;; Add extensions
-(use-package cape
-  ;; Bind dedicated completion commands
-  :bind (("S-SPC" . completion-at-point))
-  :init
-  ;; Add `completion-at-point-functions', used by `completion-at-point'.
-  (setq completion-at-point-functions
-        (list
-         #'cape-file
-         #'cape-symbol
-         #'cape-dabbrev))
-  :config
-  (setq tab-always-indent 'complete)
-  (setq dabbrev-upcase-means-case-search t))
 
 ;;; VTERM AND ESHELL
 (use-package vterm
@@ -838,16 +813,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :config
   (add-to-list 'eglot-server-programs '(clojure-mode . ("clojure-lsp")))
   (add-to-list 'eglot-server-programs
-               '(yaml-mode . ("yaml-language-server" "--stdio")))
-  ;; TODO get this working properly
-  ;; (add-hook 'eglot-connect-hook
-  ;;           (setq-local completion-at-point-functions
-  ;;                       (list
-  ;;                        #'cape-file
-  ;;                        (cape-capf-buster
-  ;;                         #'eglot-completion-at-point)
-  ;;                        #'cape-dabbrev)))
-  )
+               '(yaml-mode . ("yaml-language-server" "--stdio"))))
 
 (use-package haskell-mode :ensure t :mode "\\.hs\\'")
 (use-package rust-mode    :ensure t :mode "\\.rs\\'")
