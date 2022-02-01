@@ -6,6 +6,16 @@
 (add-hook 'emacs-startup-hook
           (lambda ()
             (setq gc-cons-threshold (* 2 1000 1000))))
+
+;;; Backups
+(setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
+      vc-make-backup-files t
+      version-control t
+      kept-old-versions 0
+      kept-new-versions 10
+      delete-old-versions t
+      backup-by-copying t)
+
 ;;; PACKAGE LIST
 (setq package-archives
       '(("melpa" . "https://melpa.org/packages/")
@@ -310,7 +320,13 @@
 (use-package prescient  :ensure t)
 (use-package company-prescient  :ensure t
   :hook (company-mode . company-prescient-mode))
-
+;; (use-package company-wordfreq :ensure t
+;;   :config
+;;   ;;curl https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/en/en_50k.txt > ~/.emacs.d/en_50k.txt
+;;   (setq company-wordfreq-path "~/.emacs.d/en_50k.txt")
+;;   (add-hook 'text-mode-hook (lambda ()
+;;                             (setq-local company-backends '(company-wordfreq))
+;;                             (setq-local company-transformers nil))))
 ;; Templates takes advantage of emacs's tempo
 (use-package tempel
   :bind (("M-+" . tempel-insert) ;; Alternative tempel-expand
@@ -410,7 +426,7 @@
           (magit-status (project-root (project-current t)) "Magit" m)))
 
   (defvar project-root-markers
-  '(".git" "package.clj" "package.json" "mix.exs" "Project.toml" ".project" "Cargo.toml"))
+    '(".git" "package.clj" "package.json" "mix.exs" "Project.toml" ".project" "Cargo.toml"))
 
   (defun gv/project-find-root (path)
     (let* ((this-dir (file-name-as-directory (file-truename path)))
@@ -650,14 +666,6 @@
   (when gv/my-system
     (set-frame-font "PragmataPro Mono:pixelsize=20:antialias=true:autohint=true"
                     nil t))
-;;;; Backups
-  (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
-        vc-make-backup-files t
-        version-control t
-        kept-old-versions 0
-        kept-new-versions 10
-        delete-old-versions t
-        backup-by-copying t)
 ;;;; Defaults
   ;; Handle long lines
   (setq-default bidi-paragraph-direction 'left-to-right)
@@ -665,7 +673,6 @@
     (setq bidi-inhibit-bpa t)
     (global-so-long-mode 1))
 
-  ;; Cursor Shape
   (setq delete-by-moving-to-trash t
         create-lockfiles nil
         auto-save-default nil
@@ -832,7 +839,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
         `((sbcl ("sbcl") :coding-system utf-8-unix)
           (roswell ("ros" "-Q" "run"))
           (roswell-sbcl ("ros" "-L" "sbcl" "-Q" "-l" "~/.sbclrc" "run") :coding-system utf-8-unix)))
-  (setq sly-default-lisp 'roswell-sbcl))
+  (setq sly-default-lisp 'sbcl))
 
 ;;;; Setup Folding For Programming
 (use-package smartparens
@@ -920,12 +927,13 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :hook (prog-mode . hl-todo-mode))
 
 (use-package pulse
+  ;; Highlight cursor postion after movement
   :unless gv/is-terminal
   :defer t
   :init (defun pulse-line (&rest _)
           (pulse-momentary-highlight-one-line (point)))
   (dolist (command '(recenter-top-bottom other-window))
-    (advice-add command :after #'pulse-line))) ; Highlight cursor postion after movement
+    (advice-add command :after #'pulse-line)))
 
 ;;;; Display hex colors in emacs
 (use-package rainbow-mode
@@ -942,9 +950,10 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   (add-hook 'dired-mode-hook #'hl-line-mode)
 ;;;;; Hide . and .. in dired
   (setq dired-omit-files
-        (rx (or (seq bol (? ".") "#")
-                (seq bol "." eol)
-                (seq bol ".." eol))))
+        ;; (rx (or (seq bol (? ".") "#")
+        ;;         (seq bol "." eol)
+        ;;         (seq bol ".." eol)))
+        (setq dired-omit-files "^\\.?#\\|^\\.$\\|^\\.\\.$\\|^\\..*$"))
 
   (add-hook 'dired-mode-hook 'dired-omit-mode)
   (add-hook 'dired-mode-hook 'dired-hide-details-mode)
@@ -1042,6 +1051,10 @@ Containing LEFT, and RIGHT aligned respectively."
   :config
   (pdf-tools-install)
   (define-pdf-cache-function pagelabels)
+  (setq-default pdf-view-display-size 'fit-page)
+  (add-to-list 'org-file-apps
+             '("\\.pdf\\'" . (lambda (file link)
+                                     (org-pdfview-open link))))
   ;; pdf auto refresh
   ;; (add-hook 'doc-view-mode-hook 'auto-revert-mode)
   )
