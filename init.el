@@ -303,30 +303,54 @@
   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
   (diff-hl-flydiff-mode))
 
-;;; As You Type Completion
- (use-package company
-   :ensure t
-   :demand t
-   :bind (:map company-active-map
-               ("S-SPC" . company-search-candidates))
-   :config
-   (global-company-mode nil)
-   (setq company-idle-delay 0.1
-         company-minimum-prefix-length 1)
-   ;; tab and go mode
-   (company-tng-configure-default))
+;; Enable Corfu completion UI
+;; See the Corfu README for more configuration tips.
+(use-package corfu
+  ;; Optional customizations
+  :custom
+  (corfu-cycle t)           ; Enable cycling for `corfu-next/previous'
+  (corfu-auto t)            ; Enable auto completion
+  (corfu-auto-prefix 1)     ; Enable auto completion
+  (corfu-auto-delay 0.1)    ; Enable auto completion
+  (corfu-cycle t)           ;; allows cycling through candidates
+  (corfu-quit-at-boundary t)
+  (corfu-echo-documentation 0.25)   ; Enable auto completion
+  (corfu-scroll-margin 5)           ; Use scroll margin
+  (corfu-preview-current t)         ; Do not preview current candidate
+  (corfu-preselect-first nil)
 
-;;;; better completion options
-(use-package prescient  :ensure t)
-(use-package company-prescient  :ensure t
-  :hook (company-mode . company-prescient-mode))
-;; (use-package company-wordfreq :ensure t
-;;   :config
-;;   ;;curl https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/en/en_50k.txt > ~/.emacs.d/en_50k.txt
-;;   (setq company-wordfreq-path "~/.emacs.d/en_50k.txt")
-;;   (add-hook 'text-mode-hook (lambda ()
-;;                             (setq-local company-backends '(company-wordfreq))
-;;                             (setq-local company-transformers nil))))
+  ;; Optionally use TAB for cycling, default is `corfu-complete'.
+  :bind (:map corfu-map
+              ("TAB"     . corfu-next)
+              ("C-M-i"   . tempel-expand)
+              ([tab]     . corfu-next)
+              ("S-TAB"   . corfu-previous)
+              ([backtab] . corfu-previous))
+
+  :init
+  (corfu-global-mode)
+  (setq orderless-component-separator "[ \\.]+"))
+
+;; Add extensions
+(use-package cape
+  :init
+  ;; Add `completion-at-point-functions', used by `completion-at-point'.
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  :config
+  ;; Silence the pcomplete capf, no errors or messages!
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
+
+  ;; Ensure that pcomplete does not write to the buffer
+  ;; and behaves as a pure `completion-at-point-function'.
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify)
+  (add-hook 'eshell-mode-hook
+            (lambda ()
+              (setq-local corfu-quit-at-boundary t
+                          corfu-quit-no-match t
+                          corfu-auto nil)
+              (corfu-mode))))
+
 ;; Templates takes advantage of emacs's tempo
 (use-package tempel
   :bind (("M-+" . tempel-insert) ;; Alternative tempel-expand
