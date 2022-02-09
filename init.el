@@ -77,6 +77,18 @@
 (global-set-key [remap scroll-up-command] #'gv/scroll-down)
 (global-set-key [remap scroll-down-command] #'gv/scroll-up)
 
+(defun gv/shell-command-on-file (command)
+  "Execute COMMAND asynchronously on the current file"
+  (interactive (list (read-shell-command
+                      (concat "Async shell command on " (buffer-name) ": "))))
+  (let ((filename (if (equal major-mode 'dired-mode)
+                      default-directory
+                    (buffer-file-name))))
+    (async-shell-command (concat command " " filename))))
+(bind-key (kbd "C-M-&") #'gv/shell-command-on-file)
+(with-eval-after-load 'image-mode
+    (bind-key (kbd "&") #'gv/shell-command-on-file 'image-mode-map))
+
 ;;; General Key Bindings
 (use-package crux
   :ensure t
