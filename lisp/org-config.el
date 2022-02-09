@@ -44,7 +44,7 @@
   (setq org-log-into-drawer t)
   (setq org-todo-keywords
         '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
-          (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)"
+          (sequence "BACKLOG(b)" "ACTIVE(a)"
                     "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)"
                     "|" "DELEGATED(D)" "CANCELLED(c)")))
 ;;;; Babel
@@ -64,9 +64,11 @@
     :ensure t)
   (setq org-confirm-babel-evaluate nil)
 ;;;; Agenda Views
+  ;; Show effort estimates in agenda
+  (setq org-agenda-columns-add-appointments-to-effort-sum t)
   (when gv/my-system
     (setq org-agenda-files (seq-filter (lambda (x) (not (string-match "completed.org" x)))
-                                     (directory-files-recursively org-directory "\\.org$"))))
+                                       (directory-files-recursively org-directory "\\.org$"))))
   (setq org-agenda-custom-commands
         '(("d" "Today's Tasks"
            ((agenda "" ((org-agenda-span 1)
@@ -92,6 +94,8 @@
              "* TODO %:annotation \t:important:\n\tSCHEDULED:%(org-insert-time-stamp (org-read-date nil t \"\"))\n:PROPERTIES:\n:Effort: 1h\n:SCORE_ON_DONE: 30\n:END:\n  %i\n  %a")
             ("t" "Todo" entry (file (lambda () (concat org-directory "/refile.org")))
              "* TODO %?\nDEADLINE: %T\n  %a")
+            ("e" "Errand" entry (file (lambda () (concat org-directory "/refile.org")))
+             "* TODO %? :errand\nDEADLINE: %T\n  %a")
             ("M" "movie" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
              "* Meeting with  %?\nSCHEDULED: %T\n")
             ("s" "Scheduled Event")
@@ -110,7 +114,7 @@
              "* TODO Follow up with %:fromname on %a\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%i")
             ("mr" "Read Later" entry (file+olp (lambda () (concat org-directory "/Work.org")) "Read Later")
              "* TODO Read %:subject\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%a\n%i"))))
-  ;;;; Clocking
+;;;; Clocking
   (setq org-clock-idle-time 15)
   (setq org-clock-x11idle-program-name "xprintidle")
 
@@ -119,7 +123,8 @@
         '(("Work.org"    :maxlevel . 3)
           ("archive.org" :maxlevel . 3)
           ("mylife.org"  :maxlevel . 3)
-          ("youtube.org"  :maxlevel . 3)))
+          ("youtube.org" :maxlevel . 3)
+          ("today.org"   :maxlevel . 3)))
   (advice-add 'org-refile :after 'org-save-all-org-buffers)
 ;;;; Font Sizes
   ;; (dolist (face '((org-level-1 . 1.05)
