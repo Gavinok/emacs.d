@@ -187,7 +187,7 @@
        `(org-document-info-keyword ((,class (:foreground ,spaceway-yellow-0))))
        `(org-document-title ((,class (:foreground ,spaceway-yellow-0))))
        `(org-verbatim ((,class (:foreground ,spaceway-blue-0))))
-       `(org-code ((,class (:foreground ,spaceway-purple-1))))
+       `(org-code ((,class (:foreground ,spaceway-purple-0))))
        `(org-done ((,class (:foreground ,spaceway-green-3))))
        `(org-level-1 ((,class (:foreground ,spaceway-red-2))))
        `(org-level-2 ((,class (:foreground ,spaceway-yellow-0))))
