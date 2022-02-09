@@ -328,14 +328,12 @@
 (use-package corfu
   ;; Optional customizations
   :custom
-  (corfu-cycle t)           ; Enable cycling for `corfu-next/previous'
-  (corfu-auto t)            ; Enable auto completion
-  (corfu-auto-prefix 1)     ; Enable auto completion
-  (corfu-auto-delay 0.1)    ; Enable auto completion
   (corfu-cycle t)           ;; allows cycling through candidates
+  (corfu-auto t)            ; Enable auto completion
+  (corfu-auto-prefix 2)     ; Enable auto completion
+  (corfu-auto-delay 0.1)    ; Enable auto completion
   (corfu-quit-at-boundary t)
   (corfu-echo-documentation 0.25)   ; Enable auto completion
-  (corfu-scroll-margin 5)           ; Use scroll margin
   (corfu-preview-current t)         ; Do not preview current candidate
   (corfu-preselect-first nil)
 
@@ -348,8 +346,7 @@
               ([backtab] . corfu-previous))
 
   :init
-  (corfu-global-mode)
-  (setq orderless-component-separator "[ \\.]+"))
+  (corfu-global-mode))
 
 ;; Add extensions
 (use-package cape
@@ -365,24 +362,23 @@
   ;; and behaves as a pure `completion-at-point-function'.
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify)
   (add-hook 'eshell-mode-hook
-            (lambda ()
-              (setq-local corfu-quit-at-boundary t
-                          corfu-quit-no-match t
-                          corfu-auto nil)
+            (lambda () (setq-local corfu-quit-at-boundary t
+                              corfu-quit-no-match t
+                              corfu-auto nil)
               (corfu-mode))))
 
 ;; Templates takes advantage of emacs's tempo
 (use-package tempel
+  :ensure t
+  :hook ((prog-mode text-mode) . tempel-setup-capf)
+  :demand t
   :bind (("M-+" . tempel-insert) ;; Alternative tempel-expand
          :map tempel-map
          ([remap keyboard-escape-quit] . tempel-done))
   :init
   ;; Setup completion at point
   (defun tempel-setup-capf ()
-    (add-hook 'completion-at-point-functions #'tempel-expand -1 'local))
-
-  (add-hook 'prog-mode-hook 'tempel-setup-capf)
-  (add-hook 'text-mode-hook 'tempel-setup-capf))
+    (add-hook 'completion-at-point-functions #'tempel-expand -1 'local)))
 
 (use-package eldoc-box
   :after eldoc
@@ -562,7 +558,7 @@
   (define-key isearch-mode-map "\M-w" 'isearch-save-and-exit)
 
   ;; Avoid typing - and _ during searches
-  (setq search-whitespace-regexp ".")
+  (setq search-whitespace-regexp ".*")
   ;; Place cursor at the start of the match similar to vim's t
   ;; C-g will return the cursor to it's orignal position
   (add-hook 'isearch-mode-end-hook 'my-goto-match-beginning)
@@ -640,9 +636,11 @@
 
 (use-package dot-mode
   :ensure t
-  :hook (find-file . dot-mode-on))
+  :hook (find-file . dot-mode-on)
+  :config
+  (global-dot-mode))
 
-;;; DEFAULTS
+;;; defaults
 (use-package emacs
   :ensure nil
   :defer nil
@@ -708,8 +706,13 @@
      #b10000000
      #b10000000])
   (when gv/my-system
-    (set-frame-font "PragmataPro Mono:pixelsize=20:antialias=true:autohint=true"
-                    nil t))
+    (set-frame-font "PragmataPro Mono 14" nil t)
+    (load "~/.emacs.d/lisp/pragmatapro-lig.el")
+    (require 'pragmatapro-lig)
+    ;; Enable pragmatapro-lig-mode for specific modes
+    (add-hook 'text-mode-hook 'pragmatapro-lig-mode)
+    (add-hook 'prog-mode-hook 'pragmatapro-lig-mode))
+
 ;;;; Defaults
   ;; Handle long lines
   (setq-default bidi-paragraph-direction 'left-to-right)
@@ -876,14 +879,19 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
 
 ;;; Lisp
 (use-package sly
-  :commands sly
+  :commands (sly sly-connect)
   :init
   (setq inferior-lisp-program "sbcl")
   (setq sly-lisp-implementations
         `((sbcl ("sbcl") :coding-system utf-8-unix)
           (roswell ("ros" "-Q" "run"))
           (roswell-sbcl ("ros" "-L" "sbcl" "-Q" "-l" "~/.sbclrc" "run") :coding-system utf-8-unix)))
-  (setq sly-default-lisp 'sbcl))
+  (setq sly-default-lisp 'sbcl)
+  (defun gv/connect-to-stumpwm ()
+    (interactive)
+    (start-process-shell-command "stumpish start-slynk" nil
+                                 "stumpish start-slynk")
+    (sly-connect "localhost" "4005")))
 
 ;;;; Setup Folding For Programming
 (use-package smartparens
@@ -915,6 +923,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
          ("C-M-?" . sp-convolute-sexp)
          ("C-k"   . sp-kill-hybrid-sexp)
          ("M-k"   . kill-sexp)
+         ("C-M-SPC" . sp-mark-sexp)
          ("C-M-w" . sp-copy-sexp)
          ("M-C"   . sp-clone-sexp)
          ("C-M-z" . sp-rewrap-sexp)
@@ -1098,10 +1107,7 @@ Containing LEFT, and RIGHT aligned respectively."
   (setq-default pdf-view-display-size 'fit-page)
   (add-to-list 'org-file-apps
              '("\\.pdf\\'" . (lambda (file link)
-                                     (org-pdfview-open link))))
-  ;; pdf auto refresh
-  ;; (add-hook 'doc-view-mode-hook 'auto-revert-mode)
-  )
+                               (org-pdfview-open link)))))
 
 ;;;; proced [built-in] htop alternative
 (use-package proced
@@ -1135,10 +1141,6 @@ Containing LEFT, and RIGHT aligned respectively."
   :config
   (clipmon-mode-start))
 
-(use-package vlf
-  :ensure t
-  :defer t) ; help emacs handle large files to avoid exwm from locking
-
 ;;; Winner Mode
 (use-package winner
   :ensure nil
@@ -1171,10 +1173,6 @@ Containing LEFT, and RIGHT aligned respectively."
   ;; (set-fontset-font t 'unicode "Noto Emoji" nil 'append)
   )
 
-;; (defun screenshot (&optional args)
-;;   (interactive)
-;;   (start-process-shell-command "dragon-drop" nil
-;;                                  (concat "dragon-drag-and-drop " file)))
 (use-package obs-websocket
   :ensure nil
   :quelpa (obs-websocket :fetcher github :repo "sachac/obs-websocket-el")
