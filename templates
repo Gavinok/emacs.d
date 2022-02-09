@@ -15,7 +15,7 @@ c-mode
 
 (if "if ("  (p "true") ") {" n> r> (p "true") n "}")
 (print "printf(" (p "\"The value of ___ is\"" text) (r ", ")")")
-(for "for (" "int" (p "i" var) "=" (p "0") "; "
+(for "for (" "int " (p "i" var) "=" (p "0") "; "
      (s var) "< " (p "max" max) "; "
      (s var) "++" ")"
      n> (p "/* your code here*/h")
