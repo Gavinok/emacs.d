@@ -252,7 +252,7 @@
 
 ;;; More native feeling alternative to multiple cursors
 (use-package iedit
-  :bind (("C-;" . iedit-rectangle-mode)
+  :bind (("C-;" . iedit-mode)
          :map rectangle-mark-mode-map
          ("C-;" . iedit-rectangle-mode))
   :init
