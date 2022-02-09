@@ -306,6 +306,14 @@
   :bind ("C-x v SPC" . magit-status)
   :commands magit)
 
+(use-package ediff
+  :after (magit vc)
+  :init
+  ;; multiframe just doesn't make sense to me
+  (setq ediff-window-setup-function #'ediff-setup-windows-default)
+  (with-eval-after-load 'winner
+    (add-hook 'ediff-quit-hook 'winner-undo)))
+
 (use-package diff-hl
   :unless gv/is-termux
   :defer 5
