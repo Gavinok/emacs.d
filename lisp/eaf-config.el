@@ -6,7 +6,8 @@
   :bind (("C-c w" . gv/bm)
         ("s-w" . gv/bm))
   ;; :demand t
-  :load-path "~/.emacs.d/site-lisp/emacs-application-framework/" ; Set to "/usr/share/emacs/site-lisp/eaf" if installed from AUR
+  ;; Set to "/usr/share/emacs/site-lisp/eaf" if installed from AUR
+  :load-path "~/.emacs.d/site-lisp/emacs-application-framework/"
   :init
   (use-package epc      :defer t :ensure t)
   (use-package ctable   :defer t :ensure t)

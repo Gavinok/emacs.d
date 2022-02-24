@@ -55,7 +55,7 @@
   "Truthy value indicating if Emacs is currently running in termux.")
 (defvar gv/is-terminal
   (not window-system)
-  "Truthy value indicating if emacs is currently running in a terminal.")
+  "Truthy value indicating if Emacs is currently running in a terminal.")
 (defvar gv/my-system
   (if (string-equal user-login-name "gavinok")
       t
@@ -63,7 +63,7 @@
   "Non-nil value if this is my system.")
 
 (defun gv/scroll-down (arg)
-  "Move cursor down half a screen."
+  "Move cursor down half a screen ARG times."
   (interactive "p")
   (let ((dist (/ (window-height) 2)))
     (next-line dist)))
@@ -78,7 +78,7 @@
 (global-set-key [remap scroll-down-command] #'gv/scroll-up)
 
 (defun gv/shell-command-on-file (command)
-  "Execute COMMAND asynchronously on the current file"
+  "Execute COMMAND asynchronously on the current file."
   (interactive (list (read-shell-command
                       (concat "Async shell command on " (buffer-name) ": "))))
   (let ((filename (if (equal major-mode 'dired-mode)
@@ -263,12 +263,12 @@
   (embark-collect-mode . consult-preview-at-point-mode))
 
 ;;; More native feeling alternative to multiple cursors
-(use-package iedit
-  :bind (("C-;" . iedit-mode)
-         :map rectangle-mark-mode-map
-         ("C-;" . iedit-rectangle-mode))
-  :init
-  (setq iedit-increment-format-string "%03d"))
+;; (use-package iedit
+;;   :bind (("C-;" . iedit-mode)
+;;          :map rectangle-mark-mode-map
+;;          ("C-;" . iedit-rectangle-mode))
+;;   :init
+;;   (setq iedit-increment-format-string "%03d"))
 
 ;;; THEMEING
 (use-package spaceway-theme
@@ -331,7 +331,7 @@
   (corfu-cycle t)           ;; allows cycling through candidates
   (corfu-auto t)            ; Enable auto completion
   (corfu-auto-prefix 2)     ; Enable auto completion
-  (corfu-auto-delay 0.1)    ; Enable auto completion
+  (corfu-auto-delay 0.0)    ; Enable auto completion
   (corfu-quit-at-boundary t)
   (corfu-echo-documentation 0.25)   ; Enable auto completion
   (corfu-preview-current t)         ; Do not preview current candidate
@@ -339,8 +339,9 @@
 
   ;; Optionally use TAB for cycling, default is `corfu-complete'.
   :bind (:map corfu-map
+              ("RET"     . nil) ;; leave my enter alone!
               ("TAB"     . corfu-next)
-              ("C-M-i"   . tempel-expand)
+              ("C-M-i"   . skempo-complete-tag-or-call-on-region)
               ([tab]     . corfu-next)
               ("S-TAB"   . corfu-previous)
               ([backtab] . corfu-previous))
@@ -355,7 +356,7 @@
   (add-to-list 'completion-at-point-functions #'cape-file)
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   :config
-  ;; Silence the pcomplete capf, no errors or messages!
+  ;; Silence then pcomplete capf, no errors or messages!
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
 
   ;; Ensure that pcomplete does not write to the buffer
@@ -366,7 +367,7 @@
                               corfu-quit-no-match t
                               corfu-auto nil)
               (corfu-mode))))
-
+(use-package pcmpl-args)
 ;; Templates takes advantage of emacs's tempo
 (use-package tempel
   :ensure t
@@ -495,7 +496,9 @@
   (defun colorize-compilation-buffer ()
     (let ((inhibit-read-only t))
       (ansi-color-apply-on-region (point-min) (point-max))))
-  (add-hook 'compilation-filter-hook 'colorize-compilation-buffer))
+  (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+  ;; (setq compilation-environment '("HELLO=Hello"))
+  )
 
 ;;; BUFFER MANAGMENT
 (use-package ibuffer
@@ -634,11 +637,56 @@
 
   (add-hook 'post-command-hook 'my-god-mode-update-mode-line))
 
-(use-package dot-mode
+(use-package evil
   :ensure t
-  :hook (find-file . dot-mode-on)
+  :demand t
+  :bind (("<escape>" . keyboard-escape-quit)
+         :map evil-normal-state-map
+         ;; vim vinigar style
+         ("-"  . (lambda () (interactive)
+                   (dired ".")))
+         ("C-s" . consult-line)
+         ;; Better lisp bindings
+         ("(" . evil-previous-open-paren)
+         (")" . evil-next-close-paren)
+         ("<leader>/" . evil-ex-nohighlight)
+         ("C-n" . evil-next-line)
+         ("C-p" . evil-previous-line)
+         :map evil-operator-state-map
+         ("(" . evil-previous-open-paren)
+         (")" . evil-previous-close-paren))
+  :init
+  (setq evil-search-module 'evil-search)
+  (setq evil-want-keybinding nil)
+  ;; no vim insert bindings
+  (setq evil-disable-insert-state-bindings t)
+  (setq evil-want-Y-yank-to-eol t)
+  (setq evil-split-window-below t)
+  (setq evil-split-window-right t)
+  (setq evil-undo-system 'undo-fu)
   :config
-  (global-dot-mode))
+  (evil-mode 1)
+  (evil-set-leader 'normal " "))
+
+(use-package evil-smartparens
+  :hook (smartparens-mode . evil-smartparens-mode))
+
+;; Enable Commentary
+(use-package evil-commentary
+  :ensure t
+  :after evil
+  :bind (:map evil-normal-state-map
+              ("gc" . evil-commentary)))
+
+;; Enable Surround
+(use-package evil-surround
+  :config
+  (global-evil-surround-mode 1))
+
+;; Enable Lion
+(use-package evil-lion
+  :bind (:map evil-normal-state-map
+              ("gl" . evil-lion-left)))
 
 ;;; defaults
 (use-package emacs
@@ -648,6 +696,7 @@
          ("C-x C-d"      . delete-pair)
          ("C-x O"        . other-other-window)
          ("M-c"          . capitalize-dwim)
+         ("M-o"          . other-window)
          ("M-u"          . upcase-dwim)
          ("M-l"          . downcase-dwim)
          ("M-f"          . sim-vi-w)
@@ -706,7 +755,7 @@
      #b10000000
      #b10000000])
   (when gv/my-system
-    (set-frame-font "PragmataPro Mono 14" nil t)
+    (set-frame-font "PragmataPro Mono:pixelsize=22:antialias=true:autohint=true" nil t)
     (load "~/.emacs.d/lisp/pragmatapro-lig.el")
     (require 'pragmatapro-lig)
     ;; Enable pragmatapro-lig-mode for specific modes
@@ -716,9 +765,8 @@
 ;;;; Defaults
   ;; Handle long lines
   (setq-default bidi-paragraph-direction 'left-to-right)
-  (when (version<= "27.1" emacs-version)
-    (setq bidi-inhibit-bpa t)
-    (global-so-long-mode 1))
+  (setq-default bidi-inhibit-bpa t)
+  (global-so-long-mode 1)
 
   (setq delete-by-moving-to-trash t
         create-lockfiles nil
@@ -736,10 +784,10 @@
   (set-selection-coding-system 'utf-8)
 ;;;; Remove Extra Ui
   (blink-cursor-mode -1)
-  (menu-bar-mode -1)               ; To disable the menu bar, place the following line in your .emacs file:
+  (menu-bar-mode -1) ; To disable the menu bar, place the following line in your .emacs file:
   (unless gv/is-termux
-    (scroll-bar-mode -1))          ; To disable the scroll bar, use the following line:
-  (tool-bar-mode -1)               ; To disable the toolbar, use the following line:
+    (scroll-bar-mode -1)) ; To disable the scroll bar, use the following line:
+  (tool-bar-mode -1) ; To disable the toolbar, use the following line:
   (fset 'yes-or-no-p 'y-or-n-p)    ; don't ask to spell out "yes"
   (show-paren-mode 1)              ; Highlight parenthesis
   (setq x-select-enable-primary t) ; use primary as clipboard in emacs
@@ -757,7 +805,7 @@
 
   ;;TRAMP
   (setq tramp-default-method "ssh")
-  (setq shell-file-name "/usr/bin/bash")
+  (setq shell-file-name "bash")         ; don't use zsh
   ;; recentf
   (setq recentf-make-menu-items 150
         recentf-make-saved-items 150)
@@ -820,12 +868,10 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
           try-expand-line)))
 
 ;;; FOLDING
-;; (use-package outline
-;;   :ensure nil
-;;   :defer nil
-;;   :hook (prog-mode . outline-minor-mode)
-;;   :init
-;;   (setq outline-minor-mode-prefix "\C-c"))
+(use-package hideshow
+  :hook (prog-mode . hs-minor-mode)
+  :bind (:map hs-minor-mode-map
+              ("C-c  C" . hs-toggle-hiding)))
 
 ;;; enhanced eww
 (use-package shrface
@@ -884,6 +930,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   (setq inferior-lisp-program "sbcl")
   (setq sly-lisp-implementations
         `((sbcl ("sbcl") :coding-system utf-8-unix)
+          (ecl ("ecl") :coding-system utf-8-unix)
           (roswell ("ros" "-Q" "run"))
           (roswell-sbcl ("ros" "-L" "sbcl" "-Q" "-l" "~/.sbclrc" "run") :coding-system utf-8-unix)))
   (setq sly-default-lisp 'sbcl)
@@ -941,7 +988,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
     (cond
      (rectangle-mark-mode (kill-rectangle
                            (region-beginning) (region-end)))
-     (mark-active (sp-kill-region
+     (mark-active (kill-region
                    (region-beginning) (region-end)))
      (t (sp-backward-kill-sexp 1))))
 
@@ -1154,47 +1201,48 @@ Containing LEFT, and RIGHT aligned respectively."
 (package-install 'quelpa-use-package)
 (require 'quelpa-use-package)
 
-;; Install `plz' HTTP library (not on MELPA yet).
-(use-package plz
-  :quelpa (plz :fetcher github :repo "alphapapa/plz.el")
-  :after ement)
+(when gv/my-system
+  ;; Install `plz' HTTP library (not on MELPA yet).
+  (use-package plz
+    :quelpa (plz :fetcher github :repo "alphapapa/plz.el")
+    :after ement)
 
-;; Install Ement.
-(use-package ement
-  :commands (gv/ement-connect)
-  :quelpa (ement :fetcher github :repo "alphapapa/ement.el")
-  :init
-  (setq ement-room-sender-headers t)
-  (defun gv/ement-connect ()
-    (interactive)
-    (ement-connect :user-id "@gavinok:matrix.org"
-                   :password (password-store-get "riot.im/gavinok")))
-  ;; (setf use-default-font-for-symbols nil)
-  ;; (set-fontset-font t 'unicode "Noto Emoji" nil 'append)
-  )
+  ;; Install Ement.
+  (use-package ement
+    :commands (gv/ement-connect)
+    :quelpa (ement :fetcher github :repo "alphapapa/ement.el")
+    :init
+    (setq ement-room-sender-headers t)
+    (defun gv/ement-connect ()
+      (interactive)
+      (ement-connect :user-id "@gavinok:matrix.org"
+                     :password (password-store-get "riot.im/gavinok")))
+    ;; (setf use-default-font-for-symbols nil)
+    ;; (set-fontset-font t 'unicode "Noto Emoji" nil 'append)
+    )
 
-(use-package obs-websocket
-  :ensure nil
-  :quelpa (obs-websocket :fetcher github :repo "sachac/obs-websocket-el")
-  :commands (obs-sel-scene)
-  :config
-  (use-package websocket :ensure t)
-  (defun obs-sel-scene (&optional arg)
-    (interactive)
-    (unless obs-websocket
-      (obs-websocket-connect))
-    (let ((scene (completing-read "Select OBS Command"
-                                  '("Intermission"
-                                    "Desktop"))))
-      (obs-websocket-send "SetCurrentScene" :scene-name scene))))
+  (use-package obs-websocket
+    :ensure nil
+    :quelpa (obs-websocket :fetcher github :repo "sachac/obs-websocket-el")
+    :commands (obs-sel-scene)
+    :config
+    (use-package websocket :ensure t)
+    (defun obs-sel-scene (&optional arg)
+      (interactive)
+      (unless obs-websocket
+        (obs-websocket-connect))
+      (let ((scene (completing-read "Select OBS Command"
+                                    '("Intermission"
+                                      "Desktop"))))
+        (obs-websocket-send "SetCurrentScene" :scene-name scene))))
 
 ;;; Xournal support in org files
-(use-package org-xournalpp
-  :ensure t
-  :quelpa (org-xournalpp :fetcher gitlab :repo "vherrmann/org-xournalpp" :files ("*.el" "resources"))
-  :bind ("C-c x" . org-xournalpp-insert-new-image)
-  :config
-  (add-hook 'org-mode-hook 'org-xournalpp-mode))
+  (use-package org-xournalpp
+    :ensure t
+    :quelpa (org-xournalpp :fetcher gitlab :repo "vherrmann/org-xournalpp" :files ("*.el" "resources"))
+    :bind ("C-c x" . org-xournalpp-insert-new-image)
+    :config
+    (add-hook 'org-mode-hook 'org-xournalpp-mode)))
 
 (use-package eglot-java
   :ensure nil
@@ -1211,5 +1259,6 @@ Containing LEFT, and RIGHT aligned respectively."
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 
-(load (concat user-emacs-directory
-              "lisp/termux.el"))
+(let ((f "lisp/termux.el"))
+  (when (file-exists-p f)
+    (load (concat user-emacs-directory f))))

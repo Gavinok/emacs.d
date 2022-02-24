@@ -36,24 +36,41 @@ latex-mode
 (enumerate "\\begin{enumerate}\n\\item " r> n> "\\end{enumerate}")
 (itemize "\\begin{itemize}\n\\item " r> n> "\\end{itemize}")
 
-emacs-lisp-mode
+lisp-mode emacs-lisp-mode
 
 (lambda "(lambda (" p ")" n> r> ")")
 (var "(defvar " p "\n  \"" p "\")")
-(const "(defconst " p "\n  \"" p "\")")
-(custom "(defcustom " p "\n  \"" p "\"" n> ":type '" p ")")
-(face "(defface " p " '((t :inherit " p "))\n  \"" p "\")")
-(group "(defgroup " p " nil\n  \"" p "\"" n> ":group '" p n> ":prefix \"" p "-\")")
+(param "(defparameter " p " (" p ")\n  \"" p "\"" n> r> ")")
 (macro "(defmacro " p " (" p ")\n  \"" p "\"" n> r> ")")
 (fun "(defun " p " (" p ")\n  \"" p "\"" n> r> ")")
 (let "(let (" p ")" n> r> ")")
-(rec "(letrec (" p ")" n> r> ")")
+(cond "(cond"n>
+      "("(p "(condition)")" "(p "return")")"n>
+      "(t"                   (p "default")"))")
+
+(in-package "(defpackage " (p "my-package" package) n>
+            "(:use :cl " (p ":alexandria")"))"n>
+            "(in-package :" (s package) ")")
+
+(defpackage "(defpackage " (p "my-package")n>
+            "(:use :cl)"n>
+            "(:import-from :" (p "alexandria")n>
+            (p ":with-gensyms :curry")"))")
+
+emacs-lisp-mode
+
+(custom "(defcustom " p "\n  \"" p "\"" n> ":type '" p ")")
+(face "(defface " p " '((t :inherit " p "))\n  \"" p "\")")
+(group "(defgroup " p " nil\n  \"" p "\"" n> ":group '" p n> ":prefix \"" p "-\")")
 (command "(defun " p " (" p ")\n  \"" p "\"" n> "(interactive)" n> r> ")")
+(rec "(letrec (" p ")" n> r> ")")
+(const "(defconst " p "\n  \"" p "\")")
 
 lisp-mode
 
-(lambda "(lambda (" p ")" n> r> ")")
-
+(var "(defvar *" p "*\n  \"" p "\")")
+(param "(defparameter *" p "*\n  \"" p "\")")
+(const "(defparameter +" p "+\n  \"" p "\")")
 (ftype "(declaim (ftype (function (" (p "arg-type-1 arg-type-2 ..." )") "
        (p "return-type") ") "
        (p "function-name" func-name)"))"n>
@@ -68,9 +85,13 @@ lisp-mode
           "(" (p "type")" "(p "(do this)")")"n>
           "(t "           (p "default")"))")
 
-(cond "(cond"n>
-      "("(p "(condition)")" "(p "return")")"n>
-      "(t"                   (p "default")"))")
+(class "(defclass " (p "classname " classname) " ()"
+       "(" (p "slotname" slot) " :reader " (p "classname-slot")n>
+       ":initarg " (concat ":" slot)n>
+       ":type " (p "string")n>
+       ":initform " (p "default")n>
+       ":documentation \"" (p "Slot Description.")"\")"n>
+       "(:documentation \"" (p "A general HTTP request.") "\"))")
 
 java-mode
 
@@ -82,15 +103,6 @@ java-mode
        (p "var") " is \" + "
        (r "var" print) ");")
 
-;; (switch
-;;  "switch ("(p "{{+condition+}}")") {"n>
-;;  "case " (p "{{++case1+}}")": "(p "{{+//code+}}")n>
-;;  "break;"n>
-;;  "case " (p "{{+case2+}}")": "(p "{{+//code+}}")n>
-;;  "break;"n>
-;;  "default: "(p "{{+//code+}}")n>
-;;  "break;"n>"}")
-
 org-mode
 
 (title "#+title: " p n "#+author: Daniel Mendler" n "#+language: en" n n)
@@ -99,22 +111,46 @@ org-mode
 (center "#+begin_center" n> r> n> "#+end_center")
 (comment "#+begin_comment" n> r> n> "#+end_comment")
 (verse "#+begin_verse" n> r> n> "#+end_verse")
+
 (src "#+begin_src " p n> r> n> "#+end_src")
-(elisp "#+begin_src emacs-lisp" n> r> n "#+end_src")
-(java "#+begin_src java" n> r> n "#+end_src")
+(elisp "#+begin_src emacs-lisp" n> r> n "#+end_src"
+       :post (progn (tempel-done) (org-edit-src-code)))
+(java "#+begin_src java" n> r> n "#+end_src"
+      :post (progn (tempel-done) (org-edit-src-code)))
+
+(readmeorg
+  "#+TITLE: " (p "Project title: ") n
+  (p "A short, one-line description of the project: ") n
+  n
+  "* Overview" n
+  p "# A longer description of the project" n
+  n
+  "** Features" n
+  "** History" n
+  "** Motivation" n
+  "* Usage" n
+  p "# Examples of usage" n
+  n
+  "* Documentation" n
+  "* License" n
+  "Copyright (c) " (format-time-string "%Y") " " (p "Authors: ") n
+  "Licensed under the " p "GPL3 License." n
+  n
+  "* COMMENT Local Variables" n
+  "# Local Variables:" n
+  "# eval: (add-hook 'after-save-hook #'org-md-export-to-markdown nil t)" p n
+  "# End:")
 
 sh-mode
-
+n
 (env "#!/bin/env sh")
+
 (for "for " (p "needle") " in " (p "haystack")"; do" n>
      (p "#code")n
      "done")
 (if "if [ " (p "condition")" ]; then"n> (r "#code")n "fi")
-(case "case "(p "var")" in"
-      n> (p "1") ")" n>(p "# code")";;"
-      n> (p "2") ")" n>(p "# code")";;"
-      n>    "*)"     n>(p "# default")";;"
-      n"esac")
+
+(case (sh-case))
 
 (readfile "while IFS= read -r line || [ -n "(p "\"$line\"")" ]; do"n>
           (p "printf '%s\\n' \"$line\"")n
@@ -128,3 +164,14 @@ haskell-mode
 
 (main "main :: IO ()"n
       "main = do print " (p "hello world"))
+
+html-mode web-mode
+
+(html (html-html5-template))
+
+javascript-mode typescript-mode
+
+(print "console.log(" (r "What to print")")")
+(log   "console.log(" (r "What to print")")")
+(json  "JSON.stringify(" (r "Your JSON HERE" )")")
+(test  "test(" (r "'Name Of Test'" ) ", async () => {" n> r> n "}"")")
