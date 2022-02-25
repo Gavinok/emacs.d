@@ -295,8 +295,7 @@
 
 (use-package flyspell-correct
   :bind ("C-c DEL" . flyspell-correct-previous)
-  :hook ((org-mode mu4e-compose-mode mail-mode git-commit-mode)
-         . turn-on-flyspell))
+  :hook (,writegood-mode . turn-on-flyspell))
 
 ;;; ORG
 (load (concat user-emacs-directory
