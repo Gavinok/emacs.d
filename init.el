@@ -1244,6 +1244,14 @@ Containing LEFT, and RIGHT aligned respectively."
     :config
     (add-hook 'org-mode-hook 'org-xournalpp-mode)))
 
+(use-package org-modern
+  :ensure nil
+  :quelpa (org-modern :fetcher github :repo "minad/org-modern")
+  :init
+  (setq org-modern-hide-stars nil)
+  :config
+  (add-hook 'org-mode-hook #'org-modern-mode))
+
 (use-package eglot-java
   :ensure nil
   :quelpa (eglot-java :fetcher github :repo "yveszoundi/eglot-java")
