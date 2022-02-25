@@ -283,6 +283,7 @@
   (load-theme 'spaceway t))
 
 ;;; WRITING
+(defvar writting-modes '(markdown-mode nroff-mode org-mode mu4e-compose-mode mail-mode git-commit-mode))
 (use-package writegood-mode
   :hook (flyspell-mode . writegood-mode))
 
@@ -913,7 +914,16 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :config
   (add-to-list 'eglot-server-programs '(clojure-mode . ("clojure-lsp")))
   (add-to-list 'eglot-server-programs
-               '(yaml-mode . ("yaml-language-server" "--stdio"))))
+               '(yaml-mode . ("yaml-language-server" "--stdio")))
+
+  ;; INSTALL: go install github.com/mattn/efm-langserver@latest
+  ;; Setup efm language server for writting modes since most don't
+  ;; have a dedicated language server
+  (let ((efm (list "efm-langserver" (concat "-c=" (getenv "HOME")
+                                            "/.emacs.d/efm/config.yaml")))
+        (modes `(,@writting-modes)))
+    (add-to-list 'eglot-server-programs
+                 `(,modes . ,efm))))
 
 (use-package haskell-mode :ensure t :mode "\\.hs\\'")
 (use-package rust-mode    :ensure t :mode "\\.rs\\'")
