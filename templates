@@ -3,14 +3,19 @@
 fundamental-mode ;; Available everywhere
 
 (today (format-time-string "%Y-%m-%d"))
+(calc (p "taylor(sin(x),x=0,3)" formula) " -> "
+      (format "%s" (calc-eval formula)))
 
+
 prog-mode
 
 (fixme (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "FIXME ")
 (todo (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "TODO ")
 (bug (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "BUG ")
 (hack (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "HACK ")
+(com (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start))
 
+
 c-mode
 
 (if "if ("  (p "true") ") {" n> r> (p "true") n "}")
@@ -21,14 +26,14 @@ c-mode
      n> (p "/* your code here*/h")
      n "}")
 (main "int main(int argc, char* argv[])"n"{" n> (r "/*Your Code Here*/") n"}")
-
+
 python-mode
 
 (for "for " (p "needle") " in " (p "heystack") ":"n>
      (p "# code goes here"))
 (if "if " (p "condition" var) ":"n>
      (p "# code goes here"))
-
+
 latex-mode
 
 (begin "\\begin{" (s env) "}" > n> r> "\\end{" (s env) "}")
@@ -36,7 +41,8 @@ latex-mode
 (enumerate "\\begin{enumerate}\n\\item " r> n> "\\end{enumerate}")
 (itemize "\\begin{itemize}\n\\item " r> n> "\\end{itemize}")
 
-lisp-mode emacs-lisp-mode
+
+lisp-mode sly-mrepl emacs-lisp-mode
 
 (lambda "(lambda (" p ")" n> r> ")")
 (var "(defvar " p "\n  \"" p "\")")
@@ -47,16 +53,9 @@ lisp-mode emacs-lisp-mode
 (cond "(cond"n>
       "("(p "(condition)")" "(p "return")")"n>
       "(t"                   (p "default")"))")
-
-(in-package "(defpackage " (p "my-package" package) n>
-            "(:use :cl " (p ":alexandria")"))"n>
-            "(in-package :" (s package) ")")
-
-(defpackage "(defpackage " (p "my-package")n>
-            "(:use :cl)"n>
-            "(:import-from :" (p "alexandria")n>
-            (p ":with-gensyms :curry")"))")
-
+(dolist "(dolist (" (p "needle") " " (p "hay-stack") " " (p "optional-returned-variable")")"n>
+  (r "(message needle)")")")
+
 emacs-lisp-mode
 
 (custom "(defcustom " p "\n  \"" p "\"" n> ":type '" p ")")
@@ -65,8 +64,8 @@ emacs-lisp-mode
 (command "(defun " p " (" p ")\n  \"" p "\"" n> "(interactive)" n> r> ")")
 (rec "(letrec (" p ")" n> r> ")")
 (const "(defconst " p "\n  \"" p "\")")
-
-lisp-mode
+
+lisp-mode sly-mrepl
 
 (var "(defvar *" p "*\n  \"" p "\")")
 (param "(defparameter *" p "*\n  \"" p "\")")
@@ -86,13 +85,23 @@ lisp-mode
           "(t "           (p "default")"))")
 
 (class "(defclass " (p "classname " classname) " ()"
-       "(" (p "slotname" slot) " :reader " (p "classname-slot")n>
+       "((" (p "slotname" slot) " :reader " (format "%s-%s" classname slot)n>
        ":initarg " (concat ":" slot)n>
        ":type " (p "string")n>
        ":initform " (p "default")n>
-       ":documentation \"" (p "Slot Description.")"\")"n>
+       ":documentation \"" (p "Slot Description.")"\"))"n>
        "(:documentation \"" (p "A general HTTP request.") "\"))")
 
+(in-package "(defpackage " (p "my-package" package) n>
+            "(:use :cl " (p ":alexandria")"))"n>
+            "(in-package :" (s package) ")")
+
+(defpackage "(defpackage " (p "my-package")n>
+            "(:use :cl)"n>
+            "(:import-from :" (p "alexandria")n>
+            (p ":with-gensyms :curry")"))")
+
+
 java-mode
 
 (class "public class "
@@ -102,7 +111,7 @@ java-mode
 (debug "System.out.println(""\"The value of "
        (p "var") " is \" + "
        (r "var" print) ");")
-
+
 org-mode
 
 (title "#+title: " p n "#+author: Daniel Mendler" n "#+language: en" n n)
@@ -113,6 +122,10 @@ org-mode
 (verse "#+begin_verse" n> r> n> "#+end_verse")
 
 (src "#+begin_src " p n> r> n> "#+end_src")
+(lisp "#+begin_src lisp" n> r> n "#+end_src"
+       :post (progn (unless sly-port
+                      (sly))
+                    (tempel-done) (org-edit-src-code)))
 (elisp "#+begin_src emacs-lisp" n> r> n "#+end_src"
        :post (progn (tempel-done) (org-edit-src-code)))
 (java "#+begin_src java" n> r> n "#+end_src"
@@ -140,18 +153,16 @@ org-mode
   "# Local Variables:" n
   "# eval: (add-hook 'after-save-hook #'org-md-export-to-markdown nil t)" p n
   "# End:")
-
+
 sh-mode
-n
+
 (env "#!/bin/env sh")
 
 (for "for " (p "needle") " in " (p "haystack")"; do" n>
      (p "#code")n
      "done")
 (if "if [ " (p "condition")" ]; then"n> (r "#code")n "fi")
-
 (case (sh-case))
-
 (readfile "while IFS= read -r line || [ -n "(p "\"$line\"")" ]; do"n>
           (p "printf '%s\\n' \"$line\"")n
           "done < \"file\"")
@@ -159,16 +170,16 @@ n
 (while "while [ "(p "\"$start\"") " -le " (p "\"$end\"")" ]; do"n>
        (p "#code")n
        "done")
-
+
 haskell-mode
 
 (main "main :: IO ()"n
       "main = do print " (p "hello world"))
-
+
 html-mode web-mode
 
 (html (html-html5-template))
-
+
 javascript-mode typescript-mode
 
 (print "console.log(" (r "What to print")")")
