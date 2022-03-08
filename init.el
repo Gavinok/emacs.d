@@ -396,6 +396,12 @@
   :init (when gv/my-system
           (setq term-prompt-regexp ".*ᛋ")))
 
+(use-package with-editor
+  :hook ((shell-mode-hook eshell-mode-hook term-exec-hook vterm-exec-hook)
+         . with-editor-export-editor)
+  :bind (([remap async-shell-command] . with-editor-async-shell-command)
+         ([remap shell-command] . with-editor-shell-command)))
+
 (use-package em-alias
   :ensure nil
   :after eshell
