@@ -1041,7 +1041,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :defer t
   :init (defun pulse-line (&rest _)
           (pulse-momentary-highlight-one-line (point)))
-  (dolist (command '(recenter-top-bottom other-window))
+  (dolist (command '(other-window))
     (advice-add command :after #'pulse-line)))
 
 ;;;; Display hex colors in emacs
