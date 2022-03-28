@@ -65,7 +65,7 @@ emacs-lisp-mode
 (rec "(letrec (" p ")" n> r> ")")
 (const "(defconst " p "\n  \"" p "\")")
 
-lisp-mode sly-mrepl
+lisp-mode sly-mrepl-mode
 
 (var "(defvar *" p "*\n  \"" p "\")")
 (param "(defparameter *" p "*\n  \"" p "\")")
@@ -156,8 +156,8 @@ org-mode
 
 sh-mode
 
+(is-installed "command -v " (r "program") " > /dev/null")
 (env "#!/bin/env sh")
-
 (for "for " (p "needle") " in " (p "haystack")"; do" n>
      (p "#code")n
      "done")

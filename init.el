@@ -165,7 +165,7 @@
 ;;;; Out Of Order Compleiton
   (use-package orderless
     :commands (orderless)
-    :custom (completion-styles '(orderless)))
+    :custom (completion-styles '(orderless flex)))
 
 ;;;; Extra Completion Functions
   (use-package consult
@@ -283,7 +283,9 @@
   (load-theme 'spaceway t))
 
 ;;; WRITING
-(defvar writting-modes '(markdown-mode nroff-mode org-mode mu4e-compose-mode mail-mode git-commit-mode))
+(defvar writting-modes '(markdown-mode nroff-mode org-mode
+                                       mu4e-compose-mode mail-mode
+                                       git-commit-mode))
 (use-package writegood-mode
   :hook (flyspell-mode . writegood-mode))
 
@@ -341,7 +343,9 @@
   :bind (:map corfu-map
               ("RET"     . nil) ;; leave my enter alone!
               ("TAB"     . corfu-next)
-              ("C-M-i"   . skempo-complete-tag-or-call-on-region)
+              ("C-f"     . (lambda () (interactive)
+                             (and (progn (corfu-quit))
+                                  (forward-char))))
               ([tab]     . corfu-next)
               ("S-TAB"   . corfu-previous)
               ([backtab] . corfu-previous))
@@ -379,14 +383,9 @@
   :init
   ;; Setup completion at point
   (defun tempel-setup-capf ()
-    (add-hook 'completion-at-point-functions #'tempel-expand -1 'local)))
-
-(use-package eldoc-box
-  :after eldoc
-  :init
-  (setq eldoc-box-only-multi-line t)
-  :config
-  (add-hook 'eldoc-mode-hook #'eldoc-box-hover-mode 1))
+    (setq-local completion-at-point-functions
+                (cons #'tempel-expand
+                      completion-at-point-functions))))
 
 ;;; VTERM AND ESHELL
 (use-package vterm
@@ -645,8 +644,9 @@
 
 (use-package evil
   :ensure t
-  :demand t
+  :commands (evil-mode)
   :bind (("<escape>" . keyboard-escape-quit)
+         ("C-z" . evil-mode)
          :map evil-normal-state-map
          ;; vim vinigar style
          ("-"  . (lambda () (interactive)
@@ -671,7 +671,6 @@
   (setq evil-split-window-right t)
   (setq evil-undo-system 'undo-fu)
   :config
-  ;; (evil-mode 1)
   (evil-set-leader 'normal " "))
 
 (defun my-change-number-at-point (change increment)
@@ -785,6 +784,7 @@
      #b10000000])
   (when gv/my-system
     (set-frame-font "PragmataPro Mono:pixelsize=22:antialias=true:autohint=true" nil t)
+    ;; (set-frame-font "PragmataPro Mono:pixelsize=40:antialias=true:autohint=true" nil t)
     (load "~/.emacs.d/lisp/pragmatapro-lig.el")
     (require 'pragmatapro-lig)
     ;; Enable pragmatapro-lig-mode for specific modes
@@ -953,8 +953,17 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
     (add-to-list 'eglot-server-programs
                  `(,modes . ,efm))))
 
-(use-package haskell-mode :ensure t :mode "\\.hs\\'")
-(use-package rust-mode    :ensure t :mode "\\.rs\\'")
+(use-package haskell-mode :ensure t :mode "\\.hs\\'"
+  :config
+  (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
+  ;; lets you use C-c C-l
+  (add-hook 'haskell-mode-hook 'interactive-haskell-mode))
+(use-package flymake-hlint
+  :hook
+  (haskell-mode . flymake-hlint-load))
+(use-package rust-mode    :ensure t :mode "\\.rs\\'"
+  :init
+  (setq rustic-lsp-client 'eglot))
 (use-package racket-mode  :ensure t :mode "\\.rkt\\'")
 
 ;;; Clojure
@@ -970,7 +979,9 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
         `((sbcl ("sbcl") :coding-system utf-8-unix)
           (ecl ("ecl") :coding-system utf-8-unix)
           (roswell ("ros" "-Q" "run"))
-          (roswell-sbcl ("ros" "-L" "sbcl" "-Q" "-l" "~/.sbclrc" "run") :coding-system utf-8-unix)))
+          (roswell-sbcl ("ros" "-L" "sbcl" "-Q" "-l" "~/.sbclrc" "run") :coding-system utf-8-unix)
+          (qlot ("qlot" "exec" "ros" "-l" "~/.sbclrc" "-S" "." "run")
+                :coding-system utf-8-unix)))
   (setq sly-default-lisp 'sbcl)
   (defun gv/connect-to-stumpwm ()
     (interactive)
@@ -1041,15 +1052,53 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :config
   (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
 
+(use-package bicycle
+  :after outline
+  :bind (:map outline-minor-mode-map
+              ("C-TAB" . bicycle-cycle)
+              ("<backtab>" . bicycle-cycle-global)))
+
+(use-package outline
+  :hook (prog-mode . outline-minor-mode)
+  :config
+  ;; Outline Minor Mode
+  (add-hook 'outline-minor-mode-hook
+            (lambda () (local-set-key (kbd "C-t")
+                                 outline-mode-prefix-map)))
+  (defun set-vim-foldmarker (fmr)
+    "Set Vim-type foldmarkers for the current buffer"
+    (interactive "sSet local Vim foldmarker: ")
+    (if (equal fmr "")
+        (message "Abort")
+      (setq fmr (regexp-quote fmr))
+      (set (make-local-variable 'outline-regexp)
+           (concat ".*" fmr "\\([0-9]+\\)"))
+      (set (make-local-variable 'outline-level)
+           `(lambda ()
+              (save-excursion
+                (save-match-data
+                  (re-search-forward ,(concat fmr "\\([0-9]+\\)") nil t)
+                  (string-to-number (match-string 1))))))))
+  ;; Vim Like Folding
+  (set-vim-foldmarker "{{{"))
+
+(use-package eldoc
+  :init
+  (setq eldoc-echo-area-display-truncation-message nil)
+  (global-eldoc-mode t))
 (use-package prog-mode
   :ensure nil
   :config
+  (add-hook 'prog-mode-hook 'hs-minor-mode)
+  (add-hook 'prog-mode-hook 'outline-minor-mode)
   (add-hook 'prog-mode-hook (lambda ()
                               (setq show-trailing-whitespace t)))
   (add-hook 'emacs-lisp-mode-hook
             (lambda () (add-hook 'local-write-file-hooks 'check-parens)))
   (add-hook 'emacs-lisp-mode-hook 'prettify-symbols-mode)
   (add-hook 'lisp-mode-hook 'prettify-symbols-mode)
+  (add-hook 'lisp-mode-hook #'(lambda ()
+                                (setq indent-tabs-mode nil)))
 ;;;;; Smart Indentation
   (defun infer-indentation-style ()
     ;; if our source file uses tabs, we use tabs, if spaces spaces, and if
@@ -1282,14 +1331,6 @@ Containing LEFT, and RIGHT aligned respectively."
     :config
     (add-hook 'org-mode-hook 'org-xournalpp-mode)))
 
-;; (use-package org-modern
-;;   :ensure nil
-;;   :quelpa (org-modern :fetcher github :repo "minad/org-modern")
-;;   :init
-;;   (setq org-modern-hide-stars nil)
-;;   :config
-;;   (add-hook 'org-mode-hook #'org-modern-mode))
-
 (use-package eglot-java
   :ensure nil
   :quelpa (eglot-java :fetcher github :repo "yveszoundi/eglot-java")
@@ -1308,3 +1349,4 @@ Containing LEFT, and RIGHT aligned respectively."
 (let ((f "lisp/termux.el"))
   (when (file-exists-p f)
     (load (concat user-emacs-directory f))))
+
