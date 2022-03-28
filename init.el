@@ -1055,7 +1055,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
 (use-package bicycle
   :after outline
   :bind (:map outline-minor-mode-map
-              ("C-TAB" . bicycle-cycle)
+              ("<C-tab>" . bicycle-cycle)
               ("<backtab>" . bicycle-cycle-global)))
 
 (use-package outline
