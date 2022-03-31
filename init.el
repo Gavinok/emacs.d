@@ -673,6 +673,14 @@
   :config
   (evil-set-leader 'normal " "))
 
+(use-package multiple-cursors
+  :bind (("C-M-'" . mc/edit-lines)
+         ("C-M-|" . mc/mark-all-in-region-regex)
+         ("C-M-]" . mc/mark-next-like-this)
+         ("C-M-[" . mc/mark-preveious-like-this)
+         ("C-M-}" . mc/skip-to-next-like-this)
+         ("C-M-{" . mc/skip-to-preveious-like-this)))
+
 (defun my-change-number-at-point (change increment)
   (let ((number (number-at-point))
         (point (point)))
@@ -928,30 +936,32 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
               ("C-h d" . eldoc-doc-buffer)
               ("M-RET" . eglot-code-actions))
   :ensure t
-  :hook (;; Whatever works
-         (c-mode          . eglot-ensure)
-         ;; M-x package-install eglot-java
-         (java-mode       . eglot-ensure)
-         ;; npm install -g typescript-language-server
-         (typescript-mode . eglot-ensure)
-         ;; pip install --user 'python-language-server[all]' -U
-         (python-mode . eglot-ensure)
-         ;; npm install -g yaml-language-server
-         (yaml-mode . eglot-ensure))
+  :hook ((c-mode
+          java-mode       ; M-x package-install eglot-java
+          typescript-mode ; npm install -g typescript-language-server
+          python-mode ; pip install --user 'python-language-server[all]' -U
+          yaml-mode)  ; npm install -g yaml-language-server
+         . eglot-ensure)
   :commands (eglot eglot-ensure)
+  :init
+  ;; go install github.com/mattn/efm-langserver@latest
+  ;; Setup efm language server for writting modes since most don't
+  ;; have a dedicated language server
+  ;; (let ((modes `(,@writting-modes vimrc-mode shell-script-mode sh-mode))
+  ;;       (efm (list "efm-langserver"
+  ;;                  (concat "-c=" (getenv "HOME")
+  ;;                          "/.emacs.d/efm/config.yaml"))))
+  ;;   ;; Setup hooks
+  ;;   (dolist (mode modes)
+  ;;     (add-hook (intern (concat (symbol-name `,mode) "-hook"))
+  ;;               'eglot-ensure))
+  ;;   ;; Setup language server for the given modes
+  ;;   (eval-after-load 'eglot
+  ;;     (list 'add-to-list ''eglot-server-programs `(,modes . ,efm))))
   :config
   (add-to-list 'eglot-server-programs '(clojure-mode . ("clojure-lsp")))
   (add-to-list 'eglot-server-programs
-               '(yaml-mode . ("yaml-language-server" "--stdio")))
-
-  ;; INSTALL: go install github.com/mattn/efm-langserver@latest
-  ;; Setup efm language server for writting modes since most don't
-  ;; have a dedicated language server
-  (let ((efm (list "efm-langserver" (concat "-c=" (getenv "HOME")
-                                            "/.emacs.d/efm/config.yaml")))
-        (modes `(,@writting-modes)))
-    (add-to-list 'eglot-server-programs
-                 `(,modes . ,efm))))
+               '(yaml-mode . ("yaml-language-server" "--stdio"))))
 
 (use-package haskell-mode :ensure t :mode "\\.hs\\'"
   :config
