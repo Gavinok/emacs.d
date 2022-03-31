@@ -5,6 +5,8 @@ fundamental-mode ;; Available everywhere
 (today (format-time-string "%Y-%m-%d"))
 (calc (p "taylor(sin(x),x=0,3)" formula) " -> "
       (format "%s" (calc-eval formula)))
+(lorem
+ "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
 
 
 prog-mode
@@ -51,7 +53,7 @@ lisp-mode sly-mrepl emacs-lisp-mode
 (fun "(defun " p " (" p ")\n  \"" p "\"" n> r> ")")
 (let "(let (" p ")" n> r> ")")
 (cond "(cond"n>
-      "("(p "(condition)")" "(p "return")")"n>
+      "("(p "(predicate)")" "(p "return")")"n>
       "(t"                   (p "default")"))")
 (dolist "(dolist (" (p "needle") " " (p "hay-stack") " " (p "optional-returned-variable")")"n>
   (r "(message needle)")")")
@@ -186,3 +188,9 @@ javascript-mode typescript-mode
 (log   "console.log(" (r "What to print")")")
 (json  "JSON.stringify(" (r "Your JSON HERE" )")")
 (test  "test(" (r "'Name Of Test'" ) ", async () => {" n> r> n "}"")")
+
+typescript-mode
+
+(interface "interface " (p "intrefaceName") " {"n>
+           (p "item")": " (p "any") ";"n
+           "}")
