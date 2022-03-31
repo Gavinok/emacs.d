@@ -6,7 +6,7 @@
   :bind (("C-x M" . mu4e)
          ("C-x m" . mu4e-compose-new)
          ([remap mu4e~headers-jump-to-maildir] . my/jump-to-maildir))
-  :commands (mu4e mu4e-compose-new)
+  :commands (mu4e mu4e-user-agent mu4e-compose-new org-mime-org-subtree-htmlize)
   :init
   ;; set *before* loading mu4e; and restart emacs if you want to change it
   ;; users of use-packag~ should can use the :init section for this.
@@ -35,12 +35,17 @@
 ;;;; Org In Emails
   (use-package org-mime
     :ensure t
+    :after mu4e
+    :bind (:map org-mode-map
+                ("C-c m" . org-mime-org-subtree-htmlize))
     :config
     (setq org-mime-export-options '(:section-numbers nil
                                                      :with-author nil
                                                      :with-toc nil)))
 ;;;; mbsync and msmtp setup
   (setq mu4e-get-mail-command "mailsync"
+        mu4e-context-policy 'pick-first
+        mu4e-compose-context-policy 'ask
         sendmail-program "/usr/bin/msmtp"
         message-sendmail-extra-arguments '("--read-envelope-from")
         send-mail-function 'smtpmail-send-it
