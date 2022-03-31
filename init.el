@@ -980,7 +980,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
           (ecl ("ecl") :coding-system utf-8-unix)
           (roswell ("ros" "-Q" "run"))
           (roswell-sbcl ("ros" "-L" "sbcl" "-Q" "-l" "~/.sbclrc" "run") :coding-system utf-8-unix)
-          (qlot ("qlot" "exec" "ros" "-l" "~/.sbclrc" "-S" "." "run")
+          (qlot ("qlot" "exec" "ros" "run" "-S" ".")
                 :coding-system utf-8-unix)))
   (setq sly-default-lisp 'sbcl)
   (defun gv/connect-to-stumpwm ()
