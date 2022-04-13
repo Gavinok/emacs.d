@@ -262,14 +262,6 @@
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
-;;; More native feeling alternative to multiple cursors
-;; (use-package iedit
-;;   :bind (("C-;" . iedit-mode)
-;;          :map rectangle-mark-mode-map
-;;          ("C-;" . iedit-rectangle-mode))
-;;   :init
-;;   (setq iedit-increment-format-string "%03d"))
-
 ;;; THEMEING
 (use-package spaceway-theme
   :ensure nil
@@ -289,15 +281,15 @@
 (use-package writegood-mode
   :hook (flyspell-mode . writegood-mode))
 
-(use-package flymake-grammarly
-  :commands flymake-grammarly-load
-  :init (setq flyspell-use-meta-tab nil)
-  :config
-  (add-hook 'flyspell-mode-hook 'flymake-grammarly-load))
+;; (use-package flymake-grammarly
+;;   :commands flymake-grammarly-load
+;;   :config
+;;   (add-hook 'flyspell-mode-hook 'flymake-grammarly-load))
 
 (use-package flyspell-correct
   :bind ("C-c DEL" . flyspell-correct-previous)
-  :hook (,writegood-mode . turn-on-flyspell))
+  :hook (,writegood-mode . turn-on-flyspell)
+  :init (setq flyspell-use-meta-tab nil))
 
 ;;; ORG
 (load (concat user-emacs-directory
@@ -336,16 +328,13 @@
   (corfu-auto-delay 0.0)    ; Enable auto completion
   (corfu-quit-at-boundary t)
   (corfu-echo-documentation 0.25)   ; Enable auto completion
-  (corfu-preview-current t)         ; Do not preview current candidate
+  (corfu-preview-current 'insert)         ; Do not preview current candidate
   (corfu-preselect-first nil)
 
   ;; Optionally use TAB for cycling, default is `corfu-complete'.
   :bind (:map corfu-map
               ("RET"     . nil) ;; leave my enter alone!
               ("TAB"     . corfu-next)
-              ("C-f"     . (lambda () (interactive)
-                             (and (progn (corfu-quit))
-                                  (forward-char))))
               ([tab]     . corfu-next)
               ("S-TAB"   . corfu-previous)
               ([backtab] . corfu-previous))
@@ -992,6 +981,13 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
           (roswell-sbcl ("ros" "-L" "sbcl" "-Q" "-l" "~/.sbclrc" "run") :coding-system utf-8-unix)
           (qlot ("qlot" "exec" "ros" "run" "-S" ".")
                 :coding-system utf-8-unix)))
+  (defun qlot-sly ()
+    "Start a sly repl using qlot at the projects root"
+    (interactive)
+    (let ((dir (cdr (project-current))))
+      (if (cd dir)
+          (sly 'qlot)
+        (error (format "Failed to cd to %s" dir)))))
   (setq sly-default-lisp 'sbcl)
   (defun gv/connect-to-stumpwm ()
     (interactive)
@@ -1349,7 +1345,14 @@ Containing LEFT, and RIGHT aligned respectively."
   :after eglot
   :config
   (setq eglot-java-prefix-key "C-c e")
-  (eglot-java-init))
+  (eglot-java-init)
+  (defun setup-java ()
+    (interactive)
+    (setenv "JAVA_HOME" "/user/lib/jvm/java-8-openjdk-amd64/")
+    (setenv "PATH"
+            (concat
+             "/user/lib/jvm/java-8-openjdk-amd64/bin:"
+             (getenv "PATH")))))
 
 ;;;; Use emacs instead of dmenu
 (setenv "LAUNCHER" "emenu -p ")
