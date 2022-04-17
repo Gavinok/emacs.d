@@ -288,7 +288,7 @@
 
 (use-package flyspell-correct
   :bind ("C-c DEL" . flyspell-correct-previous)
-  :hook (,writegood-mode . turn-on-flyspell)
+  :hook (,writting-modes . turn-on-flyspell)
   :init (setq flyspell-use-meta-tab nil))
 
 ;;; ORG
