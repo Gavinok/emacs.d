@@ -139,11 +139,6 @@
                     'ignore))))
   (global-auto-mark-mode 1))
 
-(use-package expand-region
-  :ensure t
-  :config
-  (setq expand-region-smart-cursor t))
-
 ;;; Aligning Text
 (use-package align
   :ensure nil
@@ -246,6 +241,66 @@
   (defun dragon-drop (file)
     (start-process-shell-command "dragon-drop" nil
                                  (concat "dragon-drag-and-drop " file))))
+;;;; Code Completion
+(use-package corfu
+  ;; Optional customizations
+  :custom
+  (corfu-cycle t)           ;; allows cycling through candidates
+  (corfu-auto t)            ; Enable auto completion
+  (corfu-auto-prefix 2)     ; Enable auto completion
+  (corfu-auto-delay 0.0)    ; Enable auto completion
+  (corfu-quit-at-boundary t)
+  (corfu-echo-documentation 0.25)   ; Enable auto completion
+  (corfu-preview-current 'insert)         ; Do not preview current candidate
+  (corfu-preselect-first nil)
+
+  ;; Optionally use TAB for cycling, default is `corfu-complete'.
+  :bind (:map corfu-map
+              ("RET"     . nil) ;; leave my enter alone!
+              ("TAB"     . corfu-next)
+              ([tab]     . corfu-next)
+              ("S-TAB"   . corfu-previous)
+              ([backtab] . corfu-previous))
+
+  :init
+  (corfu-global-mode))
+
+;; Add extensions
+(use-package cape
+  :init
+  ;; Add `completion-at-point-functions', used by `completion-at-point'.
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  :config
+  ;; Silence then pcomplete capf, no errors or messages!
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
+
+  ;; Ensure that pcomplete does not write to the buffer
+  ;; and behaves as a pure `completion-at-point-function'.
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify)
+  (add-hook 'eshell-mode-hook
+            (lambda () (setq-local corfu-quit-at-boundary t
+                              corfu-quit-no-match t
+                              corfu-auto nil)
+              (corfu-mode))))
+
+(use-package pcmpl-args)
+
+;; Templates takes advantage of emacs's tempo
+(use-package tempel
+  :ensure t
+  :hook ((prog-mode text-mode) . tempel-setup-capf)
+  :demand t
+  :bind (("M-+" . tempel-insert) ;; Alternative tempel-expand
+         :map tempel-map
+         ([remap keyboard-escape-quit] . tempel-done))
+  :init
+  ;; Setup completion at point
+  (defun tempel-setup-capf ()
+    (setq-local completion-at-point-functions
+                (cons #'tempel-expand
+                      completion-at-point-functions))))
+
 
 ;; For uploading files
 (use-package 0x0
@@ -276,7 +331,8 @@
 
 ;;; WRITING
 (defvar writting-modes '(markdown-mode nroff-mode org-mode
-                                       mu4e-compose-mode mail-mode
+                                       mu4e-compose-mode
+                                       mail-mode
                                        git-commit-mode))
 (use-package writegood-mode
   :hook (flyspell-mode . writegood-mode))
@@ -319,63 +375,6 @@
 
 ;; Enable Corfu completion UI
 ;; See the Corfu README for more configuration tips.
-(use-package corfu
-  ;; Optional customizations
-  :custom
-  (corfu-cycle t)           ;; allows cycling through candidates
-  (corfu-auto t)            ; Enable auto completion
-  (corfu-auto-prefix 2)     ; Enable auto completion
-  (corfu-auto-delay 0.0)    ; Enable auto completion
-  (corfu-quit-at-boundary t)
-  (corfu-echo-documentation 0.25)   ; Enable auto completion
-  (corfu-preview-current 'insert)         ; Do not preview current candidate
-  (corfu-preselect-first nil)
-
-  ;; Optionally use TAB for cycling, default is `corfu-complete'.
-  :bind (:map corfu-map
-              ("RET"     . nil) ;; leave my enter alone!
-              ("TAB"     . corfu-next)
-              ([tab]     . corfu-next)
-              ("S-TAB"   . corfu-previous)
-              ([backtab] . corfu-previous))
-
-  :init
-  (corfu-global-mode))
-
-;; Add extensions
-(use-package cape
-  :init
-  ;; Add `completion-at-point-functions', used by `completion-at-point'.
-  (add-to-list 'completion-at-point-functions #'cape-file)
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  :config
-  ;; Silence then pcomplete capf, no errors or messages!
-  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
-
-  ;; Ensure that pcomplete does not write to the buffer
-  ;; and behaves as a pure `completion-at-point-function'.
-  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify)
-  (add-hook 'eshell-mode-hook
-            (lambda () (setq-local corfu-quit-at-boundary t
-                              corfu-quit-no-match t
-                              corfu-auto nil)
-              (corfu-mode))))
-(use-package pcmpl-args)
-;; Templates takes advantage of emacs's tempo
-(use-package tempel
-  :ensure t
-  :hook ((prog-mode text-mode) . tempel-setup-capf)
-  :demand t
-  :bind (("M-+" . tempel-insert) ;; Alternative tempel-expand
-         :map tempel-map
-         ([remap keyboard-escape-quit] . tempel-done))
-  :init
-  ;; Setup completion at point
-  (defun tempel-setup-capf ()
-    (setq-local completion-at-point-functions
-                (cons #'tempel-expand
-                      completion-at-point-functions))))
-
 ;;; VTERM AND ESHELL
 (use-package vterm
   :bind ("C-x t" . vterm)
@@ -974,8 +973,10 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :commands (sly sly-connect)
   :init
   (setq inferior-lisp-program "sbcl")
+  (setq sly-default-lisp 'ccl)
   (setq sly-lisp-implementations
-        `((sbcl ("sbcl") :coding-system utf-8-unix)
+        `((ccl ("ccl") :coding-system utf-8-unix)
+          (sbcl ("sbcl") :coding-system utf-8-unix)
           (ecl ("ecl") :coding-system utf-8-unix)
           (roswell ("ros" "-Q" "run"))
           (roswell-sbcl ("ros" "-L" "sbcl" "-Q" "-l" "~/.sbclrc" "run") :coding-system utf-8-unix)
@@ -988,7 +989,6 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
       (if (cd dir)
           (sly 'qlot)
         (error (format "Failed to cd to %s" dir)))))
-  (setq sly-default-lisp 'sbcl)
   (defun gv/connect-to-stumpwm ()
     (interactive)
     (start-process-shell-command "stumpish start-slynk" nil
@@ -1067,7 +1067,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
               ("<backtab>" . bicycle-cycle-global)))
 
 (use-package outline
-  :hook (prog-mode . outline-minor-mode)
+  :hook ((prog-mode tex-mode) . outline-minor-mode)
   :config
   ;; Outline Minor Mode
   (add-hook 'outline-minor-mode-hook
