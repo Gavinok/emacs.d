@@ -602,34 +602,6 @@
           compilation-mode))
   (popper-mode +1))
 
-(use-package god-mode
-  :ensure t
-  :bind (("C-z" . god-mode)
-         :map god-local-mode-map
-         (";" . repeat)
-         ("i" . god-mode)
-         ("]" . forward-paragraph)
-         ("[" . backward-paragraph))
-  :config
-  (setq god-og-mode-line
-        (face-attribute 'mode-line :box)
-        god-og-mode-line-inactive
-        (face-attribute 'mode-line-inactive :box))
-  (defun my-god-mode-update-mode-line ()
-    (cond
-     (god-local-mode
-      (set-face-attribute 'mode-line nil
-                          :box "#97d7d7")
-      (set-face-attribute 'mode-line-inactive nil
-                          :box "#75b5c6"))
-     (t
-      (set-face-attribute 'mode-line nil
-                          :box god-og-mode-line)
-      (set-face-attribute 'mode-line-inactive nil
-                          :box god-og-mode-line-inactive))))
-
-  (add-hook 'post-command-hook 'my-god-mode-update-mode-line))
-
 (use-package evil
   :ensure t
   :commands (evil-mode)
