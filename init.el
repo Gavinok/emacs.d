@@ -598,11 +598,11 @@
 
 (use-package multiple-cursors
   :bind (("C-M-'" . mc/edit-lines)
-         ("C-M-|" . mc/mark-all-in-region-regex)
+         ("C-M-|" . mc/mark-all-in-region-regexp)
+         ;; Call with a 0 arg to skip one
          ("C-M-]" . mc/mark-next-like-this)
-         ("C-M-[" . mc/mark-preveious-like-this)
-         ("C-M-}" . mc/skip-to-next-like-this)
-         ("C-M-{" . mc/skip-to-preveious-like-this)))
+         ("C-M-[" . mc/mark-previous-like-this)
+         ))
 
 (defun my-change-number-at-point (change increment)
   (let ((number (number-at-point))
