@@ -826,17 +826,6 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
               ("C-c  C" . hs-toggle-hiding)))
 
 ;;; enhanced eww
-(use-package shrface
-  :ensure t
-  :defer t
-  :config
-  (shrface-basic)
-  (shrface-trial)
-  (shrface-default-keybindings) ; setup default keybindings
-  (setq shrface-href-versatile t)
-  (define-key eww-mode-map (kbd "<tab>") 'shrface-outline-cycle)
-  (define-key eww-mode-map (kbd "<backtab>") 'shrface-outline-cycle-buffer))
-
 (use-package eww
   :defer t
   :bind ("C-x w w" . eww)
