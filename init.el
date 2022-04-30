@@ -121,10 +121,7 @@
   (progn (set-face-background 'default "undefinded")
          (add-to-list 'term-file-aliases
                       '("st-256color" . "xterm-256color"))
-         (xterm-mouse-mode t))
-  (global-set-key (kbd "<mouse-4>") 'next-line)
-  (global-set-key (kbd "<mouse-5>") 'previous-line))
-
+         (xterm-mouse-mode t)))
 
 (when (require 'auto-mark nil t)
   (setq auto-mark-command-class-alist
@@ -152,10 +149,6 @@
 
 ;;; COMPLETION
 (use-package vertico
-  :bind (:map vertico-map
-              ("RET"   . vertico-directory-enter)
-              ("DEL"   . vertico-directory-delete-char)
-              ("M-DEL" . vertico-directory-delete-word))
   :init
 ;;;; Out Of Order Compleiton
   (use-package orderless
@@ -165,10 +158,7 @@
 ;;;; Extra Completion Functions
   (use-package consult
     :defer t
-    :bind (("C-c l"       . consult-line)
-           ("C-c L"       . consult-line-multi)
-           ("C-c i"       . consult-imenu)
-           ("C-x b"       . consult-buffer)
+    :bind (("C-x b"       . consult-buffer)
            ("C-x C-k C-k" . consult-kmacro)
            ("M-y"         . consult-yank-pop)
            ("M-g g"       . consult-goto-line)
@@ -284,13 +274,11 @@
                               corfu-auto nil)
               (corfu-mode))))
 
-(use-package pcmpl-args)
-
 ;; Templates takes advantage of emacs's tempo
 (use-package tempel
   :ensure t
+  :defer 10
   :hook ((prog-mode text-mode) . tempel-setup-capf)
-  :demand t
   :bind (("M-+" . tempel-insert) ;; Alternative tempel-expand
          :map tempel-map
          ([remap keyboard-escape-quit] . tempel-done))
@@ -300,7 +288,6 @@
     (setq-local completion-at-point-functions
                 (cons #'tempel-expand
                       completion-at-point-functions))))
-
 
 ;; For uploading files
 (use-package 0x0
@@ -336,11 +323,6 @@
                                        git-commit-mode))
 (use-package writegood-mode
   :hook (flyspell-mode . writegood-mode))
-
-;; (use-package flymake-grammarly
-;;   :commands flymake-grammarly-load
-;;   :config
-;;   (add-hook 'flyspell-mode-hook 'flymake-grammarly-load))
 
 (use-package flyspell-correct
   :bind ("C-c DEL" . flyspell-correct-previous)
@@ -413,13 +395,6 @@
   (add-to-list 'eshell-visual-options '("git" "--help" "--paginate"))
   (add-to-list 'eshell-visual-commands '("htop" "top" "git" "log" "diff" "show" "less")))
 
-(use-package fish-completion
-  :after eshell
-  :config
-  (when (and (executable-find "fish")
-             (require 'fish-completion nil t)))
-  (global-fish-completion-mode))
-
 ;; More accureate color representation than ansi-color.el
 (use-package xterm-color
   :ensure t
@@ -438,9 +413,6 @@
 ;; find the root of projects we need to provide something equivalent
 ;; for it.
 (use-package project
-  ;; Cannot use :hook because 'project-find-functions does not end in -hook
-  ;; Cannot use :init (must use :config) because otherwise
-  ;; project-find-functions is not yet initialized.
   :ensure nil
   :demand t
   :config
@@ -501,16 +473,8 @@
   :config
   (setq ibuffer-expert t)
   (setq ibuffer-show-empty-filter-groups nil)
-  ;; Use human readable Size column instead of original one
-  (define-ibuffer-column size-h
-    (:name "Size" :inline t)
-    (cond
-     ((> (buffer-size) 1000000) (format "%7.1fM" (/ (buffer-size) 1000000.0)))
-     ((> (buffer-size) 100000) (format "%7.0fk" (/ (buffer-size) 1000.0)))
-     ((> (buffer-size) 1000) (format "%7.1fk" (/ (buffer-size) 1000.0)))
-     (t (format "%8d" (buffer-size)))))
 
-;; Modify the default ibuffer-formats
+  ;; Modify the default ibuffer-formats
   (setq ibuffer-formats
         '((mark modified read-only " "
                 (name 40 40 :left :elide)
@@ -592,7 +556,6 @@
           "\\*eldoc\\*"
           "\\*compilation\\*"
           "^*tex"
-          "^\\*sly-[^s]"
           "\\*Ement Notifications\\*"
           "Output\\*$"
           "\\*Async Shell Command\\*"
@@ -664,9 +627,6 @@
 (global-set-key (kbd "C-x n a") 'my-increment-number-at-point)
 (global-set-key (kbd "C-x n x") 'my-decrement-number-at-point)
 
-(use-package evil-smartparens
-  :hook (smartparens-mode . evil-smartparens-mode))
-
 ;; Enable Commentary
 (use-package evil-commentary
   :ensure t
@@ -678,11 +638,6 @@
 (use-package evil-surround
   :config
   (global-evil-surround-mode 1))
-
-;; Enable Lion
-(use-package evil-lion
-  :bind (:map evil-normal-state-map
-              ("gl" . evil-lion-left)))
 
 ;;; defaults
 (use-package emacs
@@ -1025,18 +980,12 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
     (bind-key (kbd "M-]") #'sp-split-sexp 'smartparens-mode-map)))
 
 (use-package flymake
-  :ensure nil
+  :defer 10
   :bind (("M-g d"   . flymake-show-buffer-diagnostics)
          ("M-g M-d" . flymake-show-project-diagnostics))
   :hook (prog-mode . (lambda () (flymake-mode t)))
   :config
   (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
-
-(use-package bicycle
-  :after outline
-  :bind (:map outline-minor-mode-map
-              ("<C-tab>" . bicycle-cycle)
-              ("<backtab>" . bicycle-cycle-global)))
 
 (use-package outline
   :hook ((prog-mode tex-mode) . outline-minor-mode)
@@ -1066,6 +1015,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :init
   (setq eldoc-echo-area-display-truncation-message nil)
   (global-eldoc-mode t))
+
 (use-package prog-mode
   :ensure nil
   :config
@@ -1117,9 +1067,6 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   (add-hook 'dired-mode-hook #'hl-line-mode)
 ;;;;; Hide . and .. in dired
   (setq dired-omit-files
-        ;; (rx (or (seq bol (? ".") "#")
-        ;;         (seq bol "." eol)
-        ;;         (seq bol ".." eol)))
         (setq dired-omit-files "^\\.?#\\|^\\.$\\|^\\.\\.$\\|^\\..*$"))
 
   (add-hook 'dired-mode-hook 'dired-omit-mode)
@@ -1150,8 +1097,6 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   (auth-source-pass-enable))
 
 ;;; MODELINE
-(unless gv/is-termux
-  (require 'battery))
 (defun simple-mode-line-render (left right)
   "Return a string of `window-width' length.
 Containing LEFT, and RIGHT aligned respectively."
@@ -1181,7 +1126,6 @@ Containing LEFT, and RIGHT aligned respectively."
              " %l:%c"
              (:eval (propertize
                      (concat " %p%%" " "
-                             ;; (if god-local-mode " 😇 " "  ")
                              " ( %m ) ") 'face 'shadow))
              mode-line-misc-info
              )
@@ -1190,10 +1134,6 @@ Containing LEFT, and RIGHT aligned respectively."
                      (format-time-string "%a, %b %d %I:%M%p")
                      'face 'font-lock-keyword-face))
              " "
-             (:eval (unless gv/is-termux
-                      (battery-format
-                       "[%p]"
-                       (funcall battery-status-function))) )
              "    "))))))
 
 
@@ -1222,15 +1162,6 @@ Containing LEFT, and RIGHT aligned respectively."
   (add-to-list 'org-file-apps
              '("\\.pdf\\'" . (lambda (file link)
                                (org-pdfview-open link)))))
-
-;;;; proced [built-in] htop alternative
-(use-package proced
-  :ensure nil
-  :commands proced
-  :config
-  (setq proced-auto-update-flag t
-        proced-auto-update-interval 2
-        proced-decend t))
 
 ;;; mu4e
 (load (concat user-emacs-directory
@@ -1336,4 +1267,3 @@ Containing LEFT, and RIGHT aligned respectively."
 (let ((f "lisp/termux.el"))
   (when (file-exists-p f)
     (load (concat user-emacs-directory f))))
-
