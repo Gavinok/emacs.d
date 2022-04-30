@@ -823,7 +823,14 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
 (use-package hideshow
   :hook (prog-mode . hs-minor-mode)
   :bind (:map hs-minor-mode-map
-              ("C-c  C" . hs-toggle-hiding)))
+              ("<mouse-3>" . hs-toggle-hiding)
+              ("C-c  C" . hs-toggle-hiding))
+  :init
+  (set-display-table-slot
+   standard-display-table
+   'selective-display
+   (let ((face-offset (* (face-id 'font-lock-comment-face) (lsh 1 22))))
+     (vconcat (mapcar (lambda (c) (+ face-offset c)) " ▾")))))
 
 ;;; enhanced eww
 (use-package eww
