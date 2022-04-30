@@ -168,12 +168,10 @@
            ("M-s l"       . consult-line)
            ("M-s L"       . consult-line-multi)
            ("M-s u"       . consult-focus-lines)
-           ("M-s g"       . consult-ripgrep)
            ("C-x C-SPC"   . consult-global-mark)
            ("C-x M-:"     . consult-complex-command)
            ("C-c n"       . consult-org-agenda)
            ("C-c f"       . consult-find)
-           ("C-c g"       . consult-ripgrep)
            ("C-c S-n"     . gv/notegrep)
            :map dired-mode-map
            ("O" . consult-file-externally)
@@ -189,6 +187,8 @@
     (add-hook 'completion-setup-hook #'hl-line-mode)
     (recentf-mode t))
 
+  (load (concat user-emacs-directory
+                "lisp/affe-config.el"))
 
   (use-package marginalia
     :custom
