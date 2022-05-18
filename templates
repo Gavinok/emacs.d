@@ -18,7 +18,7 @@ prog-mode
 (com (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start))
 
 
-c-mode
+c-mode c++-mode
 
 (if "if ("  (p "true") ") {" n> r> (p "true") n "}")
 (print "printf(" (p "\"The value of ___ is\"" text) (r ", ")")")
@@ -28,6 +28,12 @@ c-mode
      n> (p "/* your code here*/h")
      n "}")
 (main "int main(int argc, char* argv[])"n"{" n> (r "/*Your Code Here*/") n"}")
+
+c++-mode
+
+(print
+ "std::cout << " (p "hello, world!\n") ";")
+
 
 python-mode
 
@@ -103,6 +109,19 @@ lisp-mode sly-mrepl-mode
             "(:import-from :" (p "alexandria")n>
             (p ":with-gensyms :curry")"))")
 
+(doc
+ "Syntax:"n n
+ (p "function-name") "(" (p "args" arg)")"" => " (p "return-value" ret)n n
+ "Arguments and Values:"n n
+ (s arg) "--a " (p "type-of-arg") n
+ (s ret) "-- " (p "return-value-type")
+ "
+
+Description:
+
+"
+ (p "description of function")
+ )
 
 java-mode
 
@@ -125,6 +144,10 @@ org-mode
 
 (src "#+begin_src " p n> r> n> "#+end_src")
 (lisp "#+begin_src lisp" n> r> n "#+end_src"
+       :post (progn (unless sly-port
+                      (sly))
+                    (tempel-done) (org-edit-src-code)))
+(cpp "#+begin_src C++" n> r> n "#+end_src"
        :post (progn (unless sly-port
                       (sly))
                     (tempel-done) (org-edit-src-code)))
@@ -194,3 +217,104 @@ typescript-mode
 (interface "interface " (p "intrefaceName") " {"n>
            (p "item")": " (p "any") ";"n
            "}")
+
+c++-mode
+(stdlib
+ "#include <iostream>")
+
+;; STL Collections
+(array
+ "std::array<" (p "Type") ", "(p "Length")"> "(p "Name")";")
+(vector
+ "std::vector<"(p "Type")"> "(p "Name")";")
+
+(deque
+ "std::deque<" (p "Type") "> " (p "Name") ";")
+
+(flist
+ "std::forward_list<"(p "Type")"> "(p "Name"));
+
+(list
+ "std::list<"(p "Type")"> "(p "Name")";")
+
+(set
+ "std::set<"(p "Type")"> "(p "Name")";")
+
+(map
+ "std::map<"(p "KeyType")", "(p "ValueType")"> "(p "Name")";")
+
+;; ## STL smart pointers
+;; # std::shared_ptr
+;; snippet msp
+;; 	std::shared_ptr<${1:T}> ${2} = std::make_shared<$1>(${3});
+;; snippet amsp
+;; 	auto ${1} = std::make_shared<${2:T}>(${3});
+;; # std::unique_ptr
+;; snippet mup
+;; 	std::unique_ptr<${1:T}> ${2} = std::make_unique<$1>(${3});
+;; snippet amup
+;; 	auto ${1} = std::make_unique<${2:T}>(${3});
+
+(class
+ "/*! \\class " (p "ClassName" name)n>
+ "*  \\brief " (p "Short Description Of Class")n>
+ "*"n>
+ "*  " (p "Detailed Description")n>
+ "*/"n>
+ "class " (or name (buffer-name)) " {" n>
+ "private:"n n>
+
+ (p "Type" ptype)" " (p "Name" pname)n n>
+
+ "public:"n>
+ (s name)"("(s ptype)" "(s pname)");"n>
+ "virtual ~"(s name)"();"n
+ "};")
+
+;; # member function implementation
+;; snippet mfun
+;; 	${4:void} ${1:`vim_snippets#Filename('$1', 'ClassName')`}::${2:memberFunction}(${3}) {
+;; 		${0}
+;; 	}
+
+;; ##
+;; ## Input/Output
+;; # std::cout
+;; snippet cout
+;; 	std::cout << ${1} << std::endl;
+;; # std::cin
+;; snippet cin
+;; 	std::cin >> ${1};
+
+
+;; # foreach
+;; snippet fore
+;; 	for (${1:auto} ${2:i} : ${3:container}) {
+;; 		${4}
+;; 	}
+
+;; ## Lambdas
+;; # lamda (one line)
+;; snippet ld
+;; 	[${1}](${2}){${3}};
+
+cmake-mode
+
+(init
+ "cmake_minimum_required(VERSION " (p "3.1")")"n n
+ "set(CMAKE_VERBOSE_MAKEFILE ON)"n
+ "# Generate a compilation database file."n
+ "set(CMAKE_EXPORT_COMPILE_COMMANDS ON)"n
+
+ "project("(p "ProjectName" projname)"  LANGUAGES CXX )"n n
+
+ "add_executable("(s projname) " " (p "path/to/main")")")
+
+(src
+ "add_subdirectory("(p "src")")"n)
+
+(lib
+ "add_library(" (p "libname") " " (p "path/to/sources")")")
+
+(test
+ "add_test("(p "TestName")" " "testCommand --options"")")
