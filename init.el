@@ -839,6 +839,12 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
         (set-mark (mark t)))
     nil))
 
+(use-package mouse
+  :ensure nil
+  :defer 3
+  :init
+  (context-menu-mode 1))
+
 (use-package autorevert
   :ensure nil
   :defer 1
