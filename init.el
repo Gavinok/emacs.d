@@ -457,7 +457,7 @@
           (magit-status (project-root (project-current t)) "Magit" m)))
 
   (defvar project-root-markers
-    '(".git" "package.clj" "package.json" "mix.exs" "Project.toml" ".project" "Cargo.toml" "qlfile"))
+    '(".git" "CMakeList.txt" "package.clj" "package.json" "mix.exs" "Project.toml" ".project" "Cargo.toml" "qlfile"))
 
   (defun my/project-find-root (path)
     (let* ((this-dir (file-name-as-directory (file-truename path)))
