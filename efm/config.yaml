@@ -1,9 +1,11 @@
 version: 2
-commands:
-  - command: notepad
-    arguments:
-      - ${INPUT}
-    title: "Hello world"
+log-file: /tmp/efm.log
+log-level: 1
+# commands:
+#   - command: xdg-open
+#     arguments:
+#       - ${INPUT}
+#     title: "Hello world"
 
 tools:
 
@@ -88,19 +90,6 @@ tools:
   python-black: &python-black
     lint-command: 'black --quiet -'
     lint-stdin: true
-
-  python-flake8: &python-flake8
-    lint-command: 'flake8 --stdin-display-name ${INPUT} -'
-    lint-stdin: true
-    lint-formats:
-      - '%f:%l:%c: %m'
-
-  python-mypy: &python-mypy
-    lint-command: 'mypy --show-column-numbers'
-    lint-formats:
-      - '%f:%l:%c: %trror: %m'
-      - '%f:%l:%c: %tarning: %m'
-      - '%f:%l:%c: %tote: %m'
 
   dockerfile-hadolint: &dockerfile-hadolint
     lint-command: 'hadolint'
@@ -203,8 +192,8 @@ languages:
     - <<: *yaml-yamllint
 
   python:
-    - <<: *python-flake8
-    - <<: *python-mypy
+    # - <<: *python-flake8
+    # - <<: *python-mypy
     - <<: *python-black
 
   dockerfile:
