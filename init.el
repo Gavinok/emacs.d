@@ -114,18 +114,23 @@
 
 ;;; UNDO
 ;; Vim style undo not needed for emacs 28
-(use-package undo-fu
-  :ensure t
-  :commands (undo-fu-only-undo)
-  :defer nil
-  :bind (;; I hate it when I accidently use these
-         ("C-x u"   . undo-fu-only-undo)
-         ("C-/"     . undo-fu-only-undo)
-         ("C-x C-u" . undo-fu-only-redo)
-         ("C-?"     . undo-fu-only-redo)))
+;; (use-package undo-fu
+;;   :ensure t
+;;   :commands (undo-fu-only-undo)
+;;   :defer nil
+;;   :bind (;; I hate it when I accidently use these
+;;          ("C-x u"   . undo-fu-only-undo)
+;;          ("C-/"     . undo-fu-only-undo)
+;;          ("C-x C-u" . undo-fu-only-redo)
+;;          ("C-?"     . undo-fu-only-redo)))
 
 (use-package undo-fu-session
   :ensure t
+  :bind (("C-x u"   . undo-only)
+         ("C-/"     . undo-only)
+         ("C-x C-u" . undo-redo)
+         ("C-?"     . undo-redo))
+
   :init (global-undo-fu-session-mode))
 
 ;;; TERMINAL SETTINGS
