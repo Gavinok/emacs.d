@@ -103,8 +103,9 @@ lisp-mode sly-mrepl-mode
           "(t "           (p "default")"))")
 
 (class "(defclass " (p "classname " classname) " ()"
-       "((" (p "slotname" slot) " :reader " (format "%s-%s" classname slot)n>
-       ":initarg " (concat ":" slot)n>
+       "((" (p "slotname" slot) ;; " :reader " (format "%s-%s" classname slot)
+       n>
+       ;; ":initarg " (concat ":" slot)n>
        ":type " (p "string")n>
        ":initform " (p "default")n>
        ":documentation \"" (p "Slot Description.")"\"))"n>
@@ -157,7 +158,7 @@ org-mode
        :post (progn (unless sly-port
                       (sly))
                     (tempel-done) (org-edit-src-code)))
-(cpp "#+begin_src C++" n> r> n "#+end_src"
+(cpp "#+begin_src C++ :includes <iostream>" n> r> n "#+end_src"
        :post (progn (unless sly-port
                       (sly))
                     (tempel-done) (org-edit-src-code)))
