@@ -1103,8 +1103,10 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   (set-vim-foldmarker "{{{"))
 
 (use-package eldoc
+  :defer 10
   :init
-  (setq eldoc-echo-area-display-truncation-message nil)
+  (setq eldoc-echo-area-display-truncation-message t)
+  (setq eldoc-echo-area-use-multiline-p nil)
   (global-eldoc-mode t))
 
 (use-package prog-mode
