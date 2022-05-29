@@ -2,8 +2,9 @@
 (use-package affe
   :bind (("M-s M-f" . affe-find)
 	 ("M-s f"   . affe-find)
-	 ("M-s M-g" . affe-grep)
-	 ("M-s g"   . affe-grep))
+	 ;; ("M-s M-g" . affe-grep)
+	 ;; ("M-s g"   . affe-grep)
+         )
   :config
   (defun affe-orderless-regexp-compiler (input _type _ignorecase)
     (setq input (orderless-pattern-compiler input))

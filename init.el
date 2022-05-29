@@ -1224,9 +1224,9 @@ Containing LEFT, and RIGHT aligned respectively."
              mode-line-misc-info
              )
            ;; Right
-           '((:eval (propertize
-                     (format-time-string "%a, %b %d %I:%M%p")
-                     'face 'font-lock-keyword-face))
+           '(;; (:eval (propertize
+             ;;         (format-time-string "%a, %b %d %I:%M%p")
+             ;;         'face 'font-lock-keyword-face))
              " "
              "    "))))))
 
