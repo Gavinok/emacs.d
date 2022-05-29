@@ -570,8 +570,8 @@
 ;;; popup window managment
 (use-package popper
   :ensure t ; or :straight t
-  :bind (("M-`"   . popper-toggle-latest)
-         ("M-~"   . popper-cycle)
+  :bind (("M-`"     . popper-toggle-latest)
+         ("M-~"     . popper-cycle)
          ("C-x M-`" . popper-toggle-type))
   :init
   (setq popper-reference-buffers
