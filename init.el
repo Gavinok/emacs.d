@@ -1077,6 +1077,9 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
 
 (use-package outline
   :hook ((prog-mode tex-mode) . outline-minor-mode)
+  :bind (:map outline-minor-mode-map
+              (("C-<tab>" . outline-cycle)
+               ("<backtab>" . outline-cycle-buffer)))
   :config
   ;; Outline Minor Mode
   (add-hook 'outline-minor-mode-hook
