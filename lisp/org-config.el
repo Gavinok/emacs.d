@@ -13,7 +13,7 @@
   :pin nongnu
   ;; :ensure org-contrib
   :commands (org-capture org-agenda)
-  :bind (("C-c y" . org-store-link)
+  :bind (("C-c l" . org-store-link)
          ("C-c c" . org-capture)
          ("C-c a" . org-agenda)
          :map org-mode-map
@@ -41,8 +41,9 @@
         org-hide-block-startup nil
         org-src-preserve-indentation nil
         org-startup-folded 'content
-        org-cycle-separator-lines 2)
-
+        org-cycle-separator-lines 2
+        org-hide-leading-stars t
+        org-export-backends '(markdown ascii html icalendar latex odt))
   (setq org-log-done 'time)
   (setq org-log-into-drawer t)
   (setq org-todo-keywords
@@ -61,10 +62,16 @@
     :ensure t)
   (use-package ob-rust
     :ensure t)
-  (use-package ob-hy
-    :ensure t)
-  (use-package ob-elm
-    :ensure t)
+  (use-package ob-racket
+    :ensure nil
+    :quelpa (ob-racket :fetcher github :repo "hasu/emacs-ob-racket")
+    :after org
+    :config
+    ;; Enable Racket in Org-mode Babel
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((racket . t))))
+
   (setq org-confirm-babel-evaluate nil)
 ;;;; Agenda Views
   ;; Show effort estimates in agenda
@@ -95,25 +102,23 @@
   (when my/my-system
     (setq org-default-notes-file (concat org-directory "/refile.org"))
     (setq org-capture-templates
-          '(("P" "Protocol")
-            ("Pi" "Important")
-            ("Pit" "Today" entry (file+headline "~/Documents/Org/Agenda/notes.org" "Websites")
-             "* TODO %:annotation \t:important:\n\tSCHEDULED:%(org-insert-time-stamp (org-read-date nil t \"\"))\n:PROPERTIES:\n:Effort: 1h\n:SCORE_ON_DONE: 30\n:END:\n  %i\n  %a")
-            ("t" "Todo" entry (file (lambda () (concat org-directory "/refile.org")))
-             "* TODO %?\nDEADLINE: %T\n  %a")
+          '(("t" "Todo" entry (file (lambda () (concat org-directory "/refile.org")))
+             "* TODO %?\nDEADLINE: %T\n %i\n %a")
             ("e" "Errand" entry (file (lambda () (concat org-directory "/refile.org")))
              "* TODO %? :errand\nDEADLINE: %T\n  %a")
             ("c" "Cool Thing" entry (file (lambda () (concat org-directory "/refile.org")))
              "* %?\nEntered on %U\n  %i\n  %a")
+            ("C" "Coops" entry (file+olp (lambda () (concat org-directory "/refile.org")) "COOP")
+             "* %?\nEntered on %U\n  %i\n  %a")
             ("k" "Knowledge" entry (file+olp (lambda () (concat org-directory "/archive.org")) "Knowledge")
              "* %?\nEntered on %U\n  %i\n  %a")
-            ("M" "movie" entry (file+headline (lambda () (concat org-directory "/mylife.org")) "Movies to Watch")
-             "* %?\n")
             ("s" "Scheduled Event")
             ("sm" "Meeting" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
              "* Meeting with  %?\nSCHEDULED: %T\n")
             ("se" "Event" entry (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
              "* Meeting with  %?\nSCHEDULED: %T\n")
+            ("M" "movie" entry (file+headline (lambda () (concat org-directory "/mylife.org")) "Movies to Watch")
+             "* %?\n")
             ("v" "Video Idea" entry (file+olp (lambda () (concat org-directory "/youtube.org"))
                                               "YouTube" "Video Ideas")
              "* %?\n%? %a\n")
@@ -136,12 +141,17 @@
           ("today.org"   :maxlevel . 3)))
   (advice-add 'org-refile :after 'org-save-all-org-buffers)
 ;;;; Font Sizes
-  ;; (dolist (face '((org-level-1 . 1.05)
-  ;;              (org-level-2 . 1.05)
-  ;;              (org-level-3 . 1.05)
-  ;;              (org-level-4 . 1.05)))
-  ;;   (set-face-attribute (car face) nil :font "Terminus" :weight 'medium :height (cdr face)))
+  (dolist (face '((org-level-1 . 1.05)
+               (org-level-2 . 1.05)
+               (org-level-3 . 1.05)
+               (org-level-4 . 1.05)))
+    (set-face-attribute (car face) nil :family "CMU Concrete" :weight 'bold :height (cdr face)))
   (set-face-attribute 'org-block nil :background "#101010"))
+
+(use-package org-timeline
+  :after org
+  :config
+  (add-hook 'org-agenda-finalize-hook 'org-timeline-insert-timeline :append))
 
 ;;;; Drag And Drop
 (use-package org-download
@@ -176,3 +186,12 @@
 (use-package org-protocol
   :ensure nil
   :after org)
+
+;; (use-package org-variable-pitch
+;;   :ensure t
+;;   :after org
+;;   :config
+;;   (setq line-space .2)
+;;   (org-variable-pitch-setup)
+;;   (org-variable-pitch-minor-mode))
+(add-hook 'after-init-hook (lambda (&rest args) (org-agenda-list 1)))
