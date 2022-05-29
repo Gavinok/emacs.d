@@ -540,10 +540,9 @@
     (isearch-clean-overlays)
     (kill-new isearch-string))
 
-  (define-key isearch-mode-map "\M-w" 'isearch-save-and-exit)
-
   ;; Avoid typing - and _ during searches
-  (setq search-whitespace-regexp ".*")
+  (setq search-whitespace-regexp "[-_ \t\n]+")
+
   ;; Place cursor at the start of the match similar to vim's t
   ;; C-g will return the cursor to it's orignal position
   (add-hook 'isearch-mode-end-hook 'my-goto-match-beginning)
