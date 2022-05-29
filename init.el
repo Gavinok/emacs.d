@@ -892,51 +892,54 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :config
   (require 'shrface))
 
-(use-package eglot
-  :bind (:map eglot-mode-map
-              ("C-h ." . display-local-help)
-              ("C-h d" . eldoc-doc-buffer)
-              ("M-RET" . eglot-code-actions))
-  :ensure t
-  :hook ((c-mode
-          java-mode       ; M-x package-install eglot-java
-          typescript-mode ; npm install -g typescript-language-server
-          python-mode ; pip install --user 'python-language-server[all]' -U
-          yaml-mode)  ; npm install -g yaml-language-server
-         . eglot-ensure)
-  :commands (eglot eglot-ensure)
-  :init
-  ;; go install github.com/mattn/efm-langserver@latest
-  ;; Setup efm language server for writting modes since most don't
-  ;; have a dedicated language server
-  ;; (let ((modes `(,@writting-modes vimrc-mode shell-script-mode sh-mode))
-  ;;       (efm (list "efm-langserver"
-  ;;                  (concat "-c=" (getenv "HOME")
-  ;;                          "/.emacs.d/efm/config.yaml"))))
-  ;;   ;; Setup hooks
-  ;;   (dolist (mode modes)
-  ;;     (add-hook (intern (concat (symbol-name `,mode) "-hook"))
-  ;;               'eglot-ensure))
-  ;;   ;; Setup language server for the given modes
-  ;;   (eval-after-load 'eglot
-  ;;     (list 'add-to-list ''eglot-server-programs `(,modes . ,efm))))
+
+(use-package lsp-mode
+  :hook ((c-mode . lsp-deferred)
+         (c++-mode . lsp-deferred)
+         (typescript-mode . lsp-deferred)
+         (rust-mode . lsp-deferred))
+  :commands (lsp lsp-deferred)
   :config
-  (add-to-list 'eglot-server-programs '(clojure-mode . ("clojure-lsp")))
-  (add-to-list 'eglot-server-programs
-               '(yaml-mode . ("yaml-language-server" "--stdio"))))
+  (setq lsp-keymap-prefix "C-c L"))
+(use-package lsp-haskell :hook (haskell-mode . lsp-deferred))
+(use-package lsp-java :hook (java-home . lsp-deferred))
+(use-package lsp-ui :after lsp-mode
+  :bind (:map lsp-mode-map
+              ("C-h d" . lsp-ui-doc-glance)))
+(use-package lsp-pyright
+  :ensure t
+  :after lsp-mode
+  :hook (python-mode . (lambda ()
+                          (require 'lsp-pyright)
+                          (lsp-deferred))))
+;; (use-package dap-mode :after lsp-mode
+;;   :config
+;;   ;; (require 'dap-java)
+;;   (require 'dap-cpptools)
+;;   (setq dap-auto-configure-features '(sessions locals controls tooltip)))
 
 (use-package haskell-mode :ensure t :mode "\\.hs\\'"
-  :config
-  (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
   ;; lets you use C-c C-l
-  (add-hook 'haskell-mode-hook 'interactive-haskell-mode))
+  :init
+  (add-hook 'haskell-mode-hook 'interactive-haskell-mode)
+  (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
+  (add-hook 'haskell-mode-hook 'haskell-indent-mode))
+
 (use-package flymake-hlint
   :hook
   (haskell-mode . flymake-hlint-load))
 (use-package rust-mode    :ensure t :mode "\\.rs\\'"
   :init
   (setq rustic-lsp-client 'eglot))
-(use-package racket-mode  :ensure t :mode "\\.rkt\\'")
+(use-package racket-mode  :ensure t :mode "\\.rkt\\'"
+  :config
+  (require 'racket-xp)
+  (add-hook 'racket-mode-hook #'racket-xp-mode)
+  (add-hook 'racket-mode-hook 'prettify-symbols-mode)
+  (defun setup-racket-eldoc ()
+    (eldoc-mode +1)
+    (setq eldoc-documentation-function #'racket-xp-eldoc-function))
+  (add-hook 'racket-mode-hook #'setup-racket-eldoc))
 
 ;;; Clojure
 (use-package clojure-mode :ensure t :mode "\\.clj\\'")
