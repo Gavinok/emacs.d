@@ -2,9 +2,9 @@
 (use-package quelpa-use-package)
 ;; Don't forget to run M-x eaf-install-dependencies
 (use-package eaf
-  :unless gv/is-termux
-  :bind (("C-c w" . gv/bm)
-        ("s-w" . gv/bm))
+  :unless my/is-termux
+  :bind (("C-c w" . my/bm)
+         ("s-w" . my/bm))
   ;; :demand t
   ;; Set to "/usr/share/emacs/site-lisp/eaf" if installed from AUR
   :load-path "~/.emacs.d/site-lisp/emacs-application-framework/"
@@ -21,7 +21,7 @@
       (buffer-substring-no-properties
        (point-min)
        (point-max))))
-  (defun gv/bm ()
+  (defun my/bm ()
     (interactive)
     (add-to-list 'load-path "~/.emacs.d/site-lisp/emacs-application-framework/app/browser/")
     (require 'eaf-browser)

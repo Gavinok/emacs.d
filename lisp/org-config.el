@@ -1,5 +1,5 @@
 ;;; ORG
-(if gv/is-termux
+(if my/is-termux
     (setq org-directory "~/storage/shared/Dropbox/Documents/org")
   (setq org-directory "~/Documents/org"))
 
@@ -19,7 +19,10 @@
          :map org-mode-map
          ("C-M-i" . completion-at-point))
   :config
-  (add-hook 'org-mode-hook (lambda () (setq indent-tabs-mode nil)))
+(setq my/org-latex-scale 1.75)
+(setq org-format-latex-options
+      (plist-put org-format-latex-options :scale my/org-latex-scale))
+(add-hook 'org-mode-hook (lambda () (setq indent-tabs-mode nil)))
 ;;;; Archive Completed Tasks
   (defun my-org-archive-done-tasks ()
     (interactive)
@@ -66,9 +69,13 @@
 ;;;; Agenda Views
   ;; Show effort estimates in agenda
   (setq org-agenda-columns-add-appointments-to-effort-sum t)
-  (when gv/my-system
-    (setq org-agenda-files (seq-filter (lambda (x) (not (string-match "completed.org" x)))
-                                       (directory-files-recursively org-directory "\\.org$"))))
+  (when my/my-system
+    (let ((school-notes "~/.local/Dropbox/DropsyncFiles/vimwiki/School"))
+      (setq org-agenda-files (seq-filter (lambda (x) (not (string-match "completed.org" x)))
+                                         (directory-files-recursively org-directory "\\.org$")))
+      (if (file-directory-p school-notes)
+          (setq org-agenda-files (append org-agenda-files
+                                         (directory-files-recursively school-notes "\\.org$"))))))
   (setq org-agenda-custom-commands
         '(("d" "Today's Tasks"
            ((agenda "" ((org-agenda-span 1)
@@ -85,7 +92,7 @@
             (org-agenda-max-todos 20)
             (org-agenda-files org-agenda-files)))))
 ;;;; Capture
-  (when gv/my-system
+  (when my/my-system
     (setq org-default-notes-file (concat org-directory "/refile.org"))
     (setq org-capture-templates
           '(("P" "Protocol")

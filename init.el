@@ -55,35 +55,35 @@
   :custom (async-bytecomp-allowed-packages '(all)))
 
 ;;; MY STUFF
-(defvar gv/is-termux
+(defvar my/is-termux
   (string-suffix-p
    "Android" (string-trim (shell-command-to-string "uname -a")))
   "Truthy value indicating if Emacs is currently running in termux.")
-(defvar gv/is-terminal
+(defvar my/is-terminal
   (not window-system)
   "Truthy value indicating if Emacs is currently running in a terminal.")
-(defvar gv/my-system
+(defvar my/my-system
   (if (string-equal user-login-name "gavinok")
       t
     nil)
   "Non-nil value if this is my system.")
 
-(defun gv/scroll-down (arg)
+(defun my/scroll-down (arg)
   "Move cursor down half a screen ARG times."
   (interactive "p")
   (let ((dist (/ (window-height) 2)))
     (next-line dist)))
 
-(defun gv/scroll-up (arg)
+(defun my/scroll-up (arg)
   "Move cursor up half a screen ARG times."
   (interactive "p")
   (let ((dist (/ (window-height) 2)))
     (previous-line dist)))
 
-(global-set-key [remap scroll-up-command] #'gv/scroll-down)
-(global-set-key [remap scroll-down-command] #'gv/scroll-up)
+(global-set-key [remap scroll-up-command] #'my/scroll-down)
+(global-set-key [remap scroll-down-command] #'my/scroll-up)
 
-(defun gv/shell-command-on-file (command)
+(defun my/shell-command-on-file (command)
   "Execute COMMAND asynchronously on the current file."
   (interactive (list (read-shell-command
                       (concat "Async shell command on " (buffer-name) ": "))))
@@ -91,16 +91,22 @@
                       default-directory
                     (buffer-file-name))))
     (async-shell-command (concat command " " filename))))
-(bind-key (kbd "C-M-&") #'gv/shell-command-on-file)
+(bind-key (kbd "C-M-&") #'my/shell-command-on-file)
 (with-eval-after-load 'image-mode
-    (bind-key (kbd "&") #'gv/shell-command-on-file 'image-mode-map))
+    (bind-key (kbd "&") #'my/shell-command-on-file 'image-mode-map))
 
 ;;; General Key Bindings
 (use-package crux
   :ensure t
   :bind (("C-x w v" . crux-swap-windows)
          ("C-S-o" . crux-smart-open-line-above)
-         ("C-o" . crux-smart-open-line)))
+         ("C-o" . crux-smart-open-line)
+         ("C-x B" . my/org-scratch))
+  :config
+  (defun my/org-scratch ()
+    (interactive)
+    (let ((initial-major-mode 'org-mode))
+      (crux-create-scratch-buffer))))
 
 (use-package simple
   :ensure nil
@@ -123,7 +129,7 @@
   :init (global-undo-fu-session-mode))
 
 ;;; TERMINAL SETTINGS
-(when gv/is-terminal
+(when my/is-terminal
   (progn (set-face-background 'default "undefinded")
          (add-to-list 'term-file-aliases
                       '("st-256color" . "xterm-256color"))
@@ -178,7 +184,7 @@
            ("C-x M-:"     . consult-complex-command)
            ("C-c n"       . consult-org-agenda)
            ("C-c f"       . consult-find)
-           ("C-c S-n"     . gv/notegrep)
+           ("C-c S-n"     . my/notegrep)
            :map dired-mode-map
            ("O" . consult-file-externally)
            :map help-map
@@ -186,7 +192,7 @@
     :custom
     (completion-in-region-function #'consult-completion-in-region)
     :config
-    (defun gv/notegrep ()
+    (defun my/notegrep ()
       "Use interactive grepping to search my notes"
       (interactive)
       (consult-ripgrep org-directory))
@@ -317,7 +323,7 @@
   :config
   (global-hl-line-mode t)
   (set-cursor-color "#dc322f")
-  (when gv/my-system
+  (when my/my-system
     (set-frame-parameter (selected-frame) 'alpha '(100 100))
     (add-to-list 'default-frame-alist '(alpha 100 100)))
   (load-theme 'spaceway t))
@@ -353,7 +359,7 @@
     (add-hook 'ediff-quit-hook 'winner-undo)))
 
 (use-package diff-hl
-  :unless gv/is-termux
+  :unless my/is-termux
   :defer 5
   :init (global-diff-hl-mode)
   :config
@@ -368,7 +374,7 @@
   :bind ("C-x t" . vterm)
   :commands vterm
   :custom (vterm-max-scrollback 10000)
-  :init (when gv/my-system
+  :init (when my/my-system
           (setq term-prompt-regexp ".*ᛋ")))
 
 (use-package with-editor
@@ -440,22 +446,22 @@
   (defvar project-root-markers
     '(".git" "package.clj" "package.json" "mix.exs" "Project.toml" ".project" "Cargo.toml" "qlfile"))
 
-  (defun gv/project-find-root (path)
+  (defun my/project-find-root (path)
     (let* ((this-dir (file-name-as-directory (file-truename path)))
            (parent-dir (expand-file-name (concat this-dir "../")))
            (system-root-dir (expand-file-name "/")))
       (cond
-       ((gv/project-root-p this-dir) (cons 'transient this-dir))
+       ((my/project-root-p this-dir) (cons 'transient this-dir))
        ((equal system-root-dir this-dir) nil)
-       (t (gv/project-find-root parent-dir)))))
+       (t (my/project-find-root parent-dir)))))
 
-  (defun gv/project-root-p (path)
+  (defun my/project-root-p (path)
     (let ((results (mapcar (lambda (marker)
                              (file-exists-p (concat path marker)))
                            project-root-markers)))
       (eval `(or ,@ results))))
 
-  (add-to-list 'project-find-functions #'gv/project-find-root)) ; [built-in] Project Managment
+  (add-to-list 'project-find-functions #'my/project-find-root)) ; [built-in] Project Managment
 
 ;;; COMPILATION
 (use-package compile
@@ -711,9 +717,9 @@
      #b01000000
      #b10000000
      #b10000000])
-  (when gv/my-system
     (set-frame-font "PragmataPro Mono:pixelsize=22:antialias=true:autohint=true" nil t)
     ;; (set-frame-font "PragmataPro Mono:pixelsize=40:antialias=true:autohint=true" nil t)
+  (when my/my-system
     (load "~/.emacs.d/lisp/pragmatapro-lig.el")
     (require 'pragmatapro-lig)
     ;; Enable pragmatapro-lig-mode for specific modes
@@ -743,7 +749,7 @@
 ;;;; Remove Extra Ui
   (blink-cursor-mode -1)
   (menu-bar-mode -1) ; To disable the menu bar, place the following line in your .emacs file:
-  (unless gv/is-termux
+  (unless my/is-termux
     (scroll-bar-mode -1)) ; To disable the scroll bar, use the following line:
   (tool-bar-mode -1) ; To disable the toolbar, use the following line:
   (fset 'yes-or-no-p 'y-or-n-p)    ; don't ask to spell out "yes"
@@ -758,7 +764,7 @@
   (setq next-screen-context-lines 5)
   ;; move by logical lines rather than visual lines (better for macros)
   (setq line-move-visual nil)
-  (unless gv/is-termux
+  (unless my/is-termux
     (fringe-mode))
 
   ;;TRAMP
@@ -927,7 +933,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
     (sly-eval-async '(ql:quickload :lisp-critic))
     (sly-eval-async `(lisp-critic:critique-file ,(buffer-file-name))))
 
-  (defun gv/connect-to-stumpwm ()
+  (defun my/connect-to-stumpwm ()
     (interactive)
     (start-process-shell-command "stumpish start-slynk" nil
                                  "stumpish start-slynk")
@@ -985,8 +991,15 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
                    (region-beginning) (region-end)))
      (t (sp-backward-kill-sexp 1))))
 
+  (defun my/yank (&optional arg)
+    (interactive)
+    (if *last-kill-was-rectangle*
+        (yank-rectangle)
+      (yank arg)))
+  (bind-key (kbd "C-y") 'my/yank)
+
   ;; Avoid terminal binding confilct
-  (unless gv/is-termux
+  (unless my/is-termux
     (bind-key (kbd "M-[") #'sp-splice-sexp 'smartparens-mode-map)
     (bind-key (kbd "M-]") #'sp-split-sexp 'smartparens-mode-map)))
 
@@ -1056,7 +1069,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
 
 (use-package pulse
   ;; Highlight cursor postion after movement
-  :unless gv/is-terminal
+  :unless my/is-terminal
   :defer t
   :init (defun pulse-line (&rest _)
           (pulse-momentary-highlight-one-line (point)))
@@ -1118,7 +1131,7 @@ Containing LEFT, and RIGHT aligned respectively."
     (append left
             (list (format (format "%%%ds" available-width) " "))
             right)))
-(unless gv/is-terminal
+(unless my/is-terminal
   (setq-default left-margin-width 2)
   (setq-default right-margin-width 2))
 (set-window-buffer nil (current-buffer))
@@ -1192,7 +1205,7 @@ Containing LEFT, and RIGHT aligned respectively."
 
 ;; use emacs as a clipboard manager
 (use-package clipmon
-  :unless (and gv/is-termux (not (executable-find "clipmon")))
+  :unless (and my/is-termux (not (executable-find "clipmon")))
   :defer 5
   :config
   (clipmon-mode-start))
@@ -1205,7 +1218,7 @@ Containing LEFT, and RIGHT aligned respectively."
   :config
   :init (winner-mode 1)) ; Window Managment Undo
 
-(when gv/my-system
+(when my/my-system
   ;; Install `plz' HTTP library (not on MELPA yet).
   (use-package plz
     :quelpa (plz :fetcher github :repo "alphapapa/plz.el")
@@ -1213,11 +1226,11 @@ Containing LEFT, and RIGHT aligned respectively."
 
   ;; Install Ement.
   (use-package ement
-    :commands (gv/ement-connect)
+    :commands (my/ement-connect)
     :quelpa (ement :fetcher github :repo "alphapapa/ement.el")
     :init
     (setq ement-room-sender-headers t)
-    (defun gv/ement-connect ()
+    (defun my/ement-connect ()
       (interactive)
       (ement-connect :user-id "@gavinok:matrix.org"
                      :password (password-store-get "riot.im/gavinok")))

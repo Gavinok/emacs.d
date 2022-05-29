@@ -1,6 +1,6 @@
 ;;; EMAIL
 (use-package mu4e
-  :unless gv/is-termux
+  :unless my/is-termux
   :load-path "/usr/share/emacs/site-lisp/mu4e"
   :ensure nil
   :bind (("C-x M" . mu4e)
