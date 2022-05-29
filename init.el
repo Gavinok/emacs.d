@@ -949,6 +949,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
 (use-package sly
   :commands (sly sly-connect)
   :init
+  (setq sly-symbol-completion-mode nil)
   (setq inferior-lisp-program "sbcl")
   (setq sly-default-lisp 'roswell)
   (setq ros-config (concat user-emacs-directory
@@ -969,11 +970,21 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
           (sly 'qlot)
         (error (format "Failed to cd to %s" dir)))))
 
+  (defun sly-critique-defun ()
+    "Lint this file with lisp-critic"
+    (interactive)
+    ;; (sly-eval-async '(ql:quickload :lisp-critic))
+    (let ((form (apply #'buffer-substring-no-properties
+                       (sly-region-for-defun-at-point))))
+      (sly-eval-async
+          `(cl:format  "~a" (list ,(read form)))
+        nil (sly-current-package))))
+
   (defun sly-critique-file ()
     "Lint this file with lisp-critic"
     (interactive)
     (sly-eval-async '(ql:quickload :lisp-critic))
-    (sly-eval-async `(lisp-critic:critique-file ,(buffer-file-name))))
+    (sly-eval-async `(lisp-critic:critique ,(buffer-file-name))))
 
   (defun my/connect-to-stumpwm ()
     (interactive)
