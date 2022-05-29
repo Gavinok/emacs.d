@@ -1034,7 +1034,18 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :config
   (require 'smartparens-config)
   (smartparens-global-mode t)
+
+  ;;;; Better Killing And Yanking
   (setq rectangle-mark-mode nil)
+  (setq *last-kill-was-rectangle* rectangle-mark-mode)
+
+  (defun remember-last-kill-type (&rest d)
+    (setq *last-kill-was-rectangle* rectangle-mark-mode))
+
+  (advice-add 'kill-region :before #'remember-last-kill-type)
+  (advice-add 'kill-ring-save :before #'remember-last-kill-type)
+  (advice-add 'kill-rectangle :before #'remember-last-kill-type)
+
   (defun my/kill-region (BEG END &optional REGION)
     (interactive (list (mark) (point) 'region))
     (cond
