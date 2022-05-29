@@ -174,7 +174,6 @@
 
 ;;;; Extra Completion Functions
   (use-package consult
-    :defer t
     :bind (("C-x b"       . consult-buffer)
            ("C-x C-k C-k" . consult-kmacro)
            ("M-y"         . consult-yank-pop)
@@ -185,6 +184,8 @@
            ("M-s l"       . consult-line)
            ("M-s L"       . consult-line-multi)
            ("M-s u"       . consult-focus-lines)
+           ("M-s g"       . consult-grep)
+           ("M-s M-g"     . consult-grep)
            ("C-x C-SPC"   . consult-global-mark)
            ("C-x M-:"     . consult-complex-command)
            ("C-c n"       . consult-org-agenda)
@@ -193,7 +194,9 @@
            :map dired-mode-map
            ("O" . consult-file-externally)
            :map help-map
-           ("a" . consult-apropos))
+           ("a" . consult-apropos)
+           :map minibuffer-local-map
+           ("M-r" . consult-history))
     :custom
     (completion-in-region-function #'consult-completion-in-region)
     :config
@@ -252,13 +255,13 @@
 (use-package corfu
   ;; Optional customizations
   :custom
-  (corfu-cycle t)           ;; allows cycling through candidates
-  (corfu-auto t)            ; Enable auto completion
-  (corfu-auto-prefix 2)     ; Enable auto completion
-  (corfu-auto-delay 0.0)    ; Enable auto completion
+  (corfu-cycle t)                  ; Allows cycling through candidates
+  (corfu-auto t)                   ; Enable auto completion
+  (corfu-auto-prefix 2)            ; Enable auto completion
+  (corfu-auto-delay 0.0)           ; Enable auto completion
   (corfu-quit-at-boundary t)
   (corfu-echo-documentation 0.25)   ; Enable auto completion
-  (corfu-preview-current 'insert)         ; Do not preview current candidate
+  (corfu-preview-current 'insert)   ; Do not preview current candidate
   (corfu-preselect-first nil)
 
   ;; Optionally use TAB for cycling, default is `corfu-complete'.
@@ -267,13 +270,15 @@
               ("TAB"     . corfu-next)
               ([tab]     . corfu-next)
               ("S-TAB"   . corfu-previous)
-              ([backtab] . corfu-previous))
+              ([backtab] . corfu-previous)
+              ("S-<return>" . corfu-insert))
 
   :init
-  (corfu-global-mode))
+  (global-corfu-mode))
 
 ;; Add extensions
 (use-package cape
+  :defer 10
   :init
   ;; Add `completion-at-point-functions', used by `completion-at-point'.
   (add-to-list 'completion-at-point-functions #'cape-file)
