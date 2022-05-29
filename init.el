@@ -157,7 +157,7 @@
 (use-package align
   :ensure nil
   :defer t
-  :bind ("C-x C-a" . align-regexp)
+  :bind ("C-x a a" . align-regexp)
   :config
   ;; Align using spaces
   (defadvice align-regexp (around align-regexp-with-spaces activate)
