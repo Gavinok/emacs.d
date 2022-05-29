@@ -33,6 +33,16 @@ c++-mode
 
 (print
  "std::cout << " (p "hello, world!\n") ";")
+(test
+ "TEST_CASE(" (p  "\"Check \"" test-name)", ["(p "suite")"]) {"n>
+ (p "// TODO")n>
+ "}")
+
+(test-generator
+ "GENERATE(" (p "range()" test-name) ")")
+
+(test-range
+ "range ("(p  "FROM") "," (p "TO")")")
 
 
 python-mode
