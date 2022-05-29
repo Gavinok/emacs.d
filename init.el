@@ -303,7 +303,9 @@
   :hook ((prog-mode text-mode) . tempel-setup-capf)
   :bind (("M-+" . tempel-insert) ;; Alternative tempel-expand
          :map tempel-map
-         ([remap keyboard-escape-quit] . tempel-done))
+         ([remap keyboard-escape-quit] . tempel-done)
+         :map corfu-map
+         ("C-M-i" . tempel-expand))
   :init
   ;; Setup completion at point
   (defun tempel-setup-capf ()
