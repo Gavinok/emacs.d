@@ -35,6 +35,11 @@
 (setq comp-async-report-warnings-errors nil)
 (setq comp-deferred-compilation t)
 
+;; Install and load `quelpa-use-package'.
+(setq quelpa-update-melpa-p nil)
+(package-install 'quelpa-use-package)
+(require 'quelpa-use-package)
+
 ;; Keep custom-set-variables and friends out of my init.el
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 
@@ -1199,11 +1204,6 @@ Containing LEFT, and RIGHT aligned respectively."
          ("s-?" . winner-redo))
   :config
   :init (winner-mode 1)) ; Window Managment Undo
-
-;; Install and load `quelpa-use-package'.
-(setq quelpa-update-melpa-p nil)
-(package-install 'quelpa-use-package)
-(require 'quelpa-use-package)
 
 (when gv/my-system
   ;; Install `plz' HTTP library (not on MELPA yet).
