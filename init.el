@@ -32,6 +32,7 @@
 (eval-when-compile (require 'use-package))
 (setq use-package-verbose t)
 (setq package-native-compile t)
+(setq comp-async-report-warnings-errors nil)
 (setq comp-deferred-compilation t)
 
 ;; Keep custom-set-variables and friends out of my init.el
