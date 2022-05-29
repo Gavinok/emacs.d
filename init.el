@@ -407,18 +407,18 @@
               (eshell/alias "v" "view-file $1")
               (eshell/alias "o" "consult-file-externally $1"))))
 
-(use-package eshell
-  :commands eshell
-  :config
-  (setenv "PAGER" "cat")
-  (setq eshell-destroy-buffer-when-process-dies t))
-
 (use-package em-term
   :ensure nil
   :after eshell
   :config
   (add-to-list 'eshell-visual-options '("git" "--help" "--paginate"))
   (add-to-list 'eshell-visual-commands '("htop" "top" "git" "log" "diff" "show" "less")))
+
+(use-package eshell
+  :commands eshell
+  :config
+  (setq eshell-destroy-buffer-when-process-dies t))
+
 
 ;; More accureate color representation than ansi-color.el
 (use-package xterm-color
@@ -1292,6 +1292,7 @@ Containing LEFT, and RIGHT aligned respectively."
 ;;;; Use emacs instead of dmenu
 (setenv "LAUNCHER" "emenu -p ")
 (setenv "EDITOR" "emacsclient")
+(setenv "PAGER" "cat")
 ;;; Stuff To Ignore
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
