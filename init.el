@@ -531,7 +531,9 @@
   :ensure nil
   :bind (("C-s"     . isearch-forward)
          ("M-s M-%" . isearch-query-replace)
-         ("C-r"     . isearch-backward))
+         ("C-r"     . isearch-backward)
+         (:map isearch-mode-map
+               ("\M-w" . isearch-save-and-exit)))
   :config
   (defun isearch-save-and-exit ()
     "Exit search normally. and save the `search-string' on kill-ring."
