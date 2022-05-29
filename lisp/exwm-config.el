@@ -1,5 +1,5 @@
 (use-package exwm
-  :unless gv/is-termux
+  :unless my/is-termux
   :init
   (setq exwm-workspace-number 4)
   :config
@@ -31,7 +31,7 @@
               (lambda ()
                 (exwm-layout-hide-mode-line)))
 ;;;; Funcs
-  (defun gv/switch-to-scratch-and-back ()
+  (defun my/switch-to-scratch-and-back ()
     "Toggle between *scratch* buffer and the current buffer.
      If the *scratch* buffer does not exist, create it."
     (interactive)
@@ -41,14 +41,14 @@
         (switch-to-buffer scratch-buffer-name (lisp-interaction-mode)))))
 
   ;;Just disallow killing of scratch buffer
-  (defun gv/unkillable-scratch-buffer ()
+  (defun my/unkillable-scratch-buffer ()
     (if (equal (buffer-name (current-buffer)) "*scratch*")
         (progn
           (delete-region (point-min) (point-max))
           nil)
       t))
 
-  (add-hook 'kill-buffer-query-functions 'gv/unkillable-scratch-buffer)
+  (add-hook 'kill-buffer-query-functions 'my/unkillable-scratch-buffer)
 ;;;; Global Key Bindings
   (setq exwm-input-global-keys
         `(([?\s-h] . windmove-left)
@@ -59,7 +59,7 @@
           (,(kbd "<s-tab>") . other-window)
           ([?\s-v] . crux-swap-windows)
           ;; ([?\s-v] . crux-transpose-windows)
-          ([?\s-o] . gv/switch-to-scratch-and-back)
+          ([?\s-o] . my/switch-to-scratch-and-back)
           ([?\s-f] . exwm-layout-set-fullscreen)
           ([?\s-c] . inferior-octave)
           ([?\s-C] . kill-this-buffer)
