@@ -768,7 +768,9 @@
         auto-save-default nil
         inhibit-startup-screen t
         ring-bell-function 'ignore)
-
+;;;; Have focus follow the mouse rather than requiring a click
+  (setq mouse-autoselect-window t
+      focus-follows-mouse t)
 ;;;; UTF-8
   (prefer-coding-system 'utf-8)
   (setq locale-coding-system 'utf-8)
