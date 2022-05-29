@@ -591,12 +591,24 @@
           compilation-mode))
   (popper-mode +1))
 
+(use-package repeat
+  :defer 10
+  :unless (version< emacs-version "28")
+  :init
+  (repeat-mode +1))
+
+(use-package multiple-cursors
+  :bind (("C-M-'" . mc/edit-lines)
+         ("C-M-|" . mc/mark-all-in-region-regexp)
+         ;; Call with a 0 arg to skip one
+         ("C-M-." . mc/mark-next-like-this)
+         ("C-M-," . mc/mark-previous-like-this)
+         ))
+
 (use-package evil
   :ensure t
   :commands (evil-mode)
-  :bind (("<escape>" . keyboard-escape-quit)
-         ("C-z" . evil-mode)
-         :map evil-normal-state-map
+  :bind (:map evil-normal-state-map
          ;; vim vinigar style
          ("-"  . (lambda () (interactive)
                    (dired ".")))
@@ -621,14 +633,6 @@
   (setq evil-undo-system 'undo-fu)
   :config
   (evil-set-leader 'normal " "))
-
-(use-package multiple-cursors
-  :bind (("C-M-'" . mc/edit-lines)
-         ("C-M-|" . mc/mark-all-in-region-regexp)
-         ;; Call with a 0 arg to skip one
-         ("C-M-]" . mc/mark-next-like-this)
-         ("C-M-[" . mc/mark-previous-like-this)
-         ))
 
 (defun my-change-number-at-point (change increment)
   (let ((number (number-at-point))
@@ -662,6 +666,8 @@
 
 ;; Enable Surround
 (use-package evil-surround
+  :ensure t
+  :after evil
   :config
   (global-evil-surround-mode 1))
 
