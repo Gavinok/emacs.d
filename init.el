@@ -341,17 +341,18 @@
   (load-theme 'spaceway t))
 
 ;;; WRITING
-(defvar writting-modes '(markdown-mode nroff-mode org-mode
-                                       mu4e-compose-mode
-                                       mail-mode
-                                       git-commit-mode))
 (use-package writegood-mode
   :hook (flyspell-mode . writegood-mode))
 
 (use-package flyspell-correct
   :bind ("C-c DEL" . flyspell-correct-previous)
-  :hook (,writting-modes . turn-on-flyspell)
-  :init (setq flyspell-use-meta-tab nil))
+  :hook ((markdown-mode nroff-mode org-mode
+                        mu4e-compose-mode
+                        mail-mode
+                        git-commit-mode)
+         . flyspell-mode)
+  :init
+  (setq flyspell-use-meta-tab nil))
 
 ;;; ORG
 (load (concat user-emacs-directory
