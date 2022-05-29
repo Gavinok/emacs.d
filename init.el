@@ -1274,21 +1274,6 @@ Containing LEFT, and RIGHT aligned respectively."
     :config
     (add-hook 'org-mode-hook 'org-xournalpp-mode)))
 
-(use-package eglot-java
-  :ensure nil
-  :quelpa (eglot-java :fetcher github :repo "yveszoundi/eglot-java")
-  :after eglot
-  :config
-  (setq eglot-java-prefix-key "C-c e")
-  (eglot-java-init)
-  (defun setup-java ()
-    (interactive)
-    (setenv "JAVA_HOME" "/user/lib/jvm/java-8-openjdk-amd64/")
-    (setenv "PATH"
-            (concat
-             "/user/lib/jvm/java-8-openjdk-amd64/bin:"
-             (getenv "PATH")))))
-
 ;;;; Use emacs instead of dmenu
 (setenv "LAUNCHER" "emenu -p ")
 (setenv "EDITOR" "emacsclient")
