@@ -1120,6 +1120,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
             (lambda () (add-hook 'local-write-file-hooks 'check-parens)))
   (add-hook 'emacs-lisp-mode-hook 'prettify-symbols-mode)
   (add-hook 'lisp-mode-hook 'prettify-symbols-mode)
+  (add-hook 'python-mode    'prettify-symbols-mode)
   (add-hook 'lisp-mode-hook #'(lambda ()
                                 (setq indent-tabs-mode nil)))
 ;;;;; Smart Indentation
