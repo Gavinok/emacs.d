@@ -46,6 +46,8 @@
        `(avy-lead-face ((,class (:foreground ,spaceway-fg :background ,spaceway-red-0))))
        `(avy-lead-face-0 ((,class (:foreground ,spaceway-fg :background ,spaceway-green-0))))
        `(bm-face ((,class (:background ,spaceway-grey-4))))
+       `(mu4e-flagged-face ((,class (:foreground ,spaceway-red-0 :background ,spaceway-bg))))
+       `(mu4e-unread-face ((,class (:foreground ,spaceway-red-0 :background ,spaceway-bg))))
        `(company-preview-common ((,class (:foreground nil :background ,spaceway-purple-1))))
        `(company-scrollbar-bg ((,class (:background ,spaceway-grey-2))))
        `(company-scrollbar-fg ((,class (:background ,spaceway-grey-0))))
@@ -206,7 +208,13 @@
        `(org-link ((,class (:foreground ,spaceway-blue-0))))
        `(org-meta-line ((,class (:foreground ,spaceway-grey-0))))
        `(org-special-keyword ((,class (:foreground ,spaceway-purple-0))))
-       `(org-todo ((,class (:foreground ,spaceway-red-3))))
+       `(org-upcoming-deadline ((,class (:background ,spaceway-red-0))))
+       `(org-block ((,class (:background
+                             "#14171B"
+                             ;; "#010101"
+                             ))))
+       `(org-todo ((,class (:foreground ,spaceway-red-1))))
+       `(persp-selected-face ((,class (:foreground ,spaceway-orange-0))))
        `(region ((,class (:foreground ,spaceway-bg
                                       :background ,spaceway-region))))
        `(shm-current-face ((,class (:background ,spaceway-grey-4))))
