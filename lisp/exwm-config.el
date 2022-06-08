@@ -174,10 +174,30 @@ back to switching frames."
 (defun streaming (&optional)
   "Setup Streaming Environment"
   (interactive)
-    (keycast-mode 1)
+  (keycast-mode 1)
   (start-process-shell-command "obs " nil "obs")
   (persp-new "demo")
   (let ((spec "streaming"))
     (persp-new spec)
     (persp-switch spec))
   (persp-set-buffer "obs"))
+
+
+;;; Override Pinentry For Pass To Avoid Locking Up Emacs
+(use-package pinentry
+  :ensure t
+  :init
+  :config
+  ;; let's get encryption established
+  (setenv "GPG_AGENT_INFO" nil)  ;; use emacs pinentry
+  (setq auth-source-debug t)
+
+  (setq epg-gpg-program "gpg2")  ;; not necessary
+  (require 'epa-file)
+  (epa-file-enable)
+  (setq epa-pinentry-mode 'loopback)
+  (setq epg-pinentry-mode 'loopback)
+  (pinentry-start)
+
+  (require 'org-crypt)
+  (org-crypt-use-before-save-magic))
