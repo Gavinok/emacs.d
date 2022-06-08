@@ -24,10 +24,12 @@ c-mode c++-mode
 (print "printf(" (p "\"The value of ___ is\"" text) (r ", ")")")
 (for "for (" "int " (p "i" var) "=" (p "0") "; "
      (s var) "< " (p "max" max) "; "
-     (s var) "++" ")"
-     n> (p "/* your code here*/h")
+     (s var) "++" "){"
+     n> (p "/* your code here*/")
      n "}")
 (main "int main(int argc, char* argv[])"n"{" n> (r "/*Your Code Here*/") n"}")
+
+(struct "struct "(p "Name")" {" n> (p "/* fields */") n "};")
 
 c++-mode
 
@@ -159,9 +161,7 @@ org-mode
                       (sly))
                     (tempel-done) (org-edit-src-code)))
 (cpp "#+begin_src C++ :includes <iostream>" n> r> n "#+end_src"
-       :post (progn (unless sly-port
-                      (sly))
-                    (tempel-done) (org-edit-src-code)))
+     :post (progn (tempel-done) (org-edit-src-code)))
 (elisp "#+begin_src emacs-lisp" n> r> n "#+end_src"
        :post (progn (tempel-done) (org-edit-src-code)))
 (java "#+begin_src java" n> r> n "#+end_src"
@@ -312,11 +312,19 @@ c++-mode
 cmake-mode
 
 (init
- "cmake_minimum_required(VERSION " (p "3.1")")"n n
- "set(CMAKE_VERBOSE_MAKEFILE ON)"n
- "# Generate a compilation database file."n
- "set(CMAKE_EXPORT_COMPILE_COMMANDS ON)"n
-
+ "cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_EXPORT_COMPILE_COMMANDS true)
+set(CMAKE_VERBOSE_MAKEFILE true)
+set(CMAKE_EXPORT_COMPILE_COMMANDS true)"n
+ "option(ENABLE_EXTRA_CHECKS \"Enabel Additional Warnings and Sanitizer Checks\" false)
+if (ENABLE_EXTRA_CHECKS)
+  message(\"extra checks are on\")
+  set(CMAKE_BUILD_TYPE Debug)
+  set(CMAKE_CXX_FLAGS \"${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra\")
+  set(CMAKE_CXX_FLAGS \"${CMAKE_CXX_FLAGS} -fsanitize=address\")
+  set(CMAKE_CXX_FLAGS \"${CMAKE_CXX_FLAGS} -fsanitize=undefined\")
+endif()"
  "project("(p "ProjectName" projname)"  LANGUAGES CXX )"n n
 
  "add_executable("(s projname) " " (p "path/to/main")")")
@@ -326,6 +334,3 @@ cmake-mode
 
 (lib
  "add_library(" (p "libname") " " (p "path/to/sources")")")
-
-(test
- "add_test("(p "TestName")" " "testCommand --options"")")
