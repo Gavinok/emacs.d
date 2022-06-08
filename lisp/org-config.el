@@ -286,3 +286,16 @@
   :ensure nil
   :after org)
 
+;; Org Agenda Notifications
+(use-package org-yaap
+  :ensure nil
+  :after org
+  :quelpa (org-yaap :fetcher gitlab :repo "tygrdev/org-yaap")
+  :custom
+  (org-yaap-altert-severity 'critical)
+  (org-yaap-altert-before 10)
+  :config
+  (org-yaap-mode 1)
+  (org-yaap-daemon-start))
+
+;; (add-hook 'after-init-hook (lambda (&rest args) (org-agenda-list 1)))
