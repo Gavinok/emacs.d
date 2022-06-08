@@ -128,6 +128,8 @@
   :ensure t
   :bind (("C-x u"   . undo-only)
          ("C-/"     . undo-only)
+         ("C-z"     . undo-only)
+         ("C-S-z"   . undo-redo)
          ("C-x C-u" . undo-redo)
          ("C-?"     . undo-redo))
 
@@ -189,7 +191,6 @@
            ("C-x C-SPC"   . consult-global-mark)
            ("C-x M-:"     . consult-complex-command)
            ("C-c n"       . consult-org-agenda)
-           ("C-c f"       . consult-find)
            ("C-c S-n"     . my/notegrep)
            :map dired-mode-map
            ("O" . consult-file-externally)
@@ -216,7 +217,8 @@
      '(marginalia-annotators-heavy marginalia-annotators-light nil))
     :init
     (marginalia-mode))
-  (vertico-mode)
+  ;; Enable vertico using the vertico-flat-mode
+  (vertico-mode t)
   :config
   ;; Used for the vertico-directory extension
   (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy)
@@ -234,7 +236,7 @@
   (("C-=" . embark-act)         ;; pick some comfortable binding
    ([remap describe-bindings] . embark-bindings)
    :map embark-file-map
-   ("C-d" . dragon-drop) ;; alternative for `describe-bindings'
+   ("C-d" . dragon-drop)
    ("U"   . 0x0-upload-file)
    :map embark-region-map
    ("U"   . 0x0-dwim))
@@ -384,7 +386,11 @@
 ;; See the Corfu README for more configuration tips.
 ;;; VTERM AND ESHELL
 (use-package vterm
-  :bind ("C-x t" . vterm)
+  :bind (("C-x t" . vterm)
+         :map vterm-mode-map
+         ("M-p" . vterm-send-up)
+         ("M-n" . vterm-send-down))
+
   :commands vterm
   :custom (vterm-max-scrollback 10000)
   :init (when my/my-system
@@ -440,6 +446,7 @@
 (use-package project
   :ensure nil
   :demand t
+  :bind ("M-s M-s" . project-find-file)
   :config
   ;; Optionally configure a function which returns the project root directory.
   ;; There are multiple reasonable alternatives to chose from.
@@ -587,6 +594,7 @@
           "\\*Async Shell Command\\*"
           "\\*Dtache Shell Command\\*"
           "\\*mu4e-update\\*"
+          "\\*GDB.*out\\*"
           help-mode
           compilation-mode))
   (popper-mode +1))
@@ -746,9 +754,10 @@
     (set-face-attribute
      'fixed-pitch nil
      :font (font-spec :family "PragmataPro Mono" :size 14.5))
-    (set-face-attribute
-     'variable-pitch nil
-     :font (font-spec :family "CMU Concrete" :size 20 :weight 'regular))
+    ;; (set-face-attribute
+    ;;  'variable-pitch nil
+    ;;  :font (font-spec :family "CMU Concrete" :size 20 :weight 'regular))
+    (set-fontset-font t 'unicode "Symbola" nil 'append)
     ;; (set-frame-font "PragmataPro Mono:pixelsize=22:antialias=true:autohint=true" nil t)
     ;; (set-frame-font "PragmataPro Mono:pixelsize=30:antialias=true:autohint=true" nil t)
     (load "~/.emacs.d/lisp/pragmatapro-lig.el")
@@ -769,8 +778,8 @@
         inhibit-startup-screen t
         ring-bell-function 'ignore)
 ;;;; Have focus follow the mouse rather than requiring a click
-  (setq mouse-autoselect-window t
-      focus-follows-mouse t)
+  (setq mouse-autoselect-window nil
+        focus-follows-mouse nil)
 ;;;; UTF-8
   (prefer-coding-system 'utf-8)
   (setq locale-coding-system 'utf-8)
@@ -899,24 +908,35 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
          (typescript-mode . lsp-deferred)
          (rust-mode . lsp-deferred))
   :commands (lsp lsp-deferred)
+  :init
+  (setq lsp-keymap-prefix "C-x L")
+  (add-hook 'lsp-completion-mode-hook
+          (lambda ()
+            (setf (alist-get 'lsp-capf completion-category-defaults) '((styles . (orderless flex)))))))
   :config
-  (setq lsp-keymap-prefix "C-c L"))
-(use-package lsp-haskell :hook (haskell-mode . lsp-deferred))
-(use-package lsp-java :hook (java-home . lsp-deferred))
-(use-package lsp-ui :after lsp-mode
-  :bind (:map lsp-mode-map
-              ("C-h d" . lsp-ui-doc-glance)))
-(use-package lsp-pyright
-  :ensure t
-  :after lsp-mode
-  :hook (python-mode . (lambda ()
-                          (require 'lsp-pyright)
-                          (lsp-deferred))))
-;; (use-package dap-mode :after lsp-mode
-;;   :config
-;;   ;; (require 'dap-java)
-;;   (require 'dap-cpptools)
-;;   (setq dap-auto-configure-features '(sessions locals controls tooltip)))
+(use-package lsp-haskell :ensure t :hook (haskell-mode . lsp-deferred))
+(use-package lsp-java :ensure t :hook (java-home . lsp-deferred))
+(use-package lsp-pyright :ensure t :hook (python-mode . (lambda ()
+                                                          (require 'lsp-pyright)
+                                                          (lsp-deferred))))
+(use-package lsp-ui  :ensure t
+  :init
+  (setq lsp-ui-sideline-show-code-actions t)
+  (setq lsp-ui-sideline-show-diagnostics t)
+  (setq lsp-ui-sideline-show-code-actions t))
+
+;;; Debugging
+(use-package dap-mode :after lsp-mode
+  :hook ((c-mode c++-mode) . 'my/dap-cpp-setup)
+  :init
+  (defun my/dap-cpp-setup ()
+    (require 'dap-gdb-lldb)
+    (dap-gdb-lldb-setup))
+  :bind (:map dap-mode-map
+              ("C-x D D" . dap-debug)
+              ("C-x D d" . dap-debug-last))
+  :config
+  (setq dap-auto-configure-features '(sessions locals controls tooltip)))
 
 (use-package haskell-mode :ensure t :mode "\\.hs\\'"
   ;; lets you use C-c C-l
@@ -1112,6 +1132,8 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
 (use-package prog-mode
   :ensure nil
   :config
+  ;; Don't prompt for a reference
+  (setq xref-prompt-for-identifier nil)
   (add-hook 'prog-mode-hook 'hs-minor-mode)
   (add-hook 'prog-mode-hook 'outline-minor-mode)
   (add-hook 'prog-mode-hook (lambda ()
@@ -1143,7 +1165,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :defer t
   :init (defun pulse-line (&rest _)
           (pulse-momentary-highlight-one-line (point)))
-  (dolist (command '(other-window))
+  (dolist (command '(other-window windmove-do-window-select mouse-set-point mouse-select-window))
     (advice-add command :after #'pulse-line)))
 
 ;;;; Display hex colors in emacs
@@ -1214,22 +1236,23 @@ Containing LEFT, and RIGHT aligned respectively."
              (:eval (propertize
                      (if (and (not buffer-read-only) (buffer-modified-p))
                          "● "
-                       "  " ) 'face 'error))
+                       "  " )
+                     'face 'error))
              mode-line-buffer-identification
              ;; value of current line number
              " %l:%c"
              (:eval (propertize
                      (concat " %p%%" " "
-                             " ( %m ) ") 'face 'shadow))
+                             "「 %m 」")
+                     'face 'shadow))
              mode-line-misc-info
              )
            ;; Right
-           '(;; (:eval (propertize
-             ;;         (format-time-string "%a, %b %d %I:%M%p")
-             ;;         'face 'font-lock-keyword-face))
+           '((:eval (propertize
+                     (format-time-string "%a, %b %d %I:%M%p")
+                     'face 'font-lock-keyword-face))
              " "
              "    "))))))
-
 
 ;;; Server Setup
 (use-package server
@@ -1244,6 +1267,8 @@ Containing LEFT, and RIGHT aligned respectively."
 ; annotate pdfs with c-c c-a
 ; hl with c-c c-a h
 ; for help M-x pdf-tools-help RET
+(load (concat user-emacs-directory
+              "lisp/exwm-config.el"))
 (use-package pdf-tools
   :defer t
   :commands (pdf-view-mode pdf-tools-install)
@@ -1299,7 +1324,7 @@ Containing LEFT, and RIGHT aligned respectively."
     :commands (my/ement-connect)
     :quelpa (ement :fetcher github :repo "alphapapa/ement.el")
     :init
-    (setq ement-room-sender-headers t)
+    (customize-set-variable 'ement-room-message-format-spec "%B%r%R%t")
     (defun my/ement-connect ()
       (interactive)
       (ement-connect :user-id "@gavinok:matrix.org"
