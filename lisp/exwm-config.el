@@ -1,5 +1,6 @@
 (use-package exwm
   :unless my/is-termux
+  :ensure t
   :init
   (setq exwm-workspace-number 4)
   :config
@@ -50,17 +51,57 @@
 
   (add-hook 'kill-buffer-query-functions 'my/unkillable-scratch-buffer)
 ;;;; Global Key Bindings
+  (add-hook 'exwm-manage-finish-hook
+            (lambda ()
+              (when (and exwm-class-name
+                         (or (string= exwm-class-name "Google-chrome")
+                             (string= exwm-class-name "discord")))
+                (exwm-input-set-local-simulation-keys `(([?\C-b] . [left])
+							([?\C-f] . [right])
+                                                        ([?\M-b] . ,(kbd "C-<left>"))
+                                                        ([?\M-f] . ,(kbd "C-<right>"))
+                                                        ([?\M-d] . ,(kbd "C-<delete>"))
+                                                        ([?\C-p] . [up])
+                                                        ([?\C-n] . [down])
+                                                        ([?\C-a] . [home])
+                                                        ([?\C-j] . [?\C-k])
+                                                        ([?\C-s] . [?\C-f])
+                                                        ([?\C-e] . [end])
+                                                        ([?\C-E] . [?\C-e])
+                                                        ([?\M-v] . [prior])
+                                                        ([?\C-v] . [next])
+							([?\C-d] . [delete])
+                                                        ([?\C-k] . [S-end delete])
+                                                        (,(kbd "C-y") . ,(kbd "C-v"))
+                                                        (,(kbd "C-x C-x") . ,(kbd "C-x"))
+                                                        (,(kbd "C-c C-c") . ,(kbd "C-c")))))))
+
+  (defmacro my/window-switch (direction)
+    "Creates a function for changing the focused window but falls
+back to switching frames."
+    (let ((fn (intern (concat "windmove-" (symbol-name direction)))))
+      `(lambda (&optional arg) (interactive)
+         (condition-case nil
+             (funcall #',fn 1)
+           (error (other-frame 1))))))
+
+  (defmacro my/exwm-run (command)
+    "Returns a function that calls the given command"
+    `(lambda ()
+       (interactive)
+       (start-process-shell-command ,command nil ,command)))
+
   (setq exwm-input-global-keys
-        `(([?\s-h] . windmove-left)
-          ([?\s-l] . windmove-right)
-          ([?\s-j] . other-window)
-          ([?\s-k] . (lambda (&optional arg) (other-window -1)))
+        `((,(kbd "s-SPC") . ,(my/exwm-run "cabl -c"))
+          ([?\s-h] . ,(my/window-switch left))
+          ([?\s-l] . ,(my/window-switch right))
+          ([?\s-j] . windmove-down)
+          ([?\s-k] . windmove-up)
           ;; Window Managment
           (,(kbd "<s-tab>") . other-window)
           ([?\s-v] . crux-swap-windows)
-          ;; ([?\s-v] . crux-transpose-windows)
-          ([?\s-o] . my/switch-to-scratch-and-back)
-          ([?\s-f] . exwm-layout-set-fullscreen)
+          ([?\s-o] . other-frame)
+          ;; ([?\s-f] . exwm-layout-set-fullscreen)
           ([?\s-c] . inferior-octave)
           ([?\s-C] . kill-this-buffer)
 
@@ -73,83 +114,56 @@
           ([?\s-d] . (lambda (command)
                        (interactive (list (read-shell-command "λ ")))
                        (start-process-shell-command command nil command)))
-          ;; screen and audio controls
-          (,(kbd "C-s-f") . (lambda ()
-                              (interactive)
-                              (start-process-shell-command "Vol ↑" nil "cm up 5")))
-          (,(kbd "C-s-a") . (lambda ()
-                              (interactive)
-                              (start-process-shell-command "Vol ↓" nil "cm down 5")))
-          (,(kbd "C-s-d") . (lambda ()
-                              (interactive)
-                              (start-process-shell-command "Brightness ↑" nil "cl up 5")))
-          (,(kbd "C-s-s") . (lambda ()
-                              (interactive)
-                              (start-process-shell-command "Brightness ↓" nil "cl down 5")))
-          ;; web browser
-          ([?\s-w] . (lambda ()
-                       (interactive)
-                       (start-process-shell-command "ducksearch" nil "ducksearch")))
-
-          (,(kbd "s-E") . mu4e)
-          (,(kbd "s-e") . eshell)
-          ;;powermanager
-          ([?\s-x] . (lambda ()
-                       (interactive)
-                       (start-process-shell-command "power_menu.sh" nil "power_menu.sh")))
+          ;; Screen And Audio Controls
+          (,(kbd "C-s-f")   . ,(my/exwm-run "cm up 5"))
+          (,(kbd "C-s-a")   . ,(my/exwm-run "cm down 5"))
+          (,(kbd "C-s-d")   . ,(my/exwm-run "xbacklight -inc 10"))
+          (,(kbd "C-s-S-d") . ,(my/exwm-run "xbacklight -inc 5"))
+          (,(kbd "C-s-s")   . ,(my/exwm-run  "xbacklight -dec 10"))
+          (,(kbd "C-s-S-s") . ,(my/exwm-run  "xbacklight -dec 5"))
+          ;; Web Browser
+          ([?\s-w] . ,(my/exwm-run "ducksearch"))
+          ;;Power Manager
+          ([?\s-x] . ,(my/exwm-run  "power_menu.sh"))
           ([?\s-m] . (defun remind-timer (reminder)
                        (interactive "reminder?")
                        (egg-timer-do-schedule 3 reminder)))
-          ([?\s-=] . (lambda ()
-                       (interactive)
-                       (start-process-shell-command "Connections" nil
-                                                    "menu_connection_manager.sh")))
-          ([?\s-p] . (lambda ()
-                       (interactive)
-                       (start-process-shell-command "Clipmenu" nil "clipmenu")))
-;;;; Workspaces
+          ([?\s-=] . ,(my/exwm-run "menu_connection_manager.sh"))
+          ([?\s-p] . ,(my/exwm-run "clipmenu"))
+          ;; Workspaces
           ([?\s-g] . exwm-workspace-switch)))
-  (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
+  (define-key exwm-mode-map (kbd "C-q") 'exwm-input-send-next-key)
   (define-key exwm-mode-map (kbd "<s-escape>") 'exwm-input-release-keyboard)
-                                        ;: Start in char-mode
+
+  ;; Start in char-mode
   ;; (setq exwm-manage-configurations '((t char-mode t)))
 
+(require 'exwm)
 ;;;; Start EXWM
-  (exwm-enable)
 ;;;; Start Programs For EXWM
-  ;;   ;; (start-process-shell-command "blueman-applet" nil "blueman-applet")
-  (start-process-shell-command "nm-applet" nil "nm-applet")
-  (start-process-shell-command "kdeconnect-indicator " nil "kdeconnect-indicator")
-  ;; ;;;; Window Divider
-  ;;   (setq window-divider-default-right-width 3)
-  ;;   (let ((color (face-background 'mode-line)))
-  ;;     (dolist (face '(window-divider-first-pixel
-  ;;                window-divider-last-pixel
-  ;;                window-divider))
-  ;;       (set-face-foreground face color)))
+(exwm-enable))
 
-  ;;   (window-divider-mode 1)
-  ;; ;;;; Mouse Settings
-  ;;   :init (setq mouse-autoselect-window t
-  ;;          focus-follows-mouse t)
-  )
-(use-package exwm-systemtray
-  :ensure nil
-  :after exwm
-  :config
-  (exwm-systemtray-enable)
-  (setq exwm-systemtray-height 23))
+;; (use-package exwm-systemtray
+;;   :ensure nil
+;;   :after exwm
+;;   :config
+;;   (exwm-systemtray-enable)
+;;   (start-process-shell-command "blueman-applet" nil "blueman-applet")
+;;   (start-process-shell-command "nm-applet" nil "nm-applet")
+;;   (start-process-shell-command "kdeconnect-indicator " nil "kdeconnect-indicator")
+;;   (setq exwm-systemtray-height 23))
 
 (use-package exwm-randr
   :ensure nil
-  :after exwm
-  :defer t
+  ;; :after exwm
+  :demand t
   :config
-  (setq exwm-randr-workspace-output-plist '(3 "HDMI2"))
+  (setq exwm-randr-workspace-output-plist ;; '(3 "HDMI2")
+        '(2 "DP2"))
   (add-hook 'exwm-randr-screen-change-hook
             (lambda ()
               (start-process-shell-command
-               "xrandr" nil "xrandr --output eDP1 --primary --auto --left-of HDMI2 --auto")))
+               "xrandr" nil "xrandr --output eDP1 --primary --auto --right-of DP2 --auto")))
   (exwm-randr-enable))
 
 ;;; Streaming
