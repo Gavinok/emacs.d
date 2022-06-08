@@ -11,7 +11,8 @@
 
 (let ((class '((class color) (min-colors 89)))
       (spaceway-fg "#CDCDCD")
-      (spaceway-bg (if (display-graphic-p) "#000000" nil))
+      (spaceway-bg (if (display-graphic-p) "#161A1F";; "#000000"
+                     nil))
       (spaceway-blue-0 "#7D8FA3")
       (spaceway-region "#8fafd7")
       (spaceway-green-0 "#a1bf78")
@@ -36,7 +37,8 @@
       (spaceway-red-3 "#ff73fd")
       (spaceway-yellow-0 "#E5C078")
       (spaceway-yellow-1 "#FFAF00")
-      (spaceway-hl-line "#111"))
+      (spaceway-hl-line "#14171B";; "#101010"
+                        ))
 
       (custom-theme-set-faces
        'spaceway
@@ -118,9 +120,10 @@
        `(git-commit-comment-heading ((,class (:foreground ,spaceway-yellow-0))))
        `(git-commit-summary ((,class (:foreground ,spaceway-fg))))
        `(parenthesis ((,class (:foreground ,spaceway-grey-5))))
-       `(header-line ((,class (:foreground ,spaceway-fg))))
-       `(keycast-key ((,class (:weight normal :box '(:line-width 10 :color "#000")
-                                       :foreground "000" :background "#222"))))
+       `(keycast-key ((,class (:weight normal ;; :box '(:line-width 10 :color "#000")
+                                       :foreground ,spaceway-fg;; "000"
+                                       :background ,spaceway-hl-line;; "#222"
+                                       ))))
        `(helm-buffer-file ((,class (:foreground ,spaceway-fg))))
        `(helm-buffer-process ((,class (:foreground ,spaceway-yellow-0))))
        `(helm-buffer-size ((,class (:foreground ,spaceway-fg))))
@@ -185,8 +188,18 @@
        `(match ((,class (:background ,spaceway-red-1))))
        `(minibuffer-prompt ((,class (:foreground ,spaceway-fg))))
        `(mmm-default-submode-face ((,class (:background ,spaceway-bg))))
-       `(mode-line ((,class (:foreground ,spaceway-fg :background nil))))
-       `(mode-line-inactive ((,class (:foreground ,spaceway-grey-4 :background nil))))
+       `(header-line ((,class (:foreground ,spaceway-fg :background nil))))
+       `(tab-bar ((,class (:foreground ;; "#EEDC82"
+                                         ,spaceway-fg
+                                         :background "#333";; nil
+                                         ))))
+       `(mode-line ((,class (:foreground ;; "#EEDC82"
+                                         ,spaceway-fg
+                                         :background "#333";; nil
+                                         ))))
+       `(mode-line-inactive ((,class (:foreground ,"#555";; spaceway-grey-4
+                                                  :background "#222";; nil
+                                                  ))))
        `(org-timeline-block ((,class (:foreground ,spaceway-bg :background ,spaceway-red-0))))
        `(org-timeline-elapsed ((,class (:foreground ,spaceway-fg :background ,spaceway-grey-2))))
        `(org-ellipsis ((,class (:foreground ,spaceway-grey-1 :background nil :underline nil))))
@@ -197,7 +210,8 @@
        `(org-verbatim ((,class (:foreground ,spaceway-blue-0))))
        `(org-code ((,class (:foreground ,spaceway-purple-0))))
        `(org-done ((,class (:foreground ,spaceway-green-3))))
-       `(org-level-1 ((,class (:foreground ,spaceway-red-2 :variable-pitch))))
+       `(org-level-1 ((,class (:foreground ,spaceway-red-2 ;; :variable-pitch
+                                           ))))
        `(org-level-2 ((,class (:foreground ,spaceway-yellow-0))))
        `(org-level-3 ((,class (:foreground ,spaceway-green-2))))
        `(org-level-4 ((,class (:foreground ,spaceway-orange-0))))
