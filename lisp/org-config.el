@@ -19,10 +19,10 @@
          :map org-mode-map
          ("C-M-i" . completion-at-point))
   :config
-(setq my/org-latex-scale 1.75)
-(setq org-format-latex-options
-      (plist-put org-format-latex-options :scale my/org-latex-scale))
-(add-hook 'org-mode-hook (lambda () (setq indent-tabs-mode nil)))
+  (setq my/org-latex-scale 1.75)
+  (setq org-format-latex-options
+        (plist-put org-format-latex-options :scale my/org-latex-scale))
+  (add-hook 'org-mode-hook (lambda () (setq indent-tabs-mode nil)))
 ;;;; Archive Completed Tasks
   (defun my-org-archive-done-tasks ()
     (interactive)
@@ -31,7 +31,8 @@
 ;;;; Better defaults
   (setq org-ellipsis " ▾"
         org-hide-emphasis-markers t
-        org-special-ctrl-a/e t
+        org-pretty-entities t
+        org-special-ctrl-a/e '(t . nil) ; C-e binding is pretty annoying to me
         org-special-ctrl-k t
         org-src-fontify-natively t
         org-fontify-whole-heading-line t
@@ -43,7 +44,10 @@
         org-startup-folded 'content
         org-cycle-separator-lines 2
         org-hide-leading-stars t
-        org-export-backends '(markdown ascii html icalendar latex odt))
+        org-export-backends '(markdown ascii html icalendar latex odt)
+        org-export-with-toc nil
+        org-agenda-current-time-string
+        "← now ─────────────────")
   (setq org-log-done 'time)
   (setq org-log-into-drawer t)
   (setq org-todo-keywords
@@ -141,12 +145,14 @@
           ("today.org"   :maxlevel . 3)))
   (advice-add 'org-refile :after 'org-save-all-org-buffers)
 ;;;; Font Sizes
-  (dolist (face '((org-level-1 . 1.05)
-               (org-level-2 . 1.05)
-               (org-level-3 . 1.05)
-               (org-level-4 . 1.05)))
-    (set-face-attribute (car face) nil :family "CMU Concrete" :weight 'bold :height (cdr face)))
-  (set-face-attribute 'org-block nil :background "#101010"))
+  ;; (dolist (face '((org-level-1 . 1.0)
+  ;;                 (org-level-2 . 1.0)
+  ;;                 (org-level-3 . 1.0)
+  ;;                 (org-level-4 . 1.0)))
+  ;;   (set-face-attribute (car face) nil :family "PragmataPro Mono"
+  ;;                       :weight 'normal
+  ;;                       :height (cdr face)))
+  )
 
 (use-package org-timeline
   :after org
@@ -170,6 +176,16 @@
 (use-package org-superstar
   :hook (org-mode . org-superstar-mode))
 
+(use-package org-modern
+  :commands (org-modern-mode org-modern-agenda)
+  :init
+  (add-hook 'org-mode-hook #'org-modern-mode)
+  (add-hook 'org-agenda-finalize-hook #'org-modern-agenda)
+  (setq org-modern-todo nil
+        org-modern-variable-pitch nil)
+  (global-org-modern-mode))
+
+
 ;;;; Templates
 (use-package org-tempo
   :ensure nil
@@ -177,7 +193,90 @@
   :config
   (add-to-list 'org-structure-template-alist '("sh"  . "src sh"))
   (add-to-list 'org-structure-template-alist '("el"  . "src emacs-lisp"))
-  (add-to-list 'org-structure-template-alist '("vim"  . "src vim")))
+  (add-to-list 'org-structure-template-alist '("vim"  . "src vim"))
+  (add-to-list 'org-structure-template-alist '("cpp"  . "src C++ :includes <iostream>  :namespaces std")))
+
+(use-package svg-tag-mode
+  :config
+  (defconst date-re "[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}")
+  (defconst time-re "[0-9]\\{2\\}:[0-9]\\{2\\}")
+  (defconst day-re "[A-Za-z]\\{3\\}")
+  (defconst day-time-re (format "\\(%s\\)? ?\\(%s\\)?" day-re time-re))
+
+  (defun svg-progress-percent (value)
+    (svg-image (svg-lib-concat
+                (svg-lib-progress-bar (/ (string-to-number value) 100.0)
+                                      nil :margin 0 :stroke 2 :radius 3 :padding 2 :width 11)
+                (svg-lib-tag (concat value "%")
+                             nil :stroke 0 :margin 0)) :ascent 'center))
+
+  (defun svg-progress-count (value)
+    (let* ((seq (mapcar #'string-to-number (split-string value "/")))
+           (count (float (car seq)))
+           (total (float (cadr seq))))
+      (svg-image (svg-lib-concat
+                  (svg-lib-progress-bar (/ count total) nil
+                                        :margin 0 :stroke 2 :radius 3 :padding 2 :width 11)
+                  (svg-lib-tag value nil
+                               :stroke 0 :margin 0)) :ascent 'center)))
+
+  (setq svg-tag-tags
+        `(
+          ;; Org tags
+          (":\\([A-Za-z0-9]+\\)" . ((lambda (tag) (svg-tag-make tag))))
+          (":\\([A-Za-z0-9]+[ \-]\\)" . ((lambda (tag) tag)))
+          
+          ;; Task priority
+          ("\\[#[A-Z]\\]" . ( (lambda (tag)
+                                (svg-tag-make tag :face 'org-priority 
+                                              :beg 2 :end -1 :margin 0))))
+
+          ;; Progress
+          ("\\(\\[[0-9]\\{1,3\\}%\\]\\)" . ((lambda (tag)
+                                              (svg-progress-percent (substring tag 1 -2)))))
+          ("\\(\\[[0-9]+/[0-9]+\\]\\)" . ((lambda (tag)
+                                            (svg-progress-count (substring tag 1 -1)))))
+          
+          ;; TODO / DONE
+          ("TODO" . ((lambda (tag) (svg-tag-make "TODO" :face 'org-todo :inverse t :margin 0))))
+          ("DONE" . ((lambda (tag) (svg-tag-make "DONE" :face 'org-done :margin 0))))
+
+
+          ;; Citation of the form [cite:@Knuth:1984] 
+          ("\\(\\[cite:@[A-Za-z]+:\\)" . ((lambda (tag)
+                                            (svg-tag-make tag
+                                                          :inverse t
+                                                          :beg 7 :end -1
+                                                          :crop-right t))))
+          ("\\[cite:@[A-Za-z]+:\\([0-9]+\\]\\)" . ((lambda (tag)
+                                                     (svg-tag-make tag
+                                                                   :end -1
+                                                                   :crop-left t))))
+
+          
+          ;; Active date (with or without day name, with or without time)
+          (,(format "\\(<%s>\\)" date-re) .
+           ((lambda (tag)
+              (svg-tag-make tag :beg 1 :end -1 :margin 0))))
+          (,(format "\\(<%s \\)%s>" date-re day-time-re) .
+           ((lambda (tag)
+              (svg-tag-make tag :beg 1 :inverse nil :crop-right t :margin 0))))
+          (,(format "<%s \\(%s>\\)" date-re day-time-re) .
+           ((lambda (tag)
+              (svg-tag-make tag :end -1 :inverse t :crop-left t :margin 0))))
+
+          ;; Inactive date  (with or without day name, with or without time)
+          (,(format "\\(\\[%s\\]\\)" date-re) .
+           ((lambda (tag)
+              (svg-tag-make tag :beg 1 :end -1 :margin 0 :face 'org-date))))
+          (,(format "\\(\\[%s \\)%s\\]" date-re day-time-re) .
+           ((lambda (tag)
+              (svg-tag-make tag :beg 1 :inverse nil :crop-right t :margin 0 :face 'org-date))))
+          (,(format "\\[%s \\(%s\\]\\)" date-re day-time-re) .
+           ((lambda (tag)
+              (svg-tag-make tag :end -1 :inverse t :crop-left t :margin 0 :face 'org-date))))))
+
+  (svg-tag-mode t))
 
 (use-package org-transclusion
   :after org
@@ -187,11 +286,3 @@
   :ensure nil
   :after org)
 
-;; (use-package org-variable-pitch
-;;   :ensure t
-;;   :after org
-;;   :config
-;;   (setq line-space .2)
-;;   (org-variable-pitch-setup)
-;;   (org-variable-pitch-minor-mode))
-(add-hook 'after-init-hook (lambda (&rest args) (org-agenda-list 1)))
