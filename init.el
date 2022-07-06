@@ -1377,7 +1377,25 @@ Containing LEFT, and RIGHT aligned respectively."
     :bind ("C-c x" . org-xournalpp-insert-new-image)
     :config
     (add-hook 'org-mode-hook 'org-xournalpp-mode)))
-
+(use-package repeaters
+  :ensure nil
+  :quelpa (repeaters :fetcher github :repo "mmarshall540/repeaters")
+  :config
+  (repeaters-define-maps
+   '(("Lines"
+      next-line "C-n" "n"
+      previous-line "C-p" "p")
+     ("NAV"
+      sp-forward-sexp "C-M-f" "f"
+      sp-backward-sexp "C-M-b" "b"
+      sp-next-sexp "C-M-n" "n"
+      sp-previous-sexp "C-M-p" "p"
+      sp-backward-up-sexp "C-M-u" "u"
+      sp-down-sexp "C-M-d" "d")
+     ("Errors"
+      flymake-goto-prev-error "p"
+      flymake-goto-next-error "n")
+     )))
 ;;;; Use emacs instead of dmenu
 (setenv "LAUNCHER" "emenu -p ")
 (setenv "EDITOR" "emacsclient")
