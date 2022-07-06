@@ -1393,9 +1393,8 @@ This is needed to make sure that text is properly aligned.")
       (interactive)
       (ement-connect :user-id "@gavinok:matrix.org"
                      :password (password-store-get "riot.im/gavinok")))
-    ;; (setf use-default-font-for-symbols nil)
-    ;; (set-fontset-font t 'unicode "Noto Emoji" nil 'append)
-    )
+    (set-fontset-font
+     t 'unicode "Noto Emoji:pixelsize=18:antialias=true:autohint=true" nil 'append))
 
   (use-package obs-websocket
     :ensure nil
