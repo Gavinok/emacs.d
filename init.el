@@ -1448,6 +1448,7 @@ This is needed to make sure that text is properly aligned.")
 (setenv "LAUNCHER" "emenu -p ")
 (setenv "EDITOR" "emacsclient")
 (setenv "PAGER" "cat")
+(setenv "READER" "emacsclient")
 ;;; Stuff To Ignore
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
