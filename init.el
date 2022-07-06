@@ -692,15 +692,17 @@
 (use-package emacs
   :ensure nil
   :defer nil
-  :bind (("C-c w"        . fixup-whitespace)
-         ("C-x C-d"      . delete-pair)
-         ("C-x O"        . other-other-window)
-         ("M-c"          . capitalize-dwim)
-         ("M-o"          . other-window)
-         ("M-u"          . upcase-dwim)
-         ("M-l"          . downcase-dwim)
-         ("M-f"          . sim-vi-w)
-         ("M-z"          . zap-up-to-char))
+  :bind (("C-c w"   . fixup-whitespace)
+         ("C-x C-d" . delete-pair)
+         ("C-x O"   . other-other-window)
+         ("M-c"     . capitalize-dwim)
+         ("M-o"     . other-window)
+         ("M-u"     . upcase-dwim)
+         ("M-l"     . downcase-dwim)
+         ("M-f"     . sim-vi-w)
+         ("M-z"     . zap-up-to-char)
+         ("C-x S"   . shell)
+         ("C-x M-t" . transpose-regions))
   :init
   (define-key key-translation-map (kbd "<mouse-4>") (kbd "<wheel-up>"))
   (define-key key-translation-map (kbd "<mouse-5>") (kbd "<wheel-down>"))
