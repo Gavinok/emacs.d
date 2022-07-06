@@ -1360,13 +1360,7 @@ This is needed to make sure that text is properly aligned.")
 
 (use-package keycast
   :ensure t
-  :commands (keycast-mode)
-  :config
-  (set-face-attribute 'keycast-key nil
-                      :weight 'normal
-                      :box '(:line-width 10 :color "#000")
-                      :foreground "000"
-                      :background  "#222"))
+  :commands (keycast-mode))
 
 ;; use emacs as a clipboard manager
 (use-package clipmon
