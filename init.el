@@ -902,22 +902,40 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
      (vconcat (mapcar (lambda (c) (+ face-offset c)) " ▾")))))
 
 (use-package lsp-mode
+  :bind (:map lsp-mode-map
+              ("M-<return>" . lsp-execute-code-action))
   :hook ((c-mode . lsp-deferred)
          (c++-mode . lsp-deferred)
          (typescript-mode . lsp-deferred)
+         (javascript-mode . lsp-deferred)
+         (js-mode . lsp-deferred)
          (rust-mode . lsp-deferred))
   :commands (lsp lsp-deferred)
   :init
+  (setq lsp-enable-indentation nil)
+  (with-eval-after-load 'js
+    (define-key js-mode-map (kbd "M-.") nil))
+  (setq lsp-diagnostics-provider :flymake)
   (setq lsp-keymap-prefix "C-x L")
   (add-hook 'lsp-completion-mode-hook
           (lambda ()
             (setf (alist-get 'lsp-capf completion-category-defaults) '((styles . (orderless flex)))))))
   :config
 (use-package lsp-haskell :ensure t :hook (haskell-mode . lsp-deferred))
-(use-package lsp-java :ensure t :hook (java-home . lsp-deferred))
-(use-package lsp-pyright :ensure t :hook (python-mode . (lambda ()
-                                                          (require 'lsp-pyright)
-                                                          (lsp-deferred))))
+(use-package lsp-java :ensure t :hook (java-mode . lsp-deferred)
+  :config
+  (require 'lsp-java-boot)
+
+  ;; to enable the lenses
+  (add-hook 'lsp-mode-hook #'lsp-lens-mode)
+  (add-hook 'java-mode-hook #'lsp-java-boot-lens-mode))
+
+(use-package lsp-pyright :ensure t
+  :init
+  (setq python-shell-enable-font-lock nil)
+  :hook (python-mode . (lambda ()
+                         (require 'lsp-pyright)
+                         (lsp-deferred))))
 (use-package lsp-ui  :ensure t
   :init
   (setq lsp-ui-sideline-show-code-actions t)
