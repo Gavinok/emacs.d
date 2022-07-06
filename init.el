@@ -363,7 +363,10 @@
 ;;; Git
 (use-package magit
   :bind ("C-x v SPC" . magit-status)
-  :commands magit)
+  :commands magit
+  :config
+  (use-package forge
+    :after magit))
 
 (use-package ediff
   :after (magit vc)
