@@ -461,7 +461,7 @@
 
   (setq project-switch-commands
         '((project-find-file "Find file" f)
-          (project-dired "Dired" d)
+          (project-dired "Dired" D)
           (project-vc-dir "VC-Dir" v)
           (project-eshell "Eshell" e)
           (magit-status (project-root (project-current t)) "Magit" m)))
