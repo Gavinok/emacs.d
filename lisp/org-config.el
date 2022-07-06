@@ -46,6 +46,12 @@
         org-hide-leading-stars t
         org-export-backends '(markdown ascii html icalendar latex odt)
         org-export-with-toc nil
+        org-agenda-timegrid-use-ampm t
+        org-highlight-latex-and-related '(native)
+        org-agenda-time-grid
+        '((daily today require-timed remove-match)
+          (800 830 1000 1030 1200 1230 1400 1430 1600 1630 1700 1730 1800 1830 2000 )
+          "......" "────────────────")
         org-agenda-current-time-string
         "← now ─────────────────")
   (setq org-log-done 'time)
