@@ -757,25 +757,18 @@
      #b10000000
      #b10000000])
   (when my/my-system
-    ;; (set-frame-font "PragmataPro Mono:pixelsize=18:antialias=true:autohint=true" nil t)
     ;; Fonts
-    (set-face-attribute
-     'default nil
-     :font (font-spec :family "PragmataPro Mono" :size 18))
-    (set-face-attribute
-     'fixed-pitch nil
-     :font (font-spec :family "PragmataPro Mono" :size 14.5))
     ;; (set-face-attribute
-    ;;  'variable-pitch nil
-    ;;  :font (font-spec :family "CMU Concrete" :size 20 :weight 'regular))
-    (set-fontset-font t 'unicode "Symbola" nil 'append)
-    ;; (set-frame-font "PragmataPro Mono:pixelsize=22:antialias=true:autohint=true" nil t)
-    ;; (set-frame-font "PragmataPro Mono:pixelsize=30:antialias=true:autohint=true" nil t)
-    (load "~/.emacs.d/lisp/pragmatapro-lig.el")
+    ;;  'default nil
+    ;;  :font (font-spec :family "PragmataPro Mono" :size 18))
+    (cl-adjoin '(font . "PragmataPro Mono:pixelsize=19:antialias=true:autohint=true") default-frame-alist)
+    (set-face-attribute 'mode-line nil :font "PragmataPro Mono" :height 120)
+    (set-face-attribute 'mode-line-inactive nil :font "PragmataPro Mono" :height 120)
     (require 'pragmatapro-lig)
     ;; Enable pragmatapro-lig-mode for specific modes
     (add-hook 'text-mode-hook 'pragmatapro-lig-mode)
-    (add-hook 'prog-mode-hook 'pragmatapro-lig-mode))
+    (add-hook 'prog-mode-hook 'pragmatapro-lig-mode)
+    )
 
 ;;;; Defaults
   ;; Handle long lines
