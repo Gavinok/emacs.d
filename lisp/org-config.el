@@ -150,14 +150,14 @@
           ("youtube.org" :maxlevel . 3)
           ("today.org"   :maxlevel . 3)))
   (advice-add 'org-refile :after 'org-save-all-org-buffers)
-;;;; Font Sizes
-  ;; (dolist (face '((org-level-1 . 1.0)
-  ;;                 (org-level-2 . 1.0)
-  ;;                 (org-level-3 . 1.0)
-  ;;                 (org-level-4 . 1.0)))
-  ;;   (set-face-attribute (car face) nil :family "PragmataPro Mono"
-  ;;                       :weight 'normal
-  ;;                       :height (cdr face)))
+;; Font Sizes
+  (dolist (face '((org-level-1 . 1.50)
+                  (org-level-2 . 1.30)
+                  (org-level-3 . 1.10)
+                  (org-level-4 . 1.00)))
+    (set-face-attribute (car face) nil :family "PragmataPro Mono"
+                        :weight 'normal
+                        :height (cdr face)))
   )
 
 (use-package org-timeline
