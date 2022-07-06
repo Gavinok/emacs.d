@@ -949,6 +949,9 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   (haskell-mode . flymake-hlint-load))
 (use-package rust-mode    :ensure t :mode "\\.rs\\'"
   :init
+  ;; scratchpad for rust
+  (setq lsp-rust-clippy-preference "on")
+  (use-package rust-playground :ensure t)
   (setq rustic-lsp-client 'eglot))
 (use-package racket-mode  :ensure t :mode "\\.rkt\\'"
   :config
