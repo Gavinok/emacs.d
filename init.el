@@ -99,9 +99,9 @@
 (use-package crux
   :ensure t
   :bind (("C-x w v" . crux-swap-windows)
-         ("C-S-o" . crux-smart-open-line-above)
-         ("C-o" . crux-smart-open-line)
-         ("C-x B" . my/org-scratch))
+         ("C-S-o"   . crux-smart-open-line-above)
+         ("C-o"     . crux-smart-open-line)
+         ("C-x B"   . my/org-scratch))
   :config
   (defun my/org-scratch ()
     (interactive)
@@ -662,7 +662,7 @@
         (goto-char point)))))
 
 (defun my-increment-number-at-point (&optional increment)
-  "Increment number at point like vim's C-a"
+  "Increment number at point like vim's C-a."
   (interactive "p")
   (my-change-number-at-point '+ (or increment 1)))
 
