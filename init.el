@@ -1092,7 +1092,9 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
 (use-package flymake
   :defer 10
   :bind (("M-g d"   . flymake-show-buffer-diagnostics)
-         ("M-g M-d" . flymake-show-project-diagnostics))
+         ("M-g M-d" . flymake-show-project-diagnostics)
+         ("M-g M-n" . flymake-goto-next-error)
+         ("M-g M-p" . flymake-goto-prev-error))
   :hook (prog-mode . (lambda () (flymake-mode t)))
   :config
   (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
