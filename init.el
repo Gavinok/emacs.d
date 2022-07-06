@@ -1135,7 +1135,7 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
 
 (use-package prog-mode
   :ensure nil
-  :config
+  :init
   ;; Don't prompt for a reference
   (setq xref-prompt-for-identifier nil)
   (add-hook 'prog-mode-hook 'hs-minor-mode)
@@ -1147,8 +1147,8 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   (add-hook 'emacs-lisp-mode-hook 'prettify-symbols-mode)
   (add-hook 'lisp-mode-hook 'prettify-symbols-mode)
   (add-hook 'python-mode    'prettify-symbols-mode)
-  (add-hook 'lisp-mode-hook #'(lambda ()
-                                (setq indent-tabs-mode nil)))
+  (add-hook 'lisp-mode-hook #'(lambda () (setq indent-tabs-mode nil)))
+
 ;;;;; Smart Indentation
   (defun infer-indentation-style ()
     ;; if our source file uses tabs, we use tabs, if spaces spaces, and if
