@@ -901,16 +901,6 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
    (let ((face-offset (* (face-id 'font-lock-comment-face) (lsh 1 22))))
      (vconcat (mapcar (lambda (c) (+ face-offset c)) " ▾")))))
 
-;;; enhanced eww
-(use-package eww
-  :defer t
-  :bind ("C-x w w" . eww)
-  :init
-  (add-hook 'eww-after-render-hook #'shrface-mode)
-  :config
-  (require 'shrface))
-
-
 (use-package lsp-mode
   :hook ((c-mode . lsp-deferred)
          (c++-mode . lsp-deferred)
