@@ -574,9 +574,10 @@
 ;;; Workspace Like Workflow
 (use-package perspective
   :ensure t
-  :bind (("C-x x s" . persp-switch)
-         ("C-x x C-l" . persp-state-load)
-         ("C-x x B" . persp-switch-to-scratch-buffer))
+  :init (setq persp-mode-prefix-key (kbd "C-x X"))
+  :bind (("C-x X s" . persp-switch)
+         ("C-x X C-l" . persp-state-load)
+         ("C-x X B" . persp-switch-to-scratch-buffer))
   :config
   (persp-mode t))
 
@@ -592,8 +593,10 @@
           "\\*Warnings\\*"
           "\\*xref\\*"
           "\\*Backtrace\\*"
+          "*Flymake diagnostics.*"
           "\\*eldoc\\*"
           "\\*compilation\\*"
+          "\\*rustic-"
           "^*tex"
           "\\*Ement Notifications\\*"
           "Output\\*$"
