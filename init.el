@@ -1426,7 +1426,16 @@ This is needed to make sure that text is properly aligned.")
       flymake-goto-next-error "n")
      ("Nums"
       evil-numbers/inc-at-pt "a"
-      evil-numbers/dec-at-pt "x"))))
+      evil-numbers/dec-at-pt "x")
+     ("Org Nav"
+      org-next-visible-heading "n"
+      org-previous-visible-heading "p"
+      org-cycle "<tab>"
+      outline-up-heading "u"
+      org-forward-heading-same-level "f"
+      org-backward-heading-same-level "b"
+      outline-down-heading "d"
+      org-next-block "M-f"))))
 ;;;; Use emacs instead of dmenu
 (setenv "LAUNCHER" "emenu -p ")
 (setenv "EDITOR" "emacsclient")
