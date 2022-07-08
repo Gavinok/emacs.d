@@ -9,6 +9,10 @@
   :config
   (setq org-babel-clojure-backend 'cider))
 
+;; for exporting to markdown
+(use-package ox-md
+  :after org)
+
 (use-package org
   :pin nongnu
   ;; :ensure org-contrib
