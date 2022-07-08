@@ -646,33 +646,10 @@
   (setq evil-disable-insert-state-bindings t)
   (setq evil-want-Y-yank-to-eol t)
   (setq evil-split-window-below t)
-  (setq evil-split-window-right t)
   (setq evil-undo-system 'undo-fu)
+  (setq evil-split-window-right t)
   :config
   (evil-set-leader 'normal " "))
-
-(defun my-change-number-at-point (change increment)
-  (let ((number (number-at-point))
-        (point (point)))
-    (when number
-      (progn
-        (forward-word)
-        (search-backward (number-to-string number))
-        (replace-match (number-to-string (funcall change number increment)))
-        (goto-char point)))))
-
-(defun my-increment-number-at-point (&optional increment)
-  "Increment number at point like vim's C-a."
-  (interactive "p")
-  (my-change-number-at-point '+ (or increment 1)))
-
-(defun my-decrement-number-at-point (&optional increment)
-  "Decrement number at point like vim's C-x"
-  (interactive "p")
-  (my-change-number-at-point '- (or increment 1)))
-
-(global-set-key (kbd "C-x n a") 'my-increment-number-at-point)
-(global-set-key (kbd "C-x n x") 'my-decrement-number-at-point)
 
 ;; Enable Commentary
 (use-package evil-commentary
@@ -1417,6 +1394,18 @@ This is needed to make sure that text is properly aligned.")
     :bind ("C-c x" . org-xournalpp-insert-new-image)
     :config
     (add-hook 'org-mode-hook 'org-xournalpp-mode)))
+
+(use-package evil-numbers
+  :ensure t
+  :bind (("C-x n a" . evil-numbers/inc-at-pt)
+         ("C-x n x" . evil-numbers/dec-at-pt)))
+
+(use-package repeat
+  :defer 10
+  :unless (version< emacs-version "28")
+  :init
+  (repeat-mode +1))
+
 (use-package repeaters
   :ensure nil
   :quelpa (repeaters :fetcher github :repo "mmarshall540/repeaters")
@@ -1435,7 +1424,9 @@ This is needed to make sure that text is properly aligned.")
      ("Errors"
       flymake-goto-prev-error "p"
       flymake-goto-next-error "n")
-     )))
+     ("Nums"
+      evil-numbers/inc-at-pt "a"
+      evil-numbers/dec-at-pt "x"))))
 ;;;; Use emacs instead of dmenu
 (setenv "LAUNCHER" "emenu -p ")
 (setenv "EDITOR" "emacsclient")
