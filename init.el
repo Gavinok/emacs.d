@@ -372,9 +372,9 @@
   :after (magit vc)
   :init
   ;; multiframe just doesn't make sense to me
-  (setq ediff-window-setup-function #'ediff-setup-windows-default)
   (with-eval-after-load 'winner
-    (add-hook 'ediff-quit-hook 'winner-undo)))
+    (add-hook 'ediff-quit-hook 'winner-undo))
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain))
 
 (use-package diff-hl
   :unless my/is-termux
