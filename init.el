@@ -907,6 +907,8 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
          (rust-mode . lsp-deferred))
   :commands (lsp lsp-deferred)
   :init
+  (setq lsp-enable-snippet nil)
+  (setq lsp-enable-on-type-formatting nil)
   (setq lsp-enable-indentation nil)
   (with-eval-after-load 'js
     (define-key js-mode-map (kbd "M-.") nil))
@@ -934,13 +936,14 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
 (use-package lsp-ui  :ensure t
   :init
   (setq lsp-ui-sideline-show-code-actions t)
-  (setq lsp-ui-sideline-show-diagnostics t)
-  (setq lsp-ui-sideline-show-code-actions t))
+  (setq lsp-ui-sideline-show-diagnostics t))
 
 ;;; Debugging
 (use-package dap-mode :after lsp-mode
+  :commands (dap-debug)
   :hook ((c-mode c++-mode) . 'my/dap-cpp-setup)
   :init
+  (setq lsp-enable-dap-auto-configure nil)
   (defun my/dap-cpp-setup ()
     (require 'dap-gdb-lldb)
     (dap-gdb-lldb-setup))
@@ -948,6 +951,9 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
               ("C-x D D" . dap-debug)
               ("C-x D d" . dap-debug-last))
   :config
+  (require 'my/dap-cpp-setup)
+  (dap-ui-mode 1)
+  (tooltip-mode 1)
   (setq dap-auto-configure-features '(sessions locals controls tooltip)))
 
 (use-package haskell-mode :ensure t :mode "\\.hs\\'"
