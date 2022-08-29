@@ -1,11 +1,17 @@
 ;;; Startup
 ;; Minimize garbage collection during startup
-(setq gc-cons-threshold most-positive-fixnum)
+;; (setq gc-cons-threshold most-positive-fixnum)
+(defvar file-name-handler-alist-old file-name-handler-alist)
+
+(setq file-name-handler-alist nil
+      gc-cons-threshold most-positive-fixnum)
 
 ;; Lower threshold to speed up garbage collection
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (setq gc-cons-threshold (* 2 1000 1000))))
+(add-hook 'after-init-hook
+          `(lambda ()
+             (setq file-name-handler-alist file-name-handler-alist-old)
+             (setq gc-cons-threshold (* 2 1000 1000)))
+          t)
 
 ;;; Backups
 (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
@@ -15,6 +21,7 @@
       kept-new-versions 10
       delete-old-versions t
       backup-by-copying t)
+
 
 ;;; PACKAGE LIST
 (setq package-archives
@@ -31,7 +38,6 @@
   (package-install 'use-package))
 (eval-when-compile (require 'use-package))
 (setq use-package-verbose t)
-(setq package-native-compile t)
 (setq comp-async-report-warnings-errors nil)
 (setq comp-deferred-compilation t)
 
@@ -68,12 +74,14 @@
     nil)
   "Non-nil value if this is my system.")
 
+;;;###autoload
 (defun my/scroll-down (arg)
   "Move cursor down half a screen ARG times."
   (interactive "p")
   (let ((dist (/ (window-height) 2)))
     (next-line dist)))
 
+;;;###autoload
 (defun my/scroll-up (arg)
   "Move cursor up half a screen ARG times."
   (interactive "p")
@@ -83,6 +91,7 @@
 (global-set-key [remap scroll-up-command] #'my/scroll-down)
 (global-set-key [remap scroll-down-command] #'my/scroll-up)
 
+;;;###autoload
 (defun my/shell-command-on-file (command)
   "Execute COMMAND asynchronously on the current file."
   (interactive (list (read-shell-command
@@ -1356,11 +1365,13 @@ This is needed to make sure that text is properly aligned.")
 (when my/my-system
   ;; Install `plz' HTTP library (not on MELPA yet).
   (use-package plz
+    :ensure nil
     :quelpa (plz :fetcher github :repo "alphapapa/plz.el")
     :after ement)
 
   ;; Install Ement.
   (use-package ement
+    :ensure nil
     :commands (my/ement-connect)
     :quelpa (ement :fetcher github :repo "alphapapa/ement.el")
     :init
@@ -1415,12 +1426,12 @@ This is needed to make sure that text is properly aligned.")
       next-line "C-n" "n"
       previous-line "C-p" "p")
      ("NAV"
-      sp-forward-sexp "C-M-f" "f"
-      sp-backward-sexp "C-M-b" "b"
-      sp-next-sexp "C-M-n" "n"
-      sp-previous-sexp "C-M-p" "p"
-      sp-backward-up-sexp "C-M-u" "u"
-      sp-down-sexp "C-M-d" "d")
+      puni-forward-sexp "C-M-f" "f"
+      puni-backward-sexp "C-M-b" "b"
+      ;; sp-next-sexp "C-M-n" "n"
+      ;; sp-previous-sexp "C-M-p" "p"
+      backward-up-list "C-M-u" "u"
+      down-list "C-M-d" "d")
      ("Errors"
       flymake-goto-prev-error "p"
       flymake-goto-next-error "n")
