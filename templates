@@ -8,6 +8,14 @@ fundamental-mode ;; Available everywhere
 (lorem
  "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
 
+(isc "
+ISC License
+
+Copyright "(p "<YEAR>") " "(p "<OWNER>")"
+
+Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.")
 
 prog-mode
 
@@ -90,10 +98,15 @@ lisp-mode sly-mrepl-mode
 (var "(defvar *" p "*\n  \"" p "\")")
 (param "(defparameter *" p "*\n  \"" p "\")")
 (const "(defparameter +" p "+\n  \"" p "\")")
-(ftype "(declaim (ftype (function (" (p "arg-type-1 arg-type-2 ..." )") "
+
+(defun "(declaim (ftype (function (" (p "arg-type-1 arg-type-2 ..." )") "
        (p "return-type") ") "
        (p "function-name" func-name)"))"n>
        "(defun " (s func-name) " (" p ")\n  \"" p "\"" n> r> ")")
+
+(ftype "(declaim (ftype (function (" (p "arg-type-1 arg-type-2 ..." )") "
+       (p "return-type") ") "
+       (p "function-name" func-name)"))")
 
 (the "(the "(p "type") " " (r "variable") ")")
 
@@ -160,12 +173,6 @@ org-mode
        :post (progn (unless sly-port
                       (sly))
                     (tempel-done) (org-edit-src-code)))
-(cpp "#+begin_src C++ :includes <iostream>" n> r> n "#+end_src"
-     :post (progn (tempel-done) (org-edit-src-code)))
-(elisp "#+begin_src emacs-lisp" n> r> n "#+end_src"
-       :post (progn (tempel-done) (org-edit-src-code)))
-(java "#+begin_src java" n> r> n "#+end_src"
-      :post (progn (tempel-done) (org-edit-src-code)))
 
 (readmeorg
   "#+TITLE: " (p "Project title: ") n
@@ -334,3 +341,18 @@ endif()"
 
 (lib
  "add_library(" (p "libname") " " (p "path/to/sources")")")
+
+rust-mode
+
+(main "pub fn main() {"n>
+      "// your code here"n
+      "}")
+
+(test "#[test]"n
+      "fn " (p "function_name") "_test() {"n>
+      "assert!( 1==1 )"n
+      "}")
+
+(match "match " (p "var") " {"n>
+       (p "pattern x") " => " (p "1 + x")n
+       "}")

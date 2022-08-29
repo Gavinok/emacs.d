@@ -7,11 +7,9 @@
 (use-package org-contrib
   :after org
   :config
-  (setq org-babel-clojure-backend 'cider))
-
-;; for exporting to markdown
-(use-package ox-md
-  :after org)
+  (setq org-babel-clojure-backend 'cider)
+  ;; for exporting to markdown
+  (require 'ox-md))
 
 (use-package org
   :pin nongnu
@@ -53,6 +51,7 @@
         org-export-with-toc nil
         org-agenda-timegrid-use-ampm t
         org-highlight-latex-and-related '(native)
+        org-goto-auto-isearch nil
         org-agenda-time-grid
         '((daily today require-timed remove-match)
           (800 830 1000 1030 1200 1230 1400 1430 1600 1630 1700 1730 1800 1830 2000 )
@@ -72,21 +71,8 @@
    'org-babel-load-languages
    '((haskell . t) (emacs-lisp . t) (shell . t) (python . t)
      (C . t) (lua . t) (dot . t) (java . t)
-     (lisp . t) (clojure . t) (scheme . t)))
-  (use-package ob-async
-    :ensure t)
-  (use-package ob-rust
-    :ensure t)
-  (use-package ob-racket
-    :ensure nil
-    :quelpa (ob-racket :fetcher github :repo "hasu/emacs-ob-racket")
-    :after org
-    :config
-    ;; Enable Racket in Org-mode Babel
-    (org-babel-do-load-languages
-     'org-babel-load-languages
-     '((racket . t))))
-
+     (lisp . t) (clojure . t) (scheme . t)
+     (forth . t)))
   (setq org-confirm-babel-evaluate nil)
 ;;;; Agenda Views
   ;; Show effort estimates in agenda
@@ -163,17 +149,19 @@
           ("today.org"   :maxlevel . 3)))
   (advice-add 'org-refile :after 'org-save-all-org-buffers)
 ;; Font Sizes
-  (dolist (face '((org-level-1 . 1.50)
-                  (org-level-2 . 1.30)
+  (dolist (face '((org-level-1 . 1.30)
+                  (org-level-2 . 1.20)
                   (org-level-3 . 1.10)
                   (org-level-4 . 1.00)))
     (set-face-attribute (car face) nil :family "PragmataPro Mono"
                         :weight 'normal
                         :height (cdr face)))
-  )
+)
+(use-package org-ql
+  :bind ("C-c q" . org-ql-search))
 
 (use-package org-timeline
-  :after org
+  :commands org-agenda
   :config
   (add-hook 'org-agenda-finalize-hook 'org-timeline-insert-timeline :append))
 
@@ -191,18 +179,18 @@
 ;;   (setq plain-org-wiki-directory (concat org-directory "/wiki")))
 
 ;;;; Better Looking Bullets
-(use-package org-superstar
-  :hook (org-mode . org-superstar-mode))
+;; (use-package org-superstar
+;;   :hook (org-mode . org-superstar-mode))
 
 (use-package org-modern
   :commands (org-modern-mode org-modern-agenda)
   :init
   (setq org-modern-todo t
+        org-modern-table nil ; Currently breaks some things
         org-modern-variable-pitch nil)
   (add-hook 'org-mode-hook #'org-modern-mode)
   (add-hook 'org-agenda-finalize-hook #'org-modern-agenda)
   (global-org-modern-mode))
-
 
 ;;;; Templates
 (use-package org-tempo
@@ -213,6 +201,14 @@
   (add-to-list 'org-structure-template-alist '("el"  . "src emacs-lisp"))
   (add-to-list 'org-structure-template-alist '("vim" . "src vim"))
   (add-to-list 'org-structure-template-alist '("cpp" . "src C++ :includes <iostream>  :namespaces std")))
+
+(use-package org-visibility
+  :after org
+  :ensure t
+  :hook (org-mode . org-visibility-mode)
+  :custom
+  (org-visibility-include-paths (list org-directory
+                                      "~/.local/Dropbox/DropsyncFiles/vimwiki/School/SENG475")))
 
 (use-package org-transclusion
   :after org
@@ -233,5 +229,6 @@
   :config
   (org-yaap-mode 1)
   (org-yaap-daemon-start))
+
 
 ;; (add-hook 'after-init-hook (lambda (&rest args) (org-agenda-list 1)))

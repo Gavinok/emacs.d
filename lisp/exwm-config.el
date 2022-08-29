@@ -6,22 +6,24 @@
   :config
   (setq exwm-manage-force-tiling t)
  ;;;; Hooks
+  (defun my/exwm-titles ()
+    (pcase exwm-class-name
+      ("qutebrowser" (exwm-workspace-rename-buffer (format "%s" exwm-title)))
+      ("mpv" (exwm-workspace-rename-buffer (format "%s" exwm-title)))
+      ("libreoffice-writer" (exwm-workspace-rename-buffer (format "Writer: %s" exwm-title)))
+      ("libreoffice-calc" (exwm-workspace-rename-buffer (format "Calc: %s" exwm-title)))
+      ("St" (exwm-workspace-rename-buffer (format "%s" exwm-title)))))
+
   (add-hook 'exwm-update-class-hook
             (lambda ()
               (exwm-workspace-rename-buffer exwm-class-name)))
 
-    (add-hook 'exwm-update-title-hook
-            (lambda ()
-              (pcase exwm-class-name
-                ("qutebrowser" (exwm-workspace-rename-buffer (format "%s" exwm-title)))
-                ("libreoffice-writer" (exwm-workspace-rename-buffer (format "Writer: %s" exwm-title)))
-                ("libreoffice-calc" (exwm-workspace-rename-buffer (format "Calc: %s" exwm-title)))
-                ("St" (exwm-workspace-rename-buffer (format "%s" exwm-title))))))
+  (add-hook 'exwm-update-title-hook #'my/exwm-titles)
 
-    ;; Hide the mode-line on all floating X windows
-    (add-hook 'exwm-floating-setup-hook
-              (lambda ()
-                (exwm-layout-hide-mode-line)))
+  ;; Hide the mode-line on all floating X windows
+  (add-hook 'exwm-floating-setup-hook
+            (lambda ()
+              (exwm-layout-hide-mode-line)))
 ;;;; Functions
 ;;;; Global Key Bindings
   (add-hook 'exwm-manage-finish-hook
@@ -72,6 +74,9 @@ back to switching frames."
     `(lambda (&optional arg)
        (interactive)
        (start-process-shell-command ,command nil ,command)))
+  (cl-defmacro exwm-bind (&rest pairs)
+    (cl-loop for (key . func) in pairs
+             collect `(cons (kbd ,key) . (quote ,func))))
 
   (setq exwm-input-global-keys
         ;; Window Managment
@@ -120,10 +125,10 @@ back to switching frames."
   (define-key exwm-mode-map (kbd "C-q") 'exwm-input-send-next-key)
   (define-key exwm-mode-map (kbd "<s-escape>") 'exwm-input-release-keyboard)
 
-(require 'exwm)
+  (require 'exwm)
 ;;;; Start EXWM
 ;;;; Start Programs For EXWM
-(exwm-enable))
+  (exwm-enable))
 
 ;; Broken on current version of emacs
 ;; (use-package exwm-systemtray
@@ -141,8 +146,7 @@ back to switching frames."
   ;; :after exwm
   :demand t
   :config
-  (setq exwm-randr-workspace-output-plist ;; '(3 "HDMI2")
-        '(1 "DP2"))
+  (setq exwm-randr-workspace-output-plist '(1 "DP2"))
   (add-hook 'exwm-randr-screen-change-hook
             (lambda ()
               (start-process-shell-command

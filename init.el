@@ -104,6 +104,168 @@
 (with-eval-after-load 'image-mode
     (bind-key (kbd "&") #'my/shell-command-on-file 'image-mode-map))
 
+;;;###autoload
+(defun insert-iota (&optional arg)
+  (interactive)
+  (let ((limit (cl-parse-integer (completing-read "Insert Up To: " nil))))
+    (mapcar (lambda (x) (insert (format " %d" x))) (-iota limit))))
+;;; Defaults
+(use-package emacs
+  :ensure nil
+  :defer nil
+  :bind (("C-x u"   . undo-only)
+         ("C-/"     . undo-only)
+         ("C-z"     . undo-only)
+         ("C-S-z"   . undo-redo)
+         ("C-x C-u" . undo-redo)
+         ("C-?"     . undo-redo)
+         ("C-c w"   . fixup-whitespace)
+         ("C-x C-d" . delete-pair)
+         ("C-x O"   . other-other-window)
+         ("M-c"     . capitalize-dwim)
+         ("M-u"     . upcase-dwim)
+         ("M-l"     . downcase-dwim)
+         ("M-f"     . sim-vi-w)
+         ("M-z"     . zap-up-to-char)
+         ("C-x S"   . shell)
+         ("C-x M-t" . transpose-regions)
+         ("C-;"     . negative-argument)
+         ("C-M-;"   . negative-argument)
+         ("M-1" . delete-other-windows)
+         ("M-2" . split-window-below)
+         ("M-3" . split-window-right))
+  :init
+  (define-key key-translation-map (kbd "<mouse-4>") (kbd "<wheel-up>"))
+  (define-key key-translation-map (kbd "<mouse-5>") (kbd "<wheel-down>"))
+  (define-key key-translation-map (kbd "<mouse-6>") (kbd "<wheel-left>"))
+  (define-key key-translation-map (kbd "<mouse-7>") (kbd "<wheel-right>"))
+  (bind-key (kbd "<wheel-up>") #'previous-line)
+  (bind-key (kbd "<wheel-down>") #'next-line)
+  (bind-key (kbd "<wheel-left>") #'backward-char)
+  (bind-key (kbd "<wheel-right>") #'forward-char)
+  :config
+  ;; set the title of the frame to the current file - Emacs
+  (setq-default frame-title-format '("%b - Emacs"))
+  (defun other-other-window (&optional arg)
+    (interactive)
+    (if arg
+        (other-window (- arg))
+      (other-window -1)))
+  (defun sim-vi-w (&optional arg)
+    "Simulate Vi's \"w\" behavior"
+    (interactive "P")
+    (forward-word arg)
+    (search-forward-regexp "[^[:space:]]")
+    (forward-char -1))
+  ;; No delay when deleting pairs
+  (setq-default delete-pair-blink-delay 0)
+  (blink-cursor-mode -1)
+  ;; change truncation indicators
+  (define-fringe-bitmap 'right-curly-arrow
+    [#b10000000
+     #b10000000
+     #b01000000
+     #b01000000
+     #b00100000
+     #b00100000
+     #b00010000
+     #b00010000
+     #b00001000
+     #b00001000
+     #b00000100
+     #b00000100])
+  (define-fringe-bitmap 'left-curly-arrow
+    [#b00000100
+     #b00000100
+     #b00001000
+     #b00001000
+     #b00010000
+     #b00010000
+     #b00100000
+     #b00100000
+     #b01000000
+     #b01000000
+     #b10000000
+     #b10000000])
+  (when my/my-system
+    ;; Fonts
+    ;; The concise one which relies on "implicit fallback values"
+    (use-package fontaine
+      :unless my/is-terminal
+      :config
+      (setq fontaine-presets
+            '((regular
+               :default-height 140)
+              (small
+               :default-height 110)
+              (large
+               :default-weight semilight
+               :default-height 180
+               :bold-weight extrabold)
+              (t                        ; our shared fallback properties
+               :default-family "PragmataPro Mono Liga"
+               :default-weight normal)))
+      (fontaine-set-preset 'regular))
+    ;; Load pragmatapro-lig.el
+    (load (concat user-emacs-directory
+                  "lisp/pragmatapro-lig.el"))
+    (require 'pragmatapro-lig)
+
+    ;; Enable pragmatapro-lig-mode for specific modes
+    (add-hook 'text-mode-hook 'pragmatapro-lig-mode)
+    (add-hook 'prog-mode-hook 'pragmatapro-lig-mode))
+;;;; Defaults
+  ;; Handle long lines
+  (setq-default bidi-paragraph-direction 'left-to-right)
+  (setq-default bidi-inhibit-bpa t)
+  (global-so-long-mode 1)
+
+  (setq delete-by-moving-to-trash t
+        create-lockfiles nil
+        auto-save-default nil
+        inhibit-startup-screen t
+        ring-bell-function 'ignore)
+;;;; Have focus follow the mouse rather than requiring a click
+  (setq mouse-autoselect-window nil
+        focus-follows-mouse nil)
+;;;; UTF-8
+  (prefer-coding-system 'utf-8)
+;;;; Remove Extra Ui
+  (fset 'yes-or-no-p 'y-or-n-p)    ; don't ask to spell out "yes"
+  (show-paren-mode 1)              ; Highlight parenthesis
+  (setq x-select-enable-primary t) ; use primary as clipboard in emacs
+  ;; avoid leaving a gap between the frame and the screen
+  (setq-default frame-resize-pixelwise t)
+
+  ;; Vim like scrolling
+  (setq scroll-step            1
+        scroll-conservatively  10000)
+  (setq next-screen-context-lines 5)
+  ;; move by logical lines rather than visual lines (better for macros)
+  (setq line-move-visual nil)
+  (unless my/is-termux
+    (fringe-mode))
+
+  ;;TRAMP
+  (setq tramp-default-method "ssh")
+  (setq shell-file-name "bash")         ; don't use zsh
+  ;; recentf
+  (customize-set-value 'recentf-make-menu-items 150)
+  (customize-set-value 'recentf-make-saved-items 150)
+
+  ;; Unify Marks
+  (customize-set-value 'global-mark-ring-max 256)
+  (customize-set-value 'set-mark-command-repeat-pop 256)
+  (defun my/push-mark-global (&optional location nomsg activate)
+    "Always push to the global mark when push-mark is called"
+    (let ((old (nth global-mark-ring-max global-mark-ring))
+          (history-delete-duplicates nil))
+      (add-to-history
+       'global-mark-ring (copy-marker (mark-marker))
+       global-mark-ring-max t)
+      (when old
+        (set-marker old nil))))
+  (advice-add 'push-mark :after #'my/push-mark-global))
 ;;; General Key Bindings
 (use-package crux
   :ensure t
@@ -121,28 +283,16 @@
   :ensure nil
   :bind (("M-SPC" . cycle-spacing)))
 
-;;; UNDO
-;; Vim style undo not needed for emacs 28
-;; (use-package undo-fu
-;;   :ensure t
-;;   :commands (undo-fu-only-undo)
-;;   :defer nil
-;;   :bind (;; I hate it when I accidently use these
-;;          ("C-x u"   . undo-fu-only-undo)
-;;          ("C-/"     . undo-fu-only-undo)
-;;          ("C-x C-u" . undo-fu-only-redo)
-;;          ("C-?"     . undo-fu-only-redo)))
+(defun qalc (&optional arg)
+  (interactive)
+  (comint-run "qalc"))
 
-(use-package undo-fu-session
-  :ensure t
-  :bind (("C-x u"   . undo-only)
-         ("C-/"     . undo-only)
-         ("C-z"     . undo-only)
-         ("C-S-z"   . undo-redo)
-         ("C-x C-u" . undo-redo)
-         ("C-?"     . undo-redo))
-
-  :init (global-undo-fu-session-mode))
+(defun yall (&optional arg)
+  (interactive)
+  (comint-run
+   (concat"/home/gavinok/.local/Dropbox/DropsyncFiles/vimwiki/School/SENG475/assignments/project/"
+    "lisp")
+   '("-i")))
 
 ;;; TERMINAL SETTINGS
 (when my/is-terminal
@@ -178,6 +328,9 @@
 ;;; COMPLETION
 (use-package vertico
   :init
+  ;; :bind (:map vertico-map
+  ;;             ("d"  . vertico-directory-delete-char)
+  ;;             ("M-d" . vertico-directory-delete-word))
 ;;;; Out Of Order Compleiton
   (use-package orderless
     :commands (orderless)
@@ -227,6 +380,8 @@
     :init
     (marginalia-mode))
   ;; Enable vertico using the vertico-flat-mode
+  (require 'vertico-directory)
+  (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy)
   (vertico-mode t)
   :config
   ;; Used for the vertico-directory extension
@@ -259,6 +414,7 @@
   (setq prefix-help-command #'embark-prefix-help-command)
   (setq embark-prompter 'embark-completing-read-prompter)
   :config
+  (defun search-in-source-graph (text))
   (defun dragon-drop (file)
     (start-process-shell-command "dragon-drop" nil
                                  (concat "dragon-drag-and-drop " file))))
@@ -283,9 +439,9 @@
               ("S-TAB"   . corfu-previous)
               ([backtab] . corfu-previous)
               ("S-<return>" . corfu-insert))
-
   :init
-  (global-corfu-mode))
+  (global-corfu-mode)
+  (corfu-history-mode))
 
 ;; Add extensions
 (use-package cape
@@ -340,20 +496,29 @@
   (embark-collect-mode . consult-preview-at-point-mode))
 
 ;;; THEMEING
-(use-package spaceway-theme
-  :ensure nil
-  :load-path "lisp/spaceway/"
-  :config
-  (global-hl-line-mode t)
-  (set-cursor-color "#dc322f")
-  (when my/my-system
-    (set-frame-parameter (selected-frame) 'alpha '(100 100))
-    (add-to-list 'default-frame-alist '(alpha 100 100)))
-  (load-theme 'spaceway t))
+;; (use-package spaceway-theme
+;;   :ensure nil
+;;   :load-path "lisp/spaceway/"
+;;   :config
+;;   (global-hl-line-mode t)
+;;   (set-cursor-color "#dc322f")
+;;   ;; (when my/my-system
+;;   ;;   (set-frame-parameter (selected-frame) 'alpha '(90 90))
+;;   ;;   (add-to-list 'default-frame-alist '(alpha 90 90)))
+;;   (load-theme 'spaceway t))
+
+(global-hl-line-mode t)
+(load-theme 'modus-vivendi t)
+(add-to-list 'default-frame-alist '(cursor-color . "magenta"))
 
 ;;; WRITING
 (use-package writegood-mode
   :hook (flyspell-mode . writegood-mode))
+
+(use-package writeroom-mode
+  :commands (writeroom-mode global-writeroom-mode)
+  :init
+  (setq writeroom-width 90))
 
 (use-package flyspell-correct
   :bind ("C-c DEL" . flyspell-correct-previous)
@@ -531,6 +696,7 @@
          ("Windows" (and (mode . exwm-mode)
                          (not (name . "qutebrowser"))))
          ("Qutebrowser" (name . "qutebrowser"))
+         ("Shells" (mode . shell-mode))
          ("emacs-config" (or (filename . ".emacs.d")
                              (filename . "emacs-config")))
 
@@ -578,7 +744,9 @@
   :ensure nil
   :bind ("C-x f" . ffap)
   :init
-  (setq find-file-visit-truename t))
+  (setq find-file-visit-truename t)
+  ;; Save my spot when I jump to another file
+  (advice-add 'ffap :before #'push-mark))
 
 ;;; Workspace Like Workflow
 (use-package perspective
@@ -617,19 +785,20 @@
           compilation-mode))
   (popper-mode +1))
 
-(use-package repeat
-  :defer 10
-  :unless (version< emacs-version "28")
-  :init
-  (repeat-mode +1))
-
 (use-package multiple-cursors
   :bind (("C-M-'" . mc/edit-lines)
          ("C-M-|" . mc/mark-all-in-region-regexp)
          ;; Call with a 0 arg to skip one
          ("C-M-." . mc/mark-next-like-this)
-         ("C-M-," . mc/mark-previous-like-this)
-         ))
+         ("C-M-," . mc/mark-previous-like-this))
+  :config
+  ;; Use phi-search to replace isearch when using multiple cursors
+  (use-package phi-search
+    :bind (:map mc/keymap
+                ("C-s" . phi-search)
+                ("C-r" . phi-search-backward)
+                ("C-w" . kill-region)
+                ("C-w" . yank))))
 
 (use-package evil
   :ensure t
@@ -651,11 +820,12 @@
   :init
   (setq evil-search-module 'evil-search)
   (setq evil-want-keybinding nil)
+
   ;; no vim insert bindings
   (setq evil-disable-insert-state-bindings t)
   (setq evil-want-Y-yank-to-eol t)
   (setq evil-split-window-below t)
-  (setq evil-undo-system 'undo-fu)
+  (setq evil-undo-system 'undo-redo)
   (setq evil-split-window-right t)
   :config
   (evil-set-leader 'normal " "))
@@ -673,170 +843,6 @@
   :after evil
   :config
   (global-evil-surround-mode 1))
-
-;;; defaults
-(use-package emacs
-  :ensure nil
-  :defer nil
-  :bind (("C-c w"   . fixup-whitespace)
-         ("C-x C-d" . delete-pair)
-         ("C-x O"   . other-other-window)
-         ("M-c"     . capitalize-dwim)
-         ("M-o"     . other-window)
-         ("M-u"     . upcase-dwim)
-         ("M-l"     . downcase-dwim)
-         ("M-f"     . sim-vi-w)
-         ("M-z"     . zap-up-to-char)
-         ("C-x S"   . shell)
-         ("C-x M-t" . transpose-regions))
-  :init
-  (define-key key-translation-map (kbd "<mouse-4>") (kbd "<wheel-up>"))
-  (define-key key-translation-map (kbd "<mouse-5>") (kbd "<wheel-down>"))
-  (define-key key-translation-map (kbd "<mouse-6>") (kbd "<wheel-left>"))
-  (define-key key-translation-map (kbd "<mouse-7>") (kbd "<wheel-right>"))
-  (bind-key (kbd "<wheel-up>") #'previous-line)
-  (bind-key (kbd "<wheel-down>") #'next-line)
-  (bind-key (kbd "<wheel-left>") #'backward-char)
-  (bind-key (kbd "<wheel-right>") #'forward-char)
-  :config
-  ;; set the title of the frame to the current file - Emacs
-  (setq-default frame-title-format '("%b - Emacs"))
-  (defun other-other-window (&optional arg)
-    (interactive)
-    (if arg
-        (other-window (- arg))
-      (other-window -1)))
-  (defun sim-vi-w (&optional arg)
-    "Simulate Vi's \"w\" behavior"
-    (interactive "P")
-    (forward-word arg)
-    (search-forward-regexp "[^[:space:]]")
-    (forward-char -1))
-  ;; No delay when deleting pairs
-  (setq delete-pair-blink-delay 0)
-
-  ;; change truncation indicators
-  (define-fringe-bitmap 'right-curly-arrow
-    [#b10000000
-     #b10000000
-     #b01000000
-     #b01000000
-     #b00100000
-     #b00100000
-     #b00010000
-     #b00010000
-     #b00001000
-     #b00001000
-     #b00000100
-     #b00000100])
-  (define-fringe-bitmap 'left-curly-arrow
-    [#b00000100
-     #b00000100
-     #b00001000
-     #b00001000
-     #b00010000
-     #b00010000
-     #b00100000
-     #b00100000
-     #b01000000
-     #b01000000
-     #b10000000
-     #b10000000])
-  (when my/my-system
-    ;; Fonts
-    ;; (set-face-attribute
-    ;;  'default nil
-    ;;  :font (font-spec :family "PragmataPro Mono" :size 18))
-    (cl-adjoin '(font . "PragmataPro Mono:pixelsize=19:antialias=true:autohint=true") default-frame-alist)
-    (set-face-attribute 'mode-line nil :font "PragmataPro Mono" :height 120)
-    (set-face-attribute 'mode-line-inactive nil :font "PragmataPro Mono" :height 120)
-    (require 'pragmatapro-lig)
-    ;; Enable pragmatapro-lig-mode for specific modes
-    (add-hook 'text-mode-hook 'pragmatapro-lig-mode)
-    (add-hook 'prog-mode-hook 'pragmatapro-lig-mode)
-    )
-
-;;;; Defaults
-  ;; Handle long lines
-  (setq-default bidi-paragraph-direction 'left-to-right)
-  (setq-default bidi-inhibit-bpa t)
-  (global-so-long-mode 1)
-
-  (setq delete-by-moving-to-trash t
-        create-lockfiles nil
-        auto-save-default nil
-        inhibit-startup-screen t
-        ring-bell-function 'ignore)
-;;;; Have focus follow the mouse rather than requiring a click
-  (setq mouse-autoselect-window nil
-        focus-follows-mouse nil)
-;;;; UTF-8
-  (prefer-coding-system 'utf-8)
-  (setq locale-coding-system 'utf-8)
-  (set-language-environment "UTF-8")
-  (set-default-coding-systems 'utf-8)
-  (set-terminal-coding-system 'utf-8)
-  (set-keyboard-coding-system 'utf-8)
-  (set-selection-coding-system 'utf-8)
-;;;; Remove Extra Ui
-  (blink-cursor-mode -1)
-  (menu-bar-mode -1) ; To disable the menu bar, place the following line in your .emacs file:
-  (unless my/is-termux
-    (scroll-bar-mode -1)) ; To disable the scroll bar, use the following line:
-  (tool-bar-mode -1) ; To disable the toolbar, use the following line:
-  (fset 'yes-or-no-p 'y-or-n-p)    ; don't ask to spell out "yes"
-  (show-paren-mode 1)              ; Highlight parenthesis
-  (setq x-select-enable-primary t) ; use primary as clipboard in emacs
-  ;; avoid leaving a gap between the frame and the screen
-  (setq-default frame-resize-pixelwise t)
-
-  ;; Vim like scrolling
-  (setq scroll-step            1
-        scroll-conservatively  10000)
-  (setq next-screen-context-lines 5)
-  ;; move by logical lines rather than visual lines (better for macros)
-  (setq line-move-visual nil)
-  (unless my/is-termux
-    (fringe-mode))
-
-  ;;TRAMP
-  (setq tramp-default-method "ssh")
-  (setq shell-file-name "bash")         ; don't use zsh
-  ;; recentf
-  (setq recentf-make-menu-items 150
-        recentf-make-saved-items 150)
-
-  ;; Unify Marks
-  (setq global-mark-ring-max 256)
-  (setq set-mark-command-repeat-pop 256)
-  (defun push-mark (&optional location nomsg activate)
-    "Set mark at LOCATION (point, by default) and push old mark on mark ring.
-If the last global mark pushed was not in the current buffer,
-also push LOCATION on the global mark ring.
-Display `Mark set' unless the optional second arg NOMSG is non-nil.
-
-Novice Emacs Lisp programmers often try to use the mark for the wrong
-purposes.  See the documentation of `set-mark' for more information.
-
-In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
-    (when (mark t)
-      (let ((old (nth mark-ring-max mark-ring))
-            (history-delete-duplicates nil))
-        (add-to-history 'mark-ring (copy-marker (mark-marker)) mark-ring-max t)
-        (when old
-          (set-marker old nil))))
-    (set-marker (mark-marker) (or location (point)) (current-buffer))
-    (let ((old (nth global-mark-ring-max global-mark-ring))
-          (history-delete-duplicates nil))
-      (add-to-history
-       'global-mark-ring (copy-marker (mark-marker)) global-mark-ring-max t)
-      (when old
-        (set-marker old nil)))
-    (or nomsg executing-kbd-macro (> (minibuffer-depth) 0)
-        (message "Mark set"))
-    (if (or activate (not transient-mark-mode))
-        (set-mark (mark t)))
-    nil))
 
 (use-package mouse
   :ensure nil
@@ -874,7 +880,9 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :hook (prog-mode . hs-minor-mode)
   :bind (:map hs-minor-mode-map
               ("<mouse-3>" . hs-toggle-hiding)
-              ("C-c  C" . hs-toggle-hiding))
+              ("C-c  z z" . hs-toggle-hiding)
+              ("C-c  z h" . hs-hide-all)
+              ("C-c  z s" . hs-show-all))
   :init
   (set-display-table-slot
    standard-display-table
@@ -882,9 +890,14 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
    (let ((face-offset (* (face-id 'font-lock-comment-face) (lsh 1 22))))
      (vconcat (mapcar (lambda (c) (+ face-offset c)) " ▾")))))
 
+;;; LSP
 (use-package lsp-mode
-  :bind (:map lsp-mode-map
+  :bind ((:map lsp-mode-map
               ("M-<return>" . lsp-execute-code-action))
+         (:map c++-mode-map
+               ("C-c x" . lsp-clangd-find-other-file))
+         (:map c-mode-map
+               ("C-c x" . lsp-clangd-find-other-file)))
   :hook ((c-mode . lsp-deferred)
          (c++-mode . lsp-deferred)
          (typescript-mode . lsp-deferred)
@@ -912,7 +925,6 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   ;; to enable the lenses
   (add-hook 'lsp-mode-hook #'lsp-lens-mode)
   (add-hook 'java-mode-hook #'lsp-java-boot-lens-mode))
-
 (use-package lsp-pyright :ensure t
   :init
   (setq python-shell-enable-font-lock nil)
@@ -925,38 +937,35 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   (setq lsp-ui-sideline-show-diagnostics t))
 
 ;;; Debugging
-(use-package dap-mode :after lsp-mode
-  :commands (dap-debug)
-  :hook ((c-mode c++-mode) . 'my/dap-cpp-setup)
-  :init
-  (setq lsp-enable-dap-auto-configure nil)
-  (defun my/dap-cpp-setup ()
-    (require 'dap-gdb-lldb)
-    (dap-gdb-lldb-setup))
+(use-package dap-mode
   :bind (:map dap-mode-map
               ("C-x D D" . dap-debug)
               ("C-x D d" . dap-debug-last))
+  :after lsp-mode
+  :init
+  (defun my/dap-cpp-setup ()
+    (require 'dap-gdb-lldb)
+    (dap-gdb-lldb-setup))
   :config
-  (require 'my/dap-cpp-setup)
-  (dap-ui-mode 1)
-  (tooltip-mode 1)
+  (my/dap-cpp-setup)
   (setq dap-auto-configure-features '(sessions locals controls tooltip)))
 
+;;; Languages
 (use-package haskell-mode :ensure t :mode "\\.hs\\'"
   ;; lets you use C-c C-l
   :init
   (add-hook 'haskell-mode-hook 'interactive-haskell-mode)
   (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
   (add-hook 'haskell-mode-hook 'haskell-indent-mode))
-
 (use-package flymake-hlint
-  :hook
-  (haskell-mode . flymake-hlint-load))
+  :hook (haskell-mode . flymake-hlint-load))
 (use-package rust-mode    :ensure t :mode "\\.rs\\'"
   :init
   ;; scratchpad for rust
   (setq lsp-rust-clippy-preference "on")
-  (use-package rust-playground :ensure t)
+  (use-package rust-playground
+    :commands (rust-playground)
+    :ensure t)
   (setq rustic-lsp-client 'eglot))
 (use-package racket-mode  :ensure t :mode "\\.rkt\\'"
   :config
@@ -976,18 +985,18 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
 (use-package sly
   :commands (sly sly-connect)
   :init
-  (setq sly-symbol-completion-mode nil)
-  (setq inferior-lisp-program "sbcl")
-  (setq sly-default-lisp 'roswell)
-  (setq ros-config (concat user-emacs-directory
-                                  "ros-conf.lisp"))
-  (setq sly-lisp-implementations
-        `((sbcl ("sbcl") :coding-system utf-8-unix)
-          (ccl ("ccl") :coding-system utf-8-unix)
-          (ecl ("ecl") :coding-system utf-8-unix)
-          (roswell ("ros" "-Q" "-l" ,ros-config "run"))
-          (qlot ("qlot" "exec" "ros" "-l" ,ros-config "run" "-S" ".")
-                :coding-system utf-8-unix)))
+  ;; (setq sly-symbol-completion-mode nil)
+  ;; (setq inferior-lisp-program "sbcl")
+  ;; (setq sly-default-lisp 'roswell)
+  ;; (setq ros-config (concat user-emacs-directory
+  ;;                                 "ros-conf.lisp"))
+  ;; (setq sly-lisp-implementations
+  ;;       `((sbcl ("sbcl") :coding-system utf-8-unix)
+  ;;         (ccl ("ccl") :coding-system utf-8-unix)
+  ;;         (ecl ("ecl") :coding-system utf-8-unix)
+  ;;         (roswell ("ros" "-Q" "-l" ,ros-config "run"))
+  ;;         (qlot ("qlot" "exec" "ros" "-l" ,ros-config "run" "-S" ".")
+  ;;               :coding-system utf-8-unix)))
 
   (defun qlot-sly ()
     "Start a sly repl using qlot at the projects root"
@@ -997,70 +1006,76 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
           (sly 'qlot)
         (error (format "Failed to cd to %s" dir)))))
 
-  (defun sly-critique-defun ()
-    "Lint this file with lisp-critic"
-    (interactive)
-    ;; (sly-eval-async '(ql:quickload :lisp-critic))
-    (let ((form (apply #'buffer-substring-no-properties
-                       (sly-region-for-defun-at-point))))
-      (sly-eval-async
-          `(cl:format  "~a" (list ,(read form)))
-        nil (sly-current-package))))
+  ;; (defun sly-critique-defun ()
+  ;;   "Lint this file with lisp-critic"
+  ;;   (interactive)
+  ;;   ;; (sly-eval-async '(ql:quickload :lisp-critic))
+  ;;   (let ((form (apply #'buffer-substring-no-properties
+  ;;                      (sly-region-for-defun-at-point))))
+  ;;     (sly-eval-async
+  ;;         `(cl:format  "~a" (list ,(read form)))
+  ;;       nil (sly-current-package))))
 
-  (defun sly-critique-file ()
-    "Lint this file with lisp-critic"
-    (interactive)
-    (sly-eval-async '(ql:quickload :lisp-critic))
-    (sly-eval-async `(lisp-critic:critique ,(buffer-file-name))))
+  ;; (defun sly-critique-file ()
+  ;;   "Lint this file with lisp-critic"
+  ;;   (interactive)
+  ;;   (sly-eval-async '(ql:quickload :lisp-critic))
+  ;;   (sly-eval-async `(lisp-critic:critique ,(buffer-file-name))))
 
-  (defun my/connect-to-stumpwm ()
-    (interactive)
-    (start-process-shell-command "stumpish start-slynk" nil
-                                 "stumpish start-slynk")
-    (sly-connect "localhost" "4005")))
+  ;; (defun my/connect-to-stumpwm ()
+  ;;   (interactive)
+  ;;   (start-process-shell-command "stumpish start-slynk" nil
+  ;;                                "stumpish start-slynk")
+  ;;   (sly-connect "localhost" "4005"))
+  )
 
 ;;;; Setup Folding For Programming
-(use-package smartparens
-  :hook (;; use strict mode for programming languages and repls
-         (prog-mode cider-repl-mode eshell-mode
-                    fennel-repl-mode geiser-repl-mode inferior-emacs-lisp-mode
-                    inferior-lisp-mode inferior-scheme-mode lisp-interaction-mode
-                    racket-repl-mode scheme-interaction-mode sly-mrepl-mode)
-         . smartparens-strict-mode)
-
-  :bind (("C-c s" . smartparens-strict-mode)
-         :map smartparens-mode-map
-         ("M-e"   . sp-end-of-sexp)
-         ("M-a"   . sp-beginning-of-sexp)
-         ("M-("   . sp-wrap-round)
-         ("C-M-d" . sp-down-sexp)
-         ("C-M-u" . sp-backward-up-sexp)
-         ("C-M-f" . sp-forward-sexp)
-         ("C-M-b" . sp-backward-sexp)
-         ("C-M-n" . sp-next-sexp)
-         ("C-M-p" . sp-previous-sexp)
-         ("C-)"   . sp-forward-slurp-sexp)
-         ("C-}"   . sp-forward-barf-sexp)
-         ("C-("   . sp-backward-slurp-sexp)
-         ("C-{"   . sp-backward-barf-sexp)
+(use-package elec-pair
+  :ensure nil
+  :init
+  (electric-pair-mode t))
+(use-package puni
+  ;; :hook (;; use strict mode for programming languages and repls
+  ;;        (prog-mode cider-repl-mode eshell-mode
+  ;;                   fennel-repl-mode geiser-repl-mode inferior-emacs-lisp-mode
+  ;;                   inferior-lisp-mode inferior-scheme-mode lisp-interaction-mode
+  ;;                   racket-repl-mode scheme-interaction-mode sly-mrepl-mode)
+  ;;        . puni-strict-mode)
+  ;; (defun my/kill-sexp (&optional arg)
+  ;;   (interactive)
+  ;;   (progn (puni-expand-region)
+  ;;          (kill-region arg)))
+  :bind (("C-c s" . puni-mode)
+         :map puni-mode-map
+         ("C-c DEL" . flyspell-correct-previous)
+         ("M-e"   . puni-end-of-sexp)
+         ("M-a"   . puni-beginning-of-sexp)
+         ;; ("C-M-u" . (lambda (&optional arg)
+         ;;              (interactive)
+         ;;              (up-list -1)))
+         ("C-M-f" . puni-forward-sexp)
+         ("C-M-b" . puni-backward-sexp)
+         ("C-)"   . puni-slurp-forward)
+         ("C-}"   . puni-barf-forward)
+         ("C-("   . puni-slurp-backward)
+         ("C-{"   . puni-barf-backward)
          ("C-M-j" . sp-join-sexp)
-         ("C-M-t" . sp-transpose-sexp)
-         ("C-M-k" . sp-kill-sexp)
-         ("C-M-?" . sp-convolute-sexp)
-         ("C-k"   . sp-kill-hybrid-sexp)
+         ("C-M-t" . puni-transpose)
+         ("C-M-k" . kill-sexp)
+         ("C-M-?" . puni-convolute)
+         ("C-k"   . puni-kill-line)
          ("M-k"   . kill-sexp)
-         ("C-M-SPC" . sp-mark-sexp)
-         ("C-M-w" . sp-copy-sexp)
-         ("M-C"   . sp-clone-sexp)
-         ("C-M-z" . sp-rewrap-sexp)
+         ("M-k"   . kill-sexp)
+         ("S-SPC" . puni-expand-region)
+         ;; ("C-M-w" . sp-copy-sexp)
+         ;; ("M-C"   . sp-clone-sexp)
+         ("C-M-z" . puni-squeeze)
          ("M-<backspace>" . backward-kill-word)
-         ("C-<backspace>" . sp-backward-kill-word)
-         ("C-c i" . sp-change-inner)
-         ([remap sp-backward-kill-word] . backward-kill-word)
          ("C-w" . my/kill-region))
+  :init
+  (puni-global-mode t)
   :config
-  (require 'smartparens-config)
-  (smartparens-global-mode t)
+  (add-hook 'term-mode-hook #'puni-disable-puni-mode)
 
   ;;;; Better Killing And Yanking
   (setq rectangle-mark-mode nil)
@@ -1080,19 +1095,20 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
                            (region-beginning) (region-end)))
      (mark-active (kill-region
                    (region-beginning) (region-end)))
-     (t (sp-backward-kill-sexp 1))))
+     (t (backward-kill-sexp 1))))
 
   (defun my/yank (&optional arg)
     (interactive)
     (if *last-kill-was-rectangle*
         (yank-rectangle)
       (yank arg)))
+
   (bind-key (kbd "C-y") 'my/yank)
 
   ;; Avoid terminal binding confilct
   (unless my/is-termux
-    (bind-key (kbd "M-[") #'sp-splice-sexp 'smartparens-mode-map)
-    (bind-key (kbd "M-]") #'sp-split-sexp 'smartparens-mode-map)))
+    (bind-key (kbd "M-[") #'puni-splice 'puni-mode-map)
+    (bind-key (kbd "M-]") #'puni-split 'puni-mode-map)))
 
 (use-package flymake
   :defer 10
@@ -1108,7 +1124,10 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   :hook ((prog-mode tex-mode) . outline-minor-mode)
   :bind (:map outline-minor-mode-map
               (("C-<tab>" . outline-cycle)
-               ("<backtab>" . outline-cycle-buffer)))
+               ("<backtab>" . outline-cycle-buffer)
+               ("C-c u" . outline-up-heading)
+               ("C-c j" . outline-forward-same-level)
+               ("C-c k" . outline-backward-same-level)))
   :config
   ;; Outline Minor Mode
   (add-hook 'outline-minor-mode-hook
@@ -1138,10 +1157,24 @@ In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil."
   (setq eldoc-echo-area-use-multiline-p nil)
   (global-eldoc-mode t))
 
+(use-package paren-face
+  :ensure t
+  :hook ((prog-mode cider-repl-mode eshell-mode
+                    fennel-repl-mode geiser-repl-mode inferior-emacs-lisp-mode
+                    inferior-lisp-mode inferior-scheme-mode lisp-interaction-mode
+                    racket-repl-mode scheme-interaction-mode sly-mrepl-mode)
+         . global-paren-face-mode))
+
 (use-package prog-mode
   :ensure nil
+  :bind (("C-c RET" . emacs-lisp-macroexpand))
   :init
-  ;; Don't prompt for a reference
+  ;; Make all scripts executable. Ya this might be sketch but I don't
+  ;; mind
+  (add-hook 'after-save-hook
+            'executable-make-buffer-file-executable-if-script-p)
+
+ ;; Don't prompt for a reference
   (setq xref-prompt-for-identifier nil)
   (add-hook 'prog-mode-hook 'hs-minor-mode)
   (add-hook 'prog-mode-hook 'outline-minor-mode)
@@ -1257,11 +1290,6 @@ This is needed to make sure that text is properly aligned.")
           (ml-fill-to-right (string-width (format-mode-line right)) fill-face)
           right))
 
-(add-hook 'window-configuration-change-hook #'cogent-line-set-selected-window)
-(add-hook 'focus-in-hook #'cogent-line-set-selected-window)
-(add-hook 'focus-out-hook #'cogent-line-unset-selected-window)
-(advice-add 'handle-switch-frame :after #'cogent-line-set-selected-window)
-(add-hook 'window-selection-change-functions #'cogent-line-set-selected-window)
 
 ;; determin the focused window
 (defvar cogent-line-selected-window (frame-selected-window))
@@ -1275,6 +1303,12 @@ This is needed to make sure that text is properly aligned.")
 (defun cogent-line-selected-window-active-p ()
   (eq cogent-line-selected-window (selected-window)))
 
+(add-hook 'window-configuration-change-hook #'cogent-line-set-selected-window)
+;; (add-hook 'focus-in-hook #'cogent-line-set-selected-window)
+;; (add-hook 'focus-out-hook #'cogent-line-unset-selected-window)
+(advice-add 'handle-switch-frame :after #'cogent-line-set-selected-window)
+(add-hook 'window-selection-change-functions #'cogent-line-set-selected-window)
+
 (setq-default mode-line-format
               `(" "
                 ;; indicate if the buffer has been modified
@@ -1284,11 +1318,12 @@ This is needed to make sure that text is properly aligned.")
                         'face 'error))
 
                 ;; Buffer name (no longer than 1/3 of the screen)
-                (:eval (concat  (let ((bname (buffer-name (current-buffer)))
-                                      (max-len (/ (window-total-width) 3)))
-                                  (if (> (length bname) max-len)
-                                      (substring bname 0 max-len)
-                                    bname))))
+                mode-line-buffer-identification
+                ;; (:eval (concat  (let ((bname (buffer-name (current-buffer)))
+                ;;                       (max-len (/ (window-total-width) 3)))
+                ;;                   (if (> (length bname) max-len)
+                ;;                       (substring bname 0 max-len)
+                ;;                     bname))))
                 ;; value of current line number
                 " "
                 " %l:%c"
@@ -1299,6 +1334,7 @@ This is needed to make sure that text is properly aligned.")
                         'face (if (cogent-line-selected-window-active-p)
                                   'shadow
                                 'mode-line-inactive)))
+
                 ;; I still have yet to come up with a better option
                 (:eval
                  (propertize " " 'display
@@ -1308,6 +1344,22 @@ This is needed to make sure that text is properly aligned.")
                 mode-line-misc-info))
 
 
+(use-package time
+  :defer 10
+  :config
+  (defface my/display-time
+    '((((type x w32 mac))
+       ;; #060525 is the background colour of my default face.
+       (:foreground "#060525" :inherit bold))
+      (((type tty))
+       (:foreground "blue")))
+    "Face used to display the time in the mode line.")
+  (setq display-time-string-forms
+        '((propertize (concat " " 12-hours ":" minutes " " am-pm " ")
+                      'face 'my/display-time)))
+  (set-face-attribute 'my/display-time nil :foreground "#fff" :background "#333"
+                      :box '(:line-width 1 :color "#323"))
+  (display-time-mode t))
 
 ;;; Server Setup
 (use-package server
@@ -1322,8 +1374,8 @@ This is needed to make sure that text is properly aligned.")
 ; annotate pdfs with c-c c-a
 ; hl with c-c c-a h
 ; for help M-x pdf-tools-help RET
-(load (concat user-emacs-directory
-              "lisp/exwm-config.el"))
+;; (load (concat user-emacs-directory
+;;               "lisp/exwm-config.el"))
 (use-package pdf-tools
   :defer t
   :commands (pdf-view-mode pdf-tools-install)
@@ -1380,8 +1432,8 @@ This is needed to make sure that text is properly aligned.")
       (interactive)
       (ement-connect :user-id "@gavinok:matrix.org"
                      :password (password-store-get "riot.im/gavinok")))
-    (set-fontset-font
-     t 'unicode "Noto Emoji:pixelsize=18:antialias=true:autohint=true" nil 'append))
+    (set-fontset-font t 'unicode
+                      "PragmataPro Mono:pixelsize=19:antialias=true:autohint=true" nil 'append))
 
   (use-package obs-websocket
     :ensure nil
@@ -1417,6 +1469,17 @@ This is needed to make sure that text is properly aligned.")
   :init
   (repeat-mode +1))
 
+(use-package carp-mode
+  :ensure nil
+  :quelpa (carp-mode :fetcher github :repo "carp-lang/carp-emacs")
+  :config
+  (require 'carp-mode)
+  (require 'inf-carp-mode)
+  (require 'carp-flycheck)
+  (add-hook 'carp-mode-hook
+          (lambda ()
+            (flycheck-mode 1))))
+
 (use-package repeaters
   :ensure nil
   :quelpa (repeaters :fetcher github :repo "mmarshall540/repeaters")
@@ -1428,8 +1491,6 @@ This is needed to make sure that text is properly aligned.")
      ("NAV"
       puni-forward-sexp "C-M-f" "f"
       puni-backward-sexp "C-M-b" "b"
-      ;; sp-next-sexp "C-M-n" "n"
-      ;; sp-previous-sexp "C-M-p" "p"
       backward-up-list "C-M-u" "u"
       down-list "C-M-d" "d")
      ("Errors"
@@ -1446,8 +1507,33 @@ This is needed to make sure that text is properly aligned.")
       org-forward-heading-same-level "f"
       org-backward-heading-same-level "b"
       outline-down-heading "d"
-      org-next-block "M-f"))))
+      org-next-block "M-f")
+     ("Outline Nav"
+      outline-up-heading "C-c u" "u"
+      outline-forward-same-level "C-c j" "j"
+      outline-backward-same-level "C-c k" "k"))))
+
+(use-package pomm
+  :commands (pomm pomm-third-time)
+  :config
+  (setq alert-default-style 'libnotify))
+
 ;;;; Use emacs instead of dmenu
+(defun emenu (prompt options)
+  "Create and select a frame called emacs-run-launcher which
+consists only of a minibuffer and has specific dimensions. Run
+the prompt given will be used and the user will be displayed a
+dmenu like interface"
+  (interactive)
+  (let ((tmp-frame (make-frame '((name . "emacs-run-launcher")
+				 (minibuffer . only)
+				 (width . 120)
+				 (height . 11)))))
+    (with-selected-frame tmp-frame
+      (unwind-protect
+	  (completing-read prompt options)
+        (delete-frame tmp-frame)))))
+
 (setenv "LAUNCHER" "emenu -p ")
 (setenv "EDITOR" "emacsclient")
 (setenv "PAGER" "cat")
@@ -1459,3 +1545,5 @@ This is needed to make sure that text is properly aligned.")
 (let ((f "lisp/termux.el"))
   (when (file-exists-p f)
     (load (concat user-emacs-directory f))))
+(put 'set-goal-column 'disabled nil)
+(put 'narrow-to-region 'disabled nil)

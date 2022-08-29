@@ -1,4 +1,27 @@
 ;;; EMAIL
+;; (use-package mu4e-thread-folding
+;;   :ensure nil
+;;   :defer nil
+;;   :bind (:map mu4e-headers-mode-map
+;; 	      ("<tab>"      . mu4e-headers-toggle-at-point)
+;; 	      ("<left>"     . mu4e-headers-fold-at-point)
+;; 	      ("<S-left>"   . mu4e-headers-fold-all)
+;; 	      ("<right>"    . mu4e-headers-unfold-at-point)
+;; 	      ("<S-right>"  . mu4e-headers-unfold-all))
+;;   :quelpa (mu4e-thread-folding :fetcher github :repo "rougier/mu4e-thread-folding")
+;;   :init
+;;   (add-to-list 'mu4e-header-info-custom
+;;                '(:empty . (:name "Empty"
+;; 				 :shortname ""
+;; 				 :function (lambda (msg) "  "))))
+;;   (setq mu4e-headers-fields '((:empty         .    2)
+;;                               (:human-date    .   12)
+;;                               (:flags         .    6)
+;;                               (:mailing-list  .   10)
+;;                               (:from          .   22)
+;;                               (:subject       .   nil))))
+
+
 (use-package mu4e
   :unless my/is-termux
   :load-path "/usr/share/emacs/site-lisp/mu4e"
@@ -115,3 +138,4 @@
                                       (:subject       .   70)
                                       (:human-date    .   nil)))
   (mu4e-hide-other-mu4e-buffers))
+
