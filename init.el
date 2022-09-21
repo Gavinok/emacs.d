@@ -5,7 +5,6 @@
 
 (setq file-name-handler-alist nil
       gc-cons-threshold most-positive-fixnum)
-
 ;; Lower threshold to speed up garbage collection
 (add-hook 'after-init-hook
           `(lambda ()
@@ -102,7 +101,7 @@
     (async-shell-command (concat command " " filename))))
 (bind-key (kbd "C-M-&") #'my/shell-command-on-file)
 (with-eval-after-load 'image-mode
-    (bind-key (kbd "&") #'my/shell-command-on-file 'image-mode-map))
+  (bind-key (kbd "&") #'my/shell-command-on-file 'image-mode-map))
 
 ;;;###autoload
 (defun insert-iota (&optional arg)
@@ -202,6 +201,10 @@
                :default-weight semilight
                :default-height 180
                :bold-weight extrabold)
+              (extra-large
+               :default-weight semilight
+               :default-height 210
+               :bold-weight extrabold)
               (t                        ; our shared fallback properties
                :default-family "PragmataPro Mono Liga"
                :default-weight normal)))
@@ -266,6 +269,12 @@
       (when old
         (set-marker old nil))))
   (advice-add 'push-mark :after #'my/push-mark-global))
+
+;; Make ex mode avilable in emacs
+(use-package viper
+  :ensure nil
+  :bind ("C-x ;" . viper-ex))
+
 ;;; General Key Bindings
 (use-package crux
   :ensure t
@@ -291,7 +300,7 @@
   (interactive)
   (comint-run
    (concat"/home/gavinok/.local/Dropbox/DropsyncFiles/vimwiki/School/SENG475/assignments/project/"
-    "lisp")
+          "lisp")
    '("-i")))
 
 ;;; TERMINAL SETTINGS
@@ -426,22 +435,31 @@
   (corfu-auto t)                   ; Enable auto completion
   (corfu-auto-prefix 2)            ; Enable auto completion
   (corfu-auto-delay 0.0)           ; Enable auto completion
-  (corfu-quit-at-boundary t)
+  (corfu-quit-at-boundary 'separator)
   (corfu-echo-documentation 0.25)   ; Enable auto completion
   (corfu-preview-current 'insert)   ; Do not preview current candidate
   (corfu-preselect-first nil)
 
   ;; Optionally use TAB for cycling, default is `corfu-complete'.
   :bind (:map corfu-map
-              ("RET"     . nil) ;; leave my enter alone!
+              ("M-SPC" . corfu-insert-separator)
               ("TAB"     . corfu-next)
               ([tab]     . corfu-next)
               ("S-TAB"   . corfu-previous)
               ([backtab] . corfu-previous)
-              ("S-<return>" . corfu-insert))
+              ("S-<return>" . corfu-insert)
+              ("RET"     . nil) ;; leave my enter alone!
+              )
+
   :init
   (global-corfu-mode)
-  (corfu-history-mode))
+  (corfu-history-mode)
+  :config
+  (add-hook 'eshell-mode-hook
+            (lambda () (setq-local corfu-quit-at-boundary t
+                              corfu-quit-no-match t
+                              corfu-auto nil)
+              (corfu-mode))))
 
 ;; Add extensions
 (use-package cape
@@ -456,12 +474,7 @@
 
   ;; Ensure that pcomplete does not write to the buffer
   ;; and behaves as a pure `completion-at-point-function'.
-  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify)
-  (add-hook 'eshell-mode-hook
-            (lambda () (setq-local corfu-quit-at-boundary t
-                              corfu-quit-no-match t
-                              corfu-auto nil)
-              (corfu-mode))))
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
 
 ;; Templates takes advantage of emacs's tempo
 (use-package tempel
@@ -508,6 +521,8 @@
 ;;   (load-theme 'spaceway t))
 
 (global-hl-line-mode t)
+(customize-set-value 'modus-themes-org-blocks 'gray-background
+                     "Color background of code blocks gray.")
 (load-theme 'modus-vivendi t)
 (add-to-list 'default-frame-alist '(cursor-color . "magenta"))
 
@@ -528,6 +543,7 @@
                         git-commit-mode)
          . flyspell-mode)
   :init
+  (add-to-list 'ispell-skip-region-alist '("+begin_src" . "+end_src"))
   (setq flyspell-use-meta-tab nil))
 
 ;;; ORG
@@ -602,7 +618,6 @@
   :config
   (setq eshell-destroy-buffer-when-process-dies t))
 
-
 ;; More accureate color representation than ansi-color.el
 (use-package xterm-color
   :ensure t
@@ -616,6 +631,11 @@
   (setq eshell-output-filter-functions
         (remove 'eshell-handle-ansi-color eshell-output-filter-functions))
   (setenv "TERM" "xterm-256color"))
+
+;; interactive opening of files image preview and more from any repl
+(use-package shx
+  :ensure t
+  :hook (shell-mode . shx-mode))
 
 ;; As the built-in project.el support expects to use vc-mode hooks to
 ;; find the root of projects we need to provide something equivalent
@@ -633,12 +653,20 @@
           (when-let (project (project-current))
             (car (project-roots project)))))
 
+  (defun project-magit  ()
+    (interactive)
+    (let ((dir (project-root (project-current t))))
+      (magit-status dir)))
+
+  (define-key project-prefix-map "m" 'project-magit)
+  (define-key project-prefix-map "d" 'project-dired)
   (setq project-switch-commands
         '((project-find-file "Find file" f)
-          (project-dired "Dired" D)
+          (project-dired "Dired" d)
           (project-vc-dir "VC-Dir" v)
           (project-eshell "Eshell" e)
-          (magit-status (project-root (project-current t)) "Magit" m)))
+          (project-shell "Shell" s)
+          (project-magit "Magit" m)))
 
   (defvar project-root-markers
     '(".git" "CMakeList.txt" "package.clj" "package.json" "mix.exs" "Project.toml" ".project" "Cargo.toml" "qlfile"))
@@ -662,6 +690,7 @@
 
 ;;; COMPILATION
 (use-package compile
+  :defer t
   :bind (("C-x M-m" . compile)
          ("C-x C-m" . recompile))
   :config
@@ -692,27 +721,27 @@
                 " "
                 filename-and-process)))
   (setq ibuffer-saved-filter-groups
-      '(("home"
-         ("Windows" (and (mode . exwm-mode)
-                         (not (name . "qutebrowser"))))
-         ("Qutebrowser" (name . "qutebrowser"))
-         ("Shells" (mode . shell-mode))
-         ("emacs-config" (or (filename . ".emacs.d")
-                             (filename . "emacs-config")))
+        '(("home"
+           ("Windows" (and (mode . exwm-mode)
+                           (not (name . "qutebrowser"))))
+           ("Qutebrowser" (name . "qutebrowser"))
+           ("Shells" (mode . shell-mode))
+           ("emacs-config" (or (filename . ".emacs.d")
+                               (filename . "emacs-config")))
 
-         ("Web Dev" (or (mode . html-mode)
-                        (mode . css-mode)))
-         ("Magit" (name . "\*magit"))
-         ("Help" (or (name . "\*Help\*")
-                     (name . "\*Apropos\*")
-                     (name . "\*info\*")))
-         ("Browser" (mode . eaf-mode))
-         ("Ement" (name . "\*Ement *"))
-         ("Org" (or (mode . org-mode)
-                    (filename . "OrgMode"))))))
+           ("Web Dev" (or (mode . html-mode)
+                          (mode . css-mode)))
+           ("Magit" (name . "\*magit"))
+           ("Help" (or (name . "\*Help\*")
+                       (name . "\*Apropos\*")
+                       (name . "\*info\*")))
+           ("Browser" (mode . eaf-mode))
+           ("Ement" (name . "\*Ement *"))
+           ("Org" (or (mode . org-mode)
+                      (filename . "OrgMode"))))))
   (add-hook 'ibuffer-mode-hook
-          (lambda ()
-             (ibuffer-switch-to-saved-filter-groups "home")))) ; [built-in] Powerful interface for managing buffers
+            (lambda ()
+              (ibuffer-switch-to-saved-filter-groups "home")))) ; [built-in] Powerful interface for managing buffers
 
 ;;; ISEARCH
 (use-package isearch
@@ -737,8 +766,8 @@
   ;; C-g will return the cursor to it's orignal position
   (add-hook 'isearch-mode-end-hook 'my-goto-match-beginning)
   (defun my-goto-match-beginning ()
-      (when (and isearch-forward isearch-other-end (not isearch-mode-end-hook-quit))
-        (goto-char isearch-other-end))))
+    (when (and isearch-forward isearch-other-end (not isearch-mode-end-hook-quit))
+      (goto-char isearch-other-end))))
 
 (use-package ffap
   :ensure nil
@@ -800,49 +829,8 @@
                 ("C-w" . kill-region)
                 ("C-w" . yank))))
 
-(use-package evil
-  :ensure t
-  :commands (evil-mode)
-  :bind (:map evil-normal-state-map
-         ;; vim vinigar style
-         ("-"  . (lambda () (interactive)
-                   (dired ".")))
-         ("C-s" . consult-line)
-         ;; Better lisp bindings
-         ("(" . evil-previous-open-paren)
-         (")" . evil-next-close-paren)
-         ("<leader>/" . evil-ex-nohighlight)
-         ("C-n" . evil-next-line)
-         ("C-p" . evil-previous-line)
-         :map evil-operator-state-map
-         ("(" . evil-previous-open-paren)
-         (")" . evil-previous-close-paren))
-  :init
-  (setq evil-search-module 'evil-search)
-  (setq evil-want-keybinding nil)
-
-  ;; no vim insert bindings
-  (setq evil-disable-insert-state-bindings t)
-  (setq evil-want-Y-yank-to-eol t)
-  (setq evil-split-window-below t)
-  (setq evil-undo-system 'undo-redo)
-  (setq evil-split-window-right t)
-  :config
-  (evil-set-leader 'normal " "))
-
-;; Enable Commentary
-(use-package evil-commentary
-  :ensure t
-  :after evil
-  :bind (:map evil-normal-state-map
-              ("gc" . evil-commentary)))
-
-;; Enable Surround
-(use-package evil-surround
-  :ensure t
-  :after evil
-  :config
-  (global-evil-surround-mode 1))
+(load (concat user-emacs-directory
+              "lisp/evil-config.el"))
 
 (use-package mouse
   :ensure nil
@@ -890,10 +878,20 @@
    (let ((face-offset (* (face-id 'font-lock-comment-face) (lsh 1 22))))
      (vconcat (mapcar (lambda (c) (+ face-offset c)) " ▾")))))
 
+;; Automatic code formatting
+(use-package apheleia
+  :ensure t
+  :config
+  (apheleia-global-mode +1))
+
 ;;; LSP
+
+;; Should boost performance with lsp
+;; https://emacs-lsp.github.io/lsp-mode/page/performance/
+(setenv "LSP_USE_PLISTS" "1")
 (use-package lsp-mode
   :bind ((:map lsp-mode-map
-              ("M-<return>" . lsp-execute-code-action))
+               ("M-<return>" . lsp-execute-code-action))
          (:map c++-mode-map
                ("C-c x" . lsp-clangd-find-other-file))
          (:map c-mode-map
@@ -906,6 +904,8 @@
          (rust-mode . lsp-deferred))
   :commands (lsp lsp-deferred)
   :init
+  ;; Increase the amount of data emacs reads from processes
+  (setq read-process-output-max (* 1024 1024))
   (setq lsp-enable-snippet nil)
   (setq lsp-enable-on-type-formatting nil)
   (setq lsp-enable-indentation nil)
@@ -914,9 +914,9 @@
   (setq lsp-diagnostics-provider :flymake)
   (setq lsp-keymap-prefix "C-x L")
   (add-hook 'lsp-completion-mode-hook
-          (lambda ()
-            (setf (alist-get 'lsp-capf completion-category-defaults) '((styles . (orderless flex)))))))
-  :config
+            (lambda ()
+              (setf (alist-get 'lsp-capf completion-category-defaults) '((styles . (orderless flex)))))))
+:config
 (use-package lsp-haskell :ensure t :hook (haskell-mode . lsp-deferred))
 (use-package lsp-java :ensure t :hook (java-mode . lsp-deferred)
   :config
@@ -925,13 +925,18 @@
   ;; to enable the lenses
   (add-hook 'lsp-mode-hook #'lsp-lens-mode)
   (add-hook 'java-mode-hook #'lsp-java-boot-lens-mode))
-(use-package lsp-pyright :ensure t
+
+(use-package lsp-pyright
+  :ensure t
+  :after lsp-mode
   :init
   (setq python-shell-enable-font-lock nil)
   :hook (python-mode . (lambda ()
                          (require 'lsp-pyright)
                          (lsp-deferred))))
-(use-package lsp-ui  :ensure t
+(use-package lsp-ui
+  :ensure t
+  :after lsp
   :init
   (setq lsp-ui-sideline-show-code-actions t)
   (setq lsp-ui-sideline-show-diagnostics t))
@@ -985,26 +990,25 @@
 (use-package sly
   :commands (sly sly-connect)
   :init
-  ;; (setq sly-symbol-completion-mode nil)
-  ;; (setq inferior-lisp-program "sbcl")
-  ;; (setq sly-default-lisp 'roswell)
-  ;; (setq ros-config (concat user-emacs-directory
-  ;;                                 "ros-conf.lisp"))
-  ;; (setq sly-lisp-implementations
-  ;;       `((sbcl ("sbcl") :coding-system utf-8-unix)
-  ;;         (ccl ("ccl") :coding-system utf-8-unix)
-  ;;         (ecl ("ecl") :coding-system utf-8-unix)
-  ;;         (roswell ("ros" "-Q" "-l" ,ros-config "run"))
-  ;;         (qlot ("qlot" "exec" "ros" "-l" ,ros-config "run" "-S" ".")
-  ;;               :coding-system utf-8-unix)))
+  (setq sly-symbol-completion-mode nil
+        sly-default-lisp 'sbcl
+        ros-config (concat user-emacs-directory
+                           "ros-conf.lisp")
+        sly-lisp-implementations
+        `((sbcl ("sbcl") :coding-system utf-8-unix)
+          (ccl ("ccl") :coding-system utf-8-unix)
+          (ecl ("ecl") :coding-system utf-8-unix)
+          (roswell ("ros" "-Q" "-l" ,ros-config "run"))
+          (qlot ("qlot" "exec" "ros" "-l" ,ros-config "run" "-S" ".")
+                :coding-system utf-8-unix)))
 
-  (defun qlot-sly ()
-    "Start a sly repl using qlot at the projects root"
-    (interactive)
-    (let ((dir (cdr (project-current))))
-      (if (cd dir)
-          (sly 'qlot)
-        (error (format "Failed to cd to %s" dir)))))
+  ;; (defun qlot-sly ()
+  ;;   "Start a sly repl using qlot at the projects root"
+  ;;   (interactive)
+  ;;   (let ((dir (cdr (project-current))))
+  ;;     (if (cd dir)
+  ;;         (sly 'qlot)
+  ;;       (error (format "Failed to cd to %s" dir)))))
 
   ;; (defun sly-critique-defun ()
   ;;   "Lint this file with lisp-critic"
@@ -1053,11 +1057,12 @@
          ;; ("C-M-u" . (lambda (&optional arg)
          ;;              (interactive)
          ;;              (up-list -1)))
-         ("C-M-f" . puni-forward-sexp)
-         ("C-M-b" . puni-backward-sexp)
+         ("C-M-f" . forward-sexp)
+         ("C-M-b" . backward-sexp)
          ("C-)"   . puni-slurp-forward)
+         ("C-0"   . puni-slurp-forward)
          ("C-}"   . puni-barf-forward)
-         ("C-("   . puni-slurp-backward)
+         ("C-9"   . puni-slurp-backward)
          ("C-{"   . puni-barf-backward)
          ("C-M-j" . sp-join-sexp)
          ("C-M-t" . puni-transpose)
@@ -1132,7 +1137,7 @@
   ;; Outline Minor Mode
   (add-hook 'outline-minor-mode-hook
             (lambda () (local-set-key (kbd "C-t")
-                                 outline-mode-prefix-map)))
+                                      outline-mode-prefix-map)))
   (defun set-vim-foldmarker (fmr)
     "Set Vim-type foldmarkers for the current buffer"
     (interactive "sSet local Vim foldmarker: ")
@@ -1174,7 +1179,7 @@
   (add-hook 'after-save-hook
             'executable-make-buffer-file-executable-if-script-p)
 
- ;; Don't prompt for a reference
+  ;; Don't prompt for a reference
   (setq xref-prompt-for-identifier nil)
   (add-hook 'prog-mode-hook 'hs-minor-mode)
   (add-hook 'prog-mode-hook 'outline-minor-mode)
@@ -1235,12 +1240,12 @@
   ;; prevent opening extra dired buffers
   ;; emacs 28
   (setq dired-kill-when-opening-new-dired-buffer t))
-  (use-package consult-dir
-    :ensure t
-    :bind (("C-x C-j" . consult-dir)
-           ;; :map minibuffer-local-completion-map
-           :map vertico-map
-           ("C-x C-j" . consult-dir)))
+(use-package consult-dir
+  :ensure t
+  :bind (("C-x C-j" . consult-dir)
+         ;; :map minibuffer-local-completion-map
+         :map vertico-map
+         ("C-x C-j" . consult-dir)))
 
 ;;; PASS
 (use-package password-store
@@ -1306,7 +1311,7 @@ This is needed to make sure that text is properly aligned.")
 (add-hook 'window-configuration-change-hook #'cogent-line-set-selected-window)
 ;; (add-hook 'focus-in-hook #'cogent-line-set-selected-window)
 ;; (add-hook 'focus-out-hook #'cogent-line-unset-selected-window)
-(advice-add 'handle-switch-frame :after #'cogent-line-set-selected-window)
+;; (advice-add 'handle-switch-frame :after #'cogent-line-set-selected-window)
 (add-hook 'window-selection-change-functions #'cogent-line-set-selected-window)
 
 (setq-default mode-line-format
@@ -1370,10 +1375,10 @@ This is needed to make sure that text is properly aligned.")
     (server-start)))
 
 ;;;; Better PDFs
-;https://github.com/politza/pdf-tools
-; annotate pdfs with c-c c-a
-; hl with c-c c-a h
-; for help M-x pdf-tools-help RET
+;;https://github.com/politza/pdf-tools
+;; annotate pdfs with c-c c-a
+;; hl with c-c c-a h
+;; for help M-x pdf-tools-help RET
 ;; (load (concat user-emacs-directory
 ;;               "lisp/exwm-config.el"))
 (use-package pdf-tools
@@ -1386,8 +1391,8 @@ This is needed to make sure that text is properly aligned.")
   (define-pdf-cache-function pagelabels)
   (setq-default pdf-view-display-size 'fit-page)
   (add-to-list 'org-file-apps
-             '("\\.pdf\\'" . (lambda (file link)
-                               (org-pdfview-open link)))))
+               '("\\.pdf\\'" . (lambda (file link)
+                                 (org-pdfview-open link)))))
 
 ;;; mu4e
 (load (concat user-emacs-directory
@@ -1469,16 +1474,16 @@ This is needed to make sure that text is properly aligned.")
   :init
   (repeat-mode +1))
 
-(use-package carp-mode
-  :ensure nil
-  :quelpa (carp-mode :fetcher github :repo "carp-lang/carp-emacs")
-  :config
-  (require 'carp-mode)
-  (require 'inf-carp-mode)
-  (require 'carp-flycheck)
-  (add-hook 'carp-mode-hook
-          (lambda ()
-            (flycheck-mode 1))))
+;; (use-package carp-mode
+;;   :ensure nil
+;;   :quelpa (carp-mode :fetcher github :repo "carp-lang/carp-emacs")
+;;   :config
+;;   (require 'carp-mode)
+;;   (require 'inf-carp-mode)
+;;   (require 'carp-flycheck)
+;;   (add-hook 'carp-mode-hook
+;;           (lambda ()
+;;             (flycheck-mode 1))))
 
 (use-package repeaters
   :ensure nil
