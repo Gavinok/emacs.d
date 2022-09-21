@@ -2,6 +2,8 @@
 
 fundamental-mode ;; Available everywhere
 
+(myname "Gavin Jaeger-Freeborn")
+(uvicid "V00849637")
 (today (format-time-string "%Y-%m-%d"))
 (calc (p "taylor(sin(x),x=0,3)" formula) " -> "
       (format "%s" (calc-eval formula)))
@@ -60,7 +62,7 @@ python-mode
 (for "for " (p "needle") " in " (p "heystack") ":"n>
      (p "# code goes here"))
 (if "if " (p "condition" var) ":"n>
-     (p "# code goes here"))
+    (p "# code goes here"))
 
 latex-mode
 
@@ -82,7 +84,7 @@ lisp-mode sly-mrepl emacs-lisp-mode
       "("(p "(predicate)")" "(p "return")")"n>
       "(t"                   (p "default")"))")
 (dolist "(dolist (" (p "needle") " " (p "hay-stack") " " (p "optional-returned-variable")")"n>
-  (r "(message needle)")")")
+        (r "(message needle)")")")
 
 emacs-lisp-mode
 
@@ -126,14 +128,16 @@ lisp-mode sly-mrepl-mode
        ":documentation \"" (p "Slot Description.")"\"))"n>
        "(:documentation \"" (p "A general HTTP request.") "\"))")
 
+(defstruct "(defstruct "(p "Name") n> "("(p "slot")" " (p "default-value") " :type" (p "type") "))")
+
 (in-package "(defpackage " (p "my-package" package) n>
             "(:use :cl " (p ":alexandria")"))"n>
             "(in-package :" (s package) ")")
 
 (defpackage "(defpackage " (p "my-package")n>
-            "(:use :cl)"n>
-            "(:import-from :" (p "alexandria")n>
-            (p ":with-gensyms :curry")"))")
+  "(:use :cl)"n>
+  "(:import-from :" (p "alexandria")n>
+  (p ":with-gensyms :curry")"))")
 
 (doc
  "Syntax:"n n
@@ -170,32 +174,32 @@ org-mode
 
 (src "#+begin_src " p n> r> n> "#+end_src")
 (lisp "#+begin_src lisp" n> r> n "#+end_src"
-       :post (progn (unless sly-port
-                      (sly))
-                    (tempel-done) (org-edit-src-code)))
+      :post (progn (unless sly-port
+                     (sly))
+                   (tempel-done) (org-edit-src-code)))
 
 (readmeorg
-  "#+TITLE: " (p "Project title: ") n
-  (p "A short, one-line description of the project: ") n
-  n
-  "* Overview" n
-  p "# A longer description of the project" n
-  n
-  "** Features" n
-  "** History" n
-  "** Motivation" n
-  "* Usage" n
-  p "# Examples of usage" n
-  n
-  "* Documentation" n
-  "* License" n
-  "Copyright (c) " (format-time-string "%Y") " " (p "Authors: ") n
-  "Licensed under the " p "GPL3 License." n
-  n
-  "* COMMENT Local Variables" n
-  "# Local Variables:" n
-  "# eval: (add-hook 'after-save-hook #'org-md-export-to-markdown nil t)" p n
-  "# End:")
+ "#+TITLE: " (p "Project title: ") n
+ (p "A short, one-line description of the project: ") n
+ n
+ "* Overview" n
+ p "# A longer description of the project" n
+ n
+ "** Features" n
+ "** History" n
+ "** Motivation" n
+ "* Usage" n
+ p "# Examples of usage" n
+ n
+ "* Documentation" n
+ "* License" n
+ "Copyright (c) " (format-time-string "%Y") " " (p "Authors: ") n
+ "Licensed under the " p "GPL3 License." n
+ n
+ "* COMMENT Local Variables" n
+ "# Local Variables:" n
+ "# eval: (add-hook 'after-save-hook #'org-md-export-to-markdown nil t)" p n
+ "# End:")
 
 sh-mode
 
@@ -356,3 +360,8 @@ rust-mode
 (match "match " (p "var") " {"n>
        (p "pattern x") " => " (p "1 + x")n
        "}")
+(derive "#[derive(" (p "Debug") ")]")
+(enum "pub enum " (p "NameOfSumType") " {" n>
+      (p "Constructor1") "(" (p "")")," n
+      "}")
+(struct "struct " (p "Foo") " {" n> (p "bar") ": " (p "i32")"," n "}")
