@@ -3,12 +3,10 @@
 fundamental-mode ;; Available everywhere
 
 (myname "Gavin Jaeger-Freeborn")
-(uvicid "V00849637")
+(v00 "V00849637")
 (today (format-time-string "%Y-%m-%d"))
 (calc (p "taylor(sin(x),x=0,3)" formula) " -> "
       (format "%s" (calc-eval formula)))
-(lorem
- "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
 
 (isc "
 ISC License
@@ -17,7 +15,7 @@ Copyright "(p "<YEAR>") " "(p "<OWNER>")"
 
 Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
 
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.")
+THE SOFTWARE IS PROVIDED \"AS IS\" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.")
 
 prog-mode
 
@@ -30,14 +28,14 @@ prog-mode
 
 c-mode c++-mode
 
-(if "if ("  (p "true") ") {" n> r> (p "true") n "}")
-(print "printf(" (p "\"The value of ___ is\"" text) (r ", ")")")
+(if "if ("  (p "true") ") {" n> r> q n "}")
+(print "printf(" (p "\"The value of ___ is\"" text) (r ", ") q")")
 (for "for (" "int " (p "i" var) "=" (p "0") "; "
      (s var) "< " (p "max" max) "; "
      (s var) "++" "){"
      n> (p "/* your code here*/")
      n "}")
-(main "int main(int argc, char* argv[])"n"{" n> (r "/*Your Code Here*/") n"}")
+(main "int main(int argc, char* argv[])"n"{" n> q "/*Your Code Here*/" n"}")
 
 (struct "struct "(p "Name")" {" n> (p "/* fields */") n "};")
 
@@ -60,11 +58,16 @@ c++-mode
 python-mode
 
 (for "for " (p "needle") " in " (p "heystack") ":"n>
-     (p "# code goes here"))
+     q)
 (if "if " (p "condition" var) ":"n>
-    (p "# code goes here"))
+    q)
+
+(main "def main():" n> q n
+      "if __name__ == '__main__':" n>
+      "main()")
+
 
-latex-mode
+latex-mode org-mode
 
 (begin "\\begin{" (s env) "}" > n> r> "\\end{" (s env) "}")
 (frac "\\frac{" p "}{" p "}")
@@ -74,70 +77,78 @@ latex-mode
 
 lisp-mode sly-mrepl emacs-lisp-mode
 
-(lambda "(lambda (" p ")" n> r> ")")
-(var "(defvar " p "\n  \"" p "\")")
-(param "(defparameter " p " (" p ")\n  \"" p "\"" n> r> ")")
-(macro "(defmacro " p " (" p ")\n  \"" p "\"" n> r> ")")
-(fun "(defun " p " (" p ")\n  \"" p "\"" n> r> ")")
+(lambda "(lambda (" p ")" n> r> q")")
+(var "(defvar " p "\n  \"" p"\")")
+(param "(defparameter " p " (" p ")\n  \"" p "\"" n> r> q")")
+(macro "(defmacro " p " (" p ")\n  \"" p "\"" n> r> q")")
+(fun "(defun " p " (" p ")\n  \"" p "\"" n> r> q ")")
 (let "(let (" p ")" n> r> ")")
 (cond "(cond"n>
       "("(p "(predicate)")" "(p "return")")"n>
-      "(t"                   (p "default")"))")
+      "(t"                   (p "default")"))" q ")")
 (dolist "(dolist (" (p "needle") " " (p "hay-stack") " " (p "optional-returned-variable")")"n>
         (r "(message needle)")")")
 
 emacs-lisp-mode
 
+(header ";;; " (or (buffer-file-name) (buffer-name)) " -- " p
+        " -*- lexical-binding: t -*-" n n)
+(provide "(provide '" (file-name-base (or (buffer-file-name) (buffer-name))) ")" n
+         ";;; " (file-name-nondirectory (or (buffer-file-name) (buffer-name))) " ends here" n)
+(package (i header) r n n (i provide))
+
+;; Definitions
 (custom "(defcustom " p "\n  \"" p "\"" n> ":type '" p ")")
 (face "(defface " p " '((t :inherit " p "))\n  \"" p "\")")
 (group "(defgroup " p " nil\n  \"" p "\"" n> ":group '" p n> ":prefix \"" p "-\")")
 (command "(defun " p " (" p ")\n  \"" p "\"" n> "(interactive)" n> r> ")")
-(rec "(letrec (" p ")" n> r> ")")
 (const "(defconst " p "\n  \"" p "\")")
+
+(rec "(letrec (" p ")" n> r> ")")
+
 
 lisp-mode sly-mrepl-mode
 
-(var "(defvar *" p "*\n  \"" p "\")")
-(param "(defparameter *" p "*\n  \"" p "\")")
-(const "(defparameter +" p "+\n  \"" p "\")")
-
-(defun "(declaim (ftype (function (" (p "arg-type-1 arg-type-2 ..." )") "
-       (p "return-type") ") "
-       (p "function-name" func-name)"))"n>
-       "(defun " (s func-name) " (" p ")\n  \"" p "\"" n> r> ")")
+(defvar "(defvar *" p "*\n  \"" p "\")")
+(defparam "(defparameter *" p "*\n  \"" p "\")")
+(defconst "(defvar +" p "+\n  \"" p "\")")
 
 (ftype "(declaim (ftype (function (" (p "arg-type-1 arg-type-2 ..." )") "
        (p "return-type") ") "
        (p "function-name" func-name)"))")
 
+(defun (i ftype) n>
+  "(defun " (s func-name) " (" p ")\n  \"" p "\"" n> r> ")")
+
 (the "(the "(p "type") " " (r "variable") ")")
 
 (deftype "(deftype " (p "Name Of Type") " ()"n>
-  "`(satisfies " (p "Predicate To Check Type") "))")
+         "`(satisfies " (p "Predicate To Check Type") "))")
 
 (typecase "(typecase " (r "variable")n>
           "(" (p "type")" "(p "(do this)")")"n>
           "(t "           (p "default")"))")
 
-(class "(defclass " (p "classname " classname) " ()"
-       "((" (p "slotname" slot) ;; " :reader " (format "%s-%s" classname slot)
-       n>
-       ;; ":initarg " (concat ":" slot)n>
-       ":type " (p "string")n>
-       ":initform " (p "default")n>
-       ":documentation \"" (p "Slot Description.")"\"))"n>
+(slot "(" (p "slotname" slot) n>
+      ":reader " (s slot) "*"n>
+      ":type " (p "String") n>
+      ":initarg "  (format ":%s" slot) n>
+      ":documentation \"A " (p "Slot Description.")"\")")
+
+(class "(defclass " (p "classname " classname) "* ()" n>
+       "(" (i slot) p ")" n>
        "(:documentation \"" (p "A general HTTP request.") "\"))")
 
-(defstruct "(defstruct "(p "Name") n> "("(p "slot")" " (p "default-value") " :type" (p "type") "))")
+(defstruct "(defstruct "(p "Name") n>
+           "("(p "slot")" " (p "default-value") " :type" (p "type") "))")
 
-(in-package "(defpackage " (p "my-package" package) n>
-            "(:use :cl " (p ":alexandria")"))"n>
-            "(in-package :" (s package) ")")
-
-(defpackage "(defpackage " (p "my-package")n>
+(defpackage "(defpackage " (p "my-package" package)n>
   "(:use :cl)"n>
   "(:import-from :" (p "alexandria")n>
-  (p ":with-gensyms :curry")"))")
+  (p ":with-gensyms :curry")")" p ")")
+
+(in-package (i defpackage) n>
+            "(in-package :" (s package) ")")
 
 (doc
  "Syntax:"n n
@@ -165,21 +176,23 @@ java-mode
 
 org-mode
 
-(title "#+title: " p n "#+author: Daniel Mendler" n "#+language: en" n n)
+(doublespace "#+LATEX_HEADER: \\usepackage{setspace}"n
+             "#+begin_export latex" n
+             "\\doublespacing" n
+             "#+end_export")
+(title "#+title: " p n "#+author: Gavin Jaeger-Freeborn" n "#+language: en" n n)
 (quote "#+begin_quote" n> r> n> "#+end_quote")
 (example "#+begin_example" n> r> n> "#+end_example")
 (center "#+begin_center" n> r> n> "#+end_center")
 (comment "#+begin_comment" n> r> n> "#+end_comment")
 (verse "#+begin_verse" n> r> n> "#+end_verse")
-
-(src "#+begin_src " p n> r> n> "#+end_src")
+(src "#+begin_src " p n> r> n> "#+end_src"
+     :post (org-edit-src-code))
 (lisp "#+begin_src lisp" n> r> n "#+end_src"
-      :post (progn (unless sly-port
-                     (sly))
-                   (tempel-done) (org-edit-src-code)))
+      :post (org-edit-src-code))
 
 (readmeorg
- "#+TITLE: " (p "Project title: ") n
+ (i title) n
  (p "A short, one-line description of the project: ") n
  n
  "* Overview" n
@@ -221,7 +234,16 @@ sh-mode
 haskell-mode
 
 (main "main :: IO ()"n
-      "main = do print " (p "hello world"))
+      "main = do print " (p "hello world") q)
+
+
+haskell-mode purescript-mode
+(case "case " (r "var") " of" n>
+      (p "cond") " -> " q)
+(module "module " (p "Module") " where")
+(instance "instance " (p "(Show a) => ") (p "Ord") " " (p "DataType") "where")
+(error "(error \"TODO\")" q)
+
 
 html-mode web-mode
 
@@ -265,18 +287,6 @@ c++-mode
 (map
  "std::map<"(p "KeyType")", "(p "ValueType")"> "(p "Name")";")
 
-;; ## STL smart pointers
-;; # std::shared_ptr
-;; snippet msp
-;; 	std::shared_ptr<${1:T}> ${2} = std::make_shared<$1>(${3});
-;; snippet amsp
-;; 	auto ${1} = std::make_shared<${2:T}>(${3});
-;; # std::unique_ptr
-;; snippet mup
-;; 	std::unique_ptr<${1:T}> ${2} = std::make_unique<$1>(${3});
-;; snippet amup
-;; 	auto ${1} = std::make_unique<${2:T}>(${3});
-
 (class
  "/*! \\class " (p "ClassName" name)n>
  "*  \\brief " (p "Short Description Of Class")n>
@@ -292,33 +302,6 @@ c++-mode
  (s name)"("(s ptype)" "(s pname)");"n>
  "virtual ~"(s name)"();"n
  "};")
-
-;; # member function implementation
-;; snippet mfun
-;; 	${4:void} ${1:`vim_snippets#Filename('$1', 'ClassName')`}::${2:memberFunction}(${3}) {
-;; 		${0}
-;; 	}
-
-;; ##
-;; ## Input/Output
-;; # std::cout
-;; snippet cout
-;; 	std::cout << ${1} << std::endl;
-;; # std::cin
-;; snippet cin
-;; 	std::cin >> ${1};
-
-
-;; # foreach
-;; snippet fore
-;; 	for (${1:auto} ${2:i} : ${3:container}) {
-;; 		${4}
-;; 	}
-
-;; ## Lambdas
-;; # lamda (one line)
-;; snippet ld
-;; 	[${1}](${2}){${3}};
 
 cmake-mode
 
@@ -349,7 +332,7 @@ endif()"
 rust-mode
 
 (main "pub fn main() {"n>
-      "// your code here"n
+      q "// your code here"n
       "}")
 
 (test "#[test]"n
@@ -360,8 +343,66 @@ rust-mode
 (match "match " (p "var") " {"n>
        (p "pattern x") " => " (p "1 + x")n
        "}")
+
 (derive "#[derive(" (p "Debug") ")]")
+
 (enum "pub enum " (p "NameOfSumType") " {" n>
       (p "Constructor1") "(" (p "")")," n
       "}")
-(struct "struct " (p "Foo") " {" n> (p "bar") ": " (p "i32")"," n "}")
+
+(struct "struct " (p "Foo") " {" n>
+        (p "bar") ": " (p "i32")"," n
+        "};")
+
+(print "println!(\"Results: {}\", " r ");")
+
+go-mode
+
+(imp "import " q)
+(impn "import (" n> q n ")")
+
+(pr "fmt.Printf(\"\\n" p "\\n%#v\\n\", " q ")")
+(pl "fmt.Println(" q ")")
+
+(db "Debug.Printf(\"\\n" p "\\n\\n%#v\\n\", " q ")")
+(dl "Debug.Println(" q ")")
+
+(lf "log.Printf(\"\\n%#v\\n\", " q ")")
+(ln "log.Println(" q ")")
+
+(str "type " p " struct {" n> q n> "}")
+
+(inf "type " p " interface {" n> q n> "}")
+
+(cnt "const" p " = " q )
+
+(const "const(" n> p " = " q n> ")")
+
+(var "var " p " " q)
+
+(map "map[" p "]" q)
+
+(if "if " p " {" n> q n>"}")
+
+(iferr "if err != nil {" n> q n> "}")
+
+(sel "select {" n> "case " p ":" n> q "}")
+
+(swch "switch " p " {" n> "case " p ":" q "}")
+
+(for "for " p "{" n> q n> "}")
+
+(range "for " (p "needle" ) " := range " (p "haystack") " {" n> q n> "}")
+
+(fnc "func " p "(" p ") {" n> q n> "}")
+
+(main "func main() {" n> q n> "}")
+
+(init "func init() {" n> q n> "}")
+
+(test "func Test" p " (t *testing.T) { " n> q n> "}")
+
+;; Local Variables:
+;; mode: lisp-data
+;; outline-regexp: "[a-z]"
+;; End:
