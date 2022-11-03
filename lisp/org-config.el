@@ -176,15 +176,7 @@
   (setq-default org-download-screenshot-method "gnome-screenshot -a -f %s")
   (setq-default org-download-image-dir "./pic"))
 
-;; (use-package plain-org-wiki
-;;   :bind ("C-c C-x C-m" . plain-org-wiki)
-;;   :init
-;;   (setq plain-org-wiki-directory (concat org-directory "/wiki")))
-
 ;;;; Better Looking Bullets
-;; (use-package org-superstar
-;;   :hook (org-mode . org-superstar-mode))
-
 (use-package org-modern
   :commands (org-modern-mode org-modern-agenda)
   :init
@@ -200,18 +192,17 @@
   :ensure nil
   :after org
   :config
-  (add-to-list 'org-structure-template-alist '("sh"  . "src sh"))
-  (add-to-list 'org-structure-template-alist '("el"  . "src emacs-lisp"))
-  (add-to-list 'org-structure-template-alist '("vim" . "src vim"))
-  (add-to-list 'org-structure-template-alist '("cpp" . "src C++ :includes <iostream>  :namespaces std")))
+  (let ((templates '(("sh"  . "src sh")
+                     ("el"  . "src emacs-lisp")
+                     ("vim" . "src vim")
+                     ("cpp" . "src C++ :includes <iostream>  :namespaces std"))))
+       (dolist (template templates)
+         (push template org-structure-template-alist))))
 
-(use-package org-visibility
-  :after org
-  :ensure t
-  :hook (org-mode . org-visibility-mode)
-  :custom
-  (org-visibility-include-paths (list org-directory
-                                      "~/.local/Dropbox/DropsyncFiles/vimwiki/School/SENG475")))
+(use-package org-noter
+  :after (pdf-tools)
+  :init
+  (setq org-noter-notes-search-path '("~/Documents/org/")))
 
 (use-package org-transclusion
   :after org
@@ -225,6 +216,7 @@
 (use-package org-yaap
   :ensure nil
   :after org
+  :defer 5
   :quelpa (org-yaap :fetcher gitlab :repo "tygrdev/org-yaap")
   :custom
   (org-yaap-altert-severity 'critical)
