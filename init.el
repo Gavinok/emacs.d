@@ -362,7 +362,7 @@
            ("C-x C-SPC"   . consult-global-mark)
            ("C-x M-:"     . consult-complex-command)
            ("C-c n"       . consult-org-agenda)
-           ("C-c S-n"     . my/notegrep)
+           ("C-c m"     . my/notegrep)
            :map dired-mode-map
            ("O" . consult-file-externally)
            :map help-map
@@ -426,7 +426,60 @@
   (defun search-in-source-graph (text))
   (defun dragon-drop (file)
     (start-process-shell-command "dragon-drop" nil
-                                 (concat "dragon-drag-and-drop " file))))
+                                 (concat "dragon-drop " file))))
+(require 're-builder)
+(defvar my/re-builder-positions nil
+    "Store point and region bounds before calling re-builder")
+
+(advice-add 're-builder
+              :before
+              (defun my/re-builder-save-state (&rest _)
+                "Save into `my/re-builder-positions' the point and region
+positions before calling `re-builder'."
+                          (setq my/re-builder-positions
+                                (cons (point)
+                                      (when (region-active-p)
+                                        (list (region-beginning)
+                                              (region-end)))))))
+
+(use-package re-builder
+  :bind
+  (("C-M-%" . re-builder)
+   :map reb-mode-map
+   ("RET" . reb-replace-regexp)
+   :map reb-lisp-mode-map
+   ("RET" . reb-replace-regexp))
+  :init
+  (setq reb-re-syntax #'rx)
+  :config
+  (defun reb-replace-regexp (&optional delimited)
+    "Run `query-replace-regexp' with the contents of re-builder. With
+non-nil optional argument DELIMITED, only replace matches
+surrounded by word boundaries."
+    (interactive "P")
+    (reb-update-regexp)
+    (let* ((re (reb-target-binding reb-regexp))
+           (replacement (query-replace-read-to
+                         re
+                         (concat "Query replace"
+                                 (if current-prefix-arg
+                                     (if (eq current-prefix-arg '-) " backward" " word")
+                                   "")
+                                 " regexp"
+                                 (if (with-selected-window reb-target-window
+                                       (region-active-p)) " in region" ""))
+                         t))
+           (pnt (car my/re-builder-positions))
+           (beg (cadr my/re-builder-positions))
+           (end (caddr my/re-builder-positions)))
+      (with-selected-window reb-target-window
+        (goto-char pnt) ; replace with (goto-char (match-beginning 0)) if you want
+                                        ; to control where in the buffer the replacement starts
+                                        ; with re-builder
+        (setq my/re-builder-positions nil)
+        (reb-quit)
+        (query-replace-regexp re replacement delimited beg end)))))
+
 ;;;; Code Completion
 (use-package corfu
   ;; Optional customizations
@@ -455,12 +508,12 @@
   (global-corfu-mode)
   (corfu-history-mode)
   :config
+  (setq tab-always-indent 'complete)
   (add-hook 'eshell-mode-hook
             (lambda () (setq-local corfu-quit-at-boundary t
                               corfu-quit-no-match t
                               corfu-auto nil)
               (corfu-mode))))
-
 ;; Add extensions
 (use-package cape
   :defer 10
@@ -484,6 +537,8 @@
   :bind (("M-+" . tempel-insert) ;; Alternative tempel-expand
          :map tempel-map
          ([remap keyboard-escape-quit] . tempel-done)
+         ("TAB" . tempel-next)
+         ("<backtab>" . tempel-previous)
          :map corfu-map
          ("C-M-i" . tempel-expand))
   :init
@@ -509,21 +564,21 @@
   (embark-collect-mode . consult-preview-at-point-mode))
 
 ;;; THEMEING
-;; (use-package spaceway-theme
-;;   :ensure nil
-;;   :load-path "lisp/spaceway/"
-;;   :config
-;;   (global-hl-line-mode t)
-;;   (set-cursor-color "#dc322f")
-;;   ;; (when my/my-system
-;;   ;;   (set-frame-parameter (selected-frame) 'alpha '(90 90))
-;;   ;;   (add-to-list 'default-frame-alist '(alpha 90 90)))
-;;   (load-theme 'spaceway t))
+(use-package spaceway-theme
+  :ensure nil
+  :load-path "lisp/spaceway/"
+  :config
+  (global-hl-line-mode t)
+  (set-cursor-color "#dc322f")
+  ;; (when my/my-system
+  ;;   (set-frame-parameter (selected-frame) 'alpha '(90 90))
+  ;;   (add-to-list 'default-frame-alist '(alpha 90 90)))
+  (load-theme 'spaceway t))
 
 (global-hl-line-mode t)
 (customize-set-value 'modus-themes-org-blocks 'gray-background
                      "Color background of code blocks gray.")
-(load-theme 'modus-vivendi t)
+;; (load-theme 'modus-vivendi t)
 (add-to-list 'default-frame-alist '(cursor-color . "magenta"))
 
 ;;; WRITING
@@ -669,7 +724,9 @@
           (project-magit "Magit" m)))
 
   (defvar project-root-markers
-    '(".git" "CMakeList.txt" "package.clj" "package.json" "mix.exs" "Project.toml" ".project" "Cargo.toml" "qlfile"))
+    '(".git" "spago.dhall" "CMakeList.txt" "package.clj"
+      "package.json" "mix.exs" "Project.toml" ".project" "Cargo.toml"
+      "qlfile"))
 
   (defun my/project-find-root (path)
     (let* ((this-dir (file-name-as-directory (file-truename path)))
@@ -812,6 +869,7 @@
           "\\*GDB.*out\\*"
           help-mode
           compilation-mode))
+  (setq popper-display-control 'user)
   (popper-mode +1))
 
 (use-package multiple-cursors
@@ -867,11 +925,43 @@
 (use-package hideshow
   :hook (prog-mode . hs-minor-mode)
   :bind (:map hs-minor-mode-map
-              ("<mouse-3>" . hs-toggle-hiding)
-              ("C-c  z z" . hs-toggle-hiding)
+              ("C-<tab>" . hs-cycle)
               ("C-c  z h" . hs-hide-all)
               ("C-c  z s" . hs-show-all))
   :init
+  (defun hs-cycle (&optional level)
+    (interactive "p")
+    (let (message-log-max
+          (inhibit-message t))
+      (if (= level 1)
+          (pcase last-command
+            ('hs-cycle
+             (hs-hide-level 1)
+             (setq this-command 'hs-cycle-children))
+            ('hs-cycle-children
+             ;; TODO: Fix this case. `hs-show-block' needs to be
+             ;; called twice to open all folds of the parent
+             ;; block.
+             (save-excursion (hs-show-block))
+             (hs-show-block)
+             (setq this-command 'hs-cycle-subtree))
+            ('hs-cycle-subtree
+             (hs-hide-block))
+            (_
+             (if (not (hs-already-hidden-p))
+                 (hs-hide-block)
+               (hs-hide-level 1)
+               (setq this-command 'hs-cycle-children))))
+        (hs-hide-level level)
+        (setq this-command 'hs-hide-level))))
+
+  (defun hs-global-cycle ()
+    (interactive)
+    (pcase last-command
+      ('hs-global-cycle
+       (save-excursion (hs-show-all))
+       (setq this-command 'hs-global-show))
+      (_ (hs-hide-all))))
   (set-display-table-slot
    standard-display-table
    'selective-display
@@ -925,7 +1015,6 @@
   ;; to enable the lenses
   (add-hook 'lsp-mode-hook #'lsp-lens-mode)
   (add-hook 'java-mode-hook #'lsp-java-boot-lens-mode))
-
 (use-package lsp-pyright
   :ensure t
   :after lsp-mode
@@ -956,14 +1045,41 @@
   (setq dap-auto-configure-features '(sessions locals controls tooltip)))
 
 ;;; Languages
+(use-package nvm
+  :ensure nil
+  :commands (my/nvm-use)
+  :quelpa (nvm :fetcher github :repo "rejeep/nvm.el")
+  :commands (nvm-use nvm-use-for-buffer)
+  :config
+  (setq nvm-dir (concat (getenv "HOME") "/.config/nvm"))
+  (defun my/nvm-use ()
+    (interactive)
+    (nvm-use (completing-read "Enter Node Version"
+                              '("16.17.1")))))
+;;;; Haskell
 (use-package haskell-mode :ensure t :mode "\\.hs\\'"
   ;; lets you use C-c C-l
+  :ensure t
   :init
   (add-hook 'haskell-mode-hook 'interactive-haskell-mode)
   (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
   (add-hook 'haskell-mode-hook 'haskell-indent-mode))
 (use-package flymake-hlint
   :hook (haskell-mode . flymake-hlint-load))
+
+;;;; PureScript
+(use-package purescript-mode :ensure t :mode "\\.purs\\'"
+  :config
+  (add-hook 'purescript-mode-hook 'purescript-indent-mode)
+  ;; Setup auto formatting for purescript
+  (push '(purs-tidy . ("purs-tidy format")) apheleia-formatters)
+  (setf (alist-get 'purescript-mode apheleia-mode-alist) '(purs-tidy)))
+(use-package psci
+  :ensure t
+  :after purescript-mode
+  :config
+  (add-hook 'purescript-mode-hook 'inferior-psci-mode))
+;;;; Rust
 (use-package rust-mode    :ensure t :mode "\\.rs\\'"
   :init
   ;; scratchpad for rust
@@ -972,6 +1088,7 @@
     :commands (rust-playground)
     :ensure t)
   (setq rustic-lsp-client 'eglot))
+;;;; Racket
 (use-package racket-mode  :ensure t :mode "\\.rkt\\'"
   :config
   (require 'racket-xp)
@@ -984,14 +1101,13 @@
 
 ;;; Clojure
 (use-package clojure-mode :ensure t :mode "\\.clj\\'")
-;; (use-package cider :ensure t :hook clojure-mode)
 
 ;;; Lisp
 (use-package sly
   :commands (sly sly-connect)
   :init
   (setq sly-symbol-completion-mode nil
-        sly-default-lisp 'sbcl
+        sly-default-lisp 'roswell
         ros-config (concat user-emacs-directory
                            "ros-conf.lisp")
         sly-lisp-implementations
@@ -1000,38 +1116,7 @@
           (ecl ("ecl") :coding-system utf-8-unix)
           (roswell ("ros" "-Q" "-l" ,ros-config "run"))
           (qlot ("qlot" "exec" "ros" "-l" ,ros-config "run" "-S" ".")
-                :coding-system utf-8-unix)))
-
-  ;; (defun qlot-sly ()
-  ;;   "Start a sly repl using qlot at the projects root"
-  ;;   (interactive)
-  ;;   (let ((dir (cdr (project-current))))
-  ;;     (if (cd dir)
-  ;;         (sly 'qlot)
-  ;;       (error (format "Failed to cd to %s" dir)))))
-
-  ;; (defun sly-critique-defun ()
-  ;;   "Lint this file with lisp-critic"
-  ;;   (interactive)
-  ;;   ;; (sly-eval-async '(ql:quickload :lisp-critic))
-  ;;   (let ((form (apply #'buffer-substring-no-properties
-  ;;                      (sly-region-for-defun-at-point))))
-  ;;     (sly-eval-async
-  ;;         `(cl:format  "~a" (list ,(read form)))
-  ;;       nil (sly-current-package))))
-
-  ;; (defun sly-critique-file ()
-  ;;   "Lint this file with lisp-critic"
-  ;;   (interactive)
-  ;;   (sly-eval-async '(ql:quickload :lisp-critic))
-  ;;   (sly-eval-async `(lisp-critic:critique ,(buffer-file-name))))
-
-  ;; (defun my/connect-to-stumpwm ()
-  ;;   (interactive)
-  ;;   (start-process-shell-command "stumpish start-slynk" nil
-  ;;                                "stumpish start-slynk")
-  ;;   (sly-connect "localhost" "4005"))
-  )
+                :coding-system utf-8-unix))))
 
 ;;;; Setup Folding For Programming
 (use-package elec-pair
@@ -1111,9 +1196,10 @@
   (bind-key (kbd "C-y") 'my/yank)
 
   ;; Avoid terminal binding confilct
-  (unless my/is-termux
-    (bind-key (kbd "M-[") #'puni-splice 'puni-mode-map)
-    (bind-key (kbd "M-]") #'puni-split 'puni-mode-map)))
+  ;; (unless my/is-termux
+  ;;   (bind-key (kbd "M-[") #'puni-splice 'puni-mode-map)
+  ;;   (bind-key (kbd "M-]") #'puni-split 'puni-mode-map))
+  )
 
 (use-package flymake
   :defer 10
@@ -1128,8 +1214,7 @@
 (use-package outline
   :hook ((prog-mode tex-mode) . outline-minor-mode)
   :bind (:map outline-minor-mode-map
-              (("C-<tab>" . outline-cycle)
-               ("<backtab>" . outline-cycle-buffer)
+              (("<backtab>" . outline-cycle-buffer)
                ("C-c u" . outline-up-heading)
                ("C-c j" . outline-forward-same-level)
                ("C-c k" . outline-backward-same-level)))
@@ -1172,7 +1257,9 @@
 
 (use-package prog-mode
   :ensure nil
-  :bind (("C-c RET" . emacs-lisp-macroexpand))
+  :bind (:map emacs-lisp-mode-map
+              (("C-c RET" . emacs-lisp-macroexpand)
+               ("C-c C-k" . eval-buffer)))
   :init
   ;; Make all scripts executable. Ya this might be sketch but I don't
   ;; mind
@@ -1258,6 +1345,19 @@
   :after password-store
   :config
   (auth-source-pass-enable))
+
+(use-package tab-bar
+  :config
+  (defun tab-bar-tab-name-format-comfortable (tab i)
+    "Add spacing to tab bar mode"
+    (propertize (concat " " (tab-bar-tab-name-format-default tab i) " ")
+                'face (funcall tab-bar-tab-face-function tab)))
+  (setq tab-bar-tab-name-format-function #'tab-bar-tab-name-format-comfortable)
+
+  (add-to-list 'tab-bar-format #'tab-bar-format-menu-bar)
+  ;; TODO Determin a better way to add some of my modeline to the tab bar
+  ;; (customize-set-variable 'tab-bar-format (cons #'tab-bar-format-global tab-bar-format))
+)
 
 ;;; MODELINE
 (unless my/is-terminal
@@ -1521,6 +1621,9 @@ This is needed to make sure that text is properly aligned.")
 (use-package pomm
   :commands (pomm pomm-third-time)
   :config
+  (pomm-mode-line-mode +1)
+  (setq pomm-audio-enabled t)
+  (setq pomm-work-period 20)
   (setq alert-default-style 'libnotify))
 
 ;;;; Use emacs instead of dmenu

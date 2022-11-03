@@ -8,7 +8,7 @@
   :after org
   :config
   (setq org-babel-clojure-backend 'cider)
-  ;; for exporting to markdown
+  ;; For exporting to markdown
   (require 'ox-md))
 
 (use-package org
@@ -35,7 +35,8 @@
   (setq org-ellipsis " ▾"
         org-hide-emphasis-markers t
         org-pretty-entities t
-        org-special-ctrl-a/e '(t . nil) ; C-e binding is pretty annoying to me
+        ;; C-e binding is pretty annoying to me
+        org-special-ctrl-a/e '(t . nil)
         org-special-ctrl-k t
         org-src-fontify-natively t
         org-fontify-whole-heading-line t
@@ -49,9 +50,11 @@
         org-hide-leading-stars t
         org-export-backends '(markdown ascii html icalendar latex odt)
         org-export-with-toc nil
-        org-agenda-timegrid-use-ampm t
         org-highlight-latex-and-related '(native)
         org-goto-auto-isearch nil
+        ;; make C-c a s work like googls
+        org-agenda-search-view-always-boolean t
+        org-agenda-timegrid-use-ampm t
         org-agenda-time-grid
         '((daily today require-timed remove-match)
           (800 830 1000 1030 1200 1230 1400 1430 1600 1630 1700 1730 1800 1830 2000 )
@@ -72,7 +75,7 @@
    '((haskell . t) (emacs-lisp . t) (shell . t) (python . t)
      (C . t) (lua . t) (dot . t) (java . t)
      (lisp . t) (clojure . t) (scheme . t)
-     (forth . t)))
+     (forth . t) (rust . t)))
   (setq org-confirm-babel-evaluate nil)
 ;;;; Agenda Views
   ;; Show effort estimates in agenda
