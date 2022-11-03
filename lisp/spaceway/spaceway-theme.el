@@ -11,7 +11,8 @@
 
 (let ((class '((class color) (min-colors 89)))
       (spaceway-fg "#CDCDCD")
-      (spaceway-bg (if (display-graphic-p) "#161A1F" ;; "#000000"
+      (spaceway-bg (if (display-graphic-p) ;; "#161A1F"
+                     "#000000"
                      nil))
       (spaceway-blue-0 "#7D8FA3")
       (spaceway-region "#8fafd7")

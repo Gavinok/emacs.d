@@ -1,6 +1,11 @@
 ;;; Startup
 ;; Minimize garbage collection during startup
-;; (setq gc-cons-threshold most-positive-fixnum)
+
+;; useful for quickly debugging emacs
+;; (setq debug-on-error t)
+
+(setq initial-scratch-message nil)
+
 (defvar file-name-handler-alist-old file-name-handler-alist)
 
 (setq file-name-handler-alist nil
@@ -11,7 +16,6 @@
              (setq file-name-handler-alist file-name-handler-alist-old)
              (setq gc-cons-threshold (* 2 1000 1000)))
           t)
-
 ;;; Backups
 (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
       vc-make-backup-files t
@@ -36,9 +40,9 @@
   (package-refresh-contents)
   (package-install 'use-package))
 (eval-when-compile (require 'use-package))
-(setq use-package-verbose t)
-(setq comp-async-report-warnings-errors nil)
-(setq comp-deferred-compilation t)
+(setq use-package-verbose t
+      comp-async-report-warnings-errors nil
+      comp-deferred-compilation t)
 
 ;; Install and load `quelpa-use-package'.
 (setq quelpa-update-melpa-p nil)
@@ -217,20 +221,23 @@
     ;; Enable pragmatapro-lig-mode for specific modes
     (add-hook 'text-mode-hook 'pragmatapro-lig-mode)
     (add-hook 'prog-mode-hook 'pragmatapro-lig-mode))
+
 ;;;; Defaults
   ;; Handle long lines
   (setq-default bidi-paragraph-direction 'left-to-right)
   (setq-default bidi-inhibit-bpa t)
   (global-so-long-mode 1)
 
-  (setq delete-by-moving-to-trash t
+  (setq use-dialog-box nil
+        delete-by-moving-to-trash t
         create-lockfiles nil
         auto-save-default nil
         inhibit-startup-screen t
-        ring-bell-function 'ignore)
-;;;; Have focus follow the mouse rather than requiring a click
-  (setq mouse-autoselect-window nil
+        ring-bell-function 'ignore
+        ;; Have focus follow the mouse rather than requiring a click
+        mouse-autoselect-window nil
         focus-follows-mouse nil)
+
 ;;;; UTF-8
   (prefer-coding-system 'utf-8)
 ;;;; Remove Extra Ui
@@ -250,8 +257,9 @@
     (fringe-mode))
 
   ;;TRAMP
-  (setq tramp-default-method "ssh")
-  (setq shell-file-name "bash")         ; don't use zsh
+  (setq tramp-default-method "ssh"
+        shell-file-name "bash")         ; don't use zsh
+
   ;; recentf
   (customize-set-value 'recentf-make-menu-items 150)
   (customize-set-value 'recentf-make-saved-items 150)
@@ -269,6 +277,32 @@
       (when old
         (set-marker old nil))))
   (advice-add 'push-mark :after #'my/push-mark-global))
+
+(defun eqn-to-tex (eqn-expression)
+  "Takes a eqn expression as a string string EQN-EXPRESSION and
+returns the equivalent latex version."
+  (calc-eval `(,eqn-expression
+	       calc-simplify-mode none
+	       calc-language eqn)
+	     'push)
+  (calc-eval '(1
+	       calc-simplify-mode none
+	       calc-language latex)
+	     'top))
+
+(defun echo-eqn-to-tex (eqn-expr &optional arg)
+  "Takes an eqn expression eqn-expr and prints a message with the
+latex version of it."
+  (interactive "sEnter eqn here: ")
+  (message (eqn-to-tex expr)))
+
+(defun eqn-to-tex-region (start end)
+  "Replaces the active region containing a eqn expression and
+replaces it with the Latex equivalent."
+  (interactive "r")
+  (let ((converted-expr (eqn-to-tex (filter-buffer-substring start end))))
+    (kill-region start end)
+    (insert converted-expr)))
 
 ;; Make ex mode avilable in emacs
 (use-package viper
@@ -295,13 +329,6 @@
 (defun qalc (&optional arg)
   (interactive)
   (comint-run "qalc"))
-
-(defun yall (&optional arg)
-  (interactive)
-  (comint-run
-   (concat"/home/gavinok/.local/Dropbox/DropsyncFiles/vimwiki/School/SENG475/assignments/project/"
-          "lisp")
-   '("-i")))
 
 ;;; TERMINAL SETTINGS
 (when my/is-terminal
@@ -337,9 +364,6 @@
 ;;; COMPLETION
 (use-package vertico
   :init
-  ;; :bind (:map vertico-map
-  ;;             ("d"  . vertico-directory-delete-char)
-  ;;             ("M-d" . vertico-directory-delete-word))
 ;;;; Out Of Order Compleiton
   (use-package orderless
     :commands (orderless)
@@ -357,8 +381,8 @@
            ("M-s l"       . consult-line)
            ("M-s L"       . consult-line-multi)
            ("M-s u"       . consult-focus-lines)
-           ("M-s g"       . consult-grep)
-           ("M-s M-g"     . consult-grep)
+           ("M-s g"       . consult-ripgrep)
+           ("M-s M-g"     . consult-ripgrep)
            ("C-x C-SPC"   . consult-global-mark)
            ("C-x M-:"     . consult-complex-command)
            ("C-c n"       . consult-org-agenda)
@@ -406,7 +430,8 @@
 (use-package embark
   :ensure t
   :bind
-  (("C-=" . embark-act)         ;; pick some comfortable binding
+  ;; pick some comfortable binding
+  (("C-=" . embark-act)
    ([remap describe-bindings] . embark-bindings)
    :map embark-file-map
    ("C-d" . dragon-drop)
@@ -427,71 +452,26 @@
   (defun dragon-drop (file)
     (start-process-shell-command "dragon-drop" nil
                                  (concat "dragon-drop " file))))
-(require 're-builder)
-(defvar my/re-builder-positions nil
-    "Store point and region bounds before calling re-builder")
 
-(advice-add 're-builder
-              :before
-              (defun my/re-builder-save-state (&rest _)
-                "Save into `my/re-builder-positions' the point and region
-positions before calling `re-builder'."
-                          (setq my/re-builder-positions
-                                (cons (point)
-                                      (when (region-active-p)
-                                        (list (region-beginning)
-                                              (region-end)))))))
-
-(use-package re-builder
-  :bind
-  (("C-M-%" . re-builder)
-   :map reb-mode-map
-   ("RET" . reb-replace-regexp)
-   :map reb-lisp-mode-map
-   ("RET" . reb-replace-regexp))
-  :init
-  (setq reb-re-syntax #'rx)
+(use-package visual-regexp
   :config
-  (defun reb-replace-regexp (&optional delimited)
-    "Run `query-replace-regexp' with the contents of re-builder. With
-non-nil optional argument DELIMITED, only replace matches
-surrounded by word boundaries."
-    (interactive "P")
-    (reb-update-regexp)
-    (let* ((re (reb-target-binding reb-regexp))
-           (replacement (query-replace-read-to
-                         re
-                         (concat "Query replace"
-                                 (if current-prefix-arg
-                                     (if (eq current-prefix-arg '-) " backward" " word")
-                                   "")
-                                 " regexp"
-                                 (if (with-selected-window reb-target-window
-                                       (region-active-p)) " in region" ""))
-                         t))
-           (pnt (car my/re-builder-positions))
-           (beg (cadr my/re-builder-positions))
-           (end (caddr my/re-builder-positions)))
-      (with-selected-window reb-target-window
-        (goto-char pnt) ; replace with (goto-char (match-beginning 0)) if you want
-                                        ; to control where in the buffer the replacement starts
-                                        ; with re-builder
-        (setq my/re-builder-positions nil)
-        (reb-quit)
-        (query-replace-regexp re replacement delimited beg end)))))
+  (define-key global-map (kbd "M-%") 'vr/replace)
+  (define-key global-map (kbd "C-M-%") 'vr/query-replace)
+  ;; if you use multiple-cursors, this is for you:
+  (define-key global-map (kbd "C-M->") 'vr/mc-mark))
 
 ;;;; Code Completion
 (use-package corfu
   ;; Optional customizations
   :custom
-  (corfu-cycle t)                  ; Allows cycling through candidates
-  (corfu-auto t)                   ; Enable auto completion
-  (corfu-auto-prefix 2)            ; Enable auto completion
-  (corfu-auto-delay 0.0)           ; Enable auto completion
-  (corfu-quit-at-boundary 'separator)
-  (corfu-echo-documentation 0.25)   ; Enable auto completion
-  (corfu-preview-current 'insert)   ; Do not preview current candidate
+  (corfu-cycle t)                 ; Allows cycling through candidates
+  (corfu-auto t)                  ; Enable auto completion
+  (corfu-auto-prefix 2)
+  (corfu-auto-delay 0.0)
+  (corfu-echo-documentation 0.25) ; Enable documentation for completions
+  (corfu-preview-current 'insert) ; Do not preview current candidate
   (corfu-preselect-first nil)
+  (corfu-on-exact-match nil)      ; Don't auto expand tempel snippets
 
   ;; Optionally use TAB for cycling, default is `corfu-complete'.
   :bind (:map corfu-map
@@ -514,13 +494,16 @@ surrounded by word boundaries."
                               corfu-quit-no-match t
                               corfu-auto nil)
               (corfu-mode))))
+
 ;; Add extensions
 (use-package cape
   :defer 10
+  :bind ("C-c f" . cape-file)
   :init
   ;; Add `completion-at-point-functions', used by `completion-at-point'.
-  (add-to-list 'completion-at-point-functions #'cape-file)
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (defalias 'dabbrev-after-2 (cape-capf-prefix-length #'cape-dabbrev 2))
+  (add-to-list 'completion-at-point-functions 'dabbrev-after-2 t)
+  (cl-pushnew #'cape-file completion-at-point-functions)
   :config
   ;; Silence then pcomplete capf, no errors or messages!
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
@@ -542,11 +525,27 @@ surrounded by word boundaries."
          :map corfu-map
          ("C-M-i" . tempel-expand))
   :init
+
+
   ;; Setup completion at point
   (defun tempel-setup-capf ()
     (setq-local completion-at-point-functions
-                (cons #'tempel-expand
-                      completion-at-point-functions))))
+                (cons #'tempel-complete
+                      completion-at-point-functions)))
+  (add-hook 'prog-mode-hook 'tempel-setup-capf)
+  (add-hook 'text-mode-hook 'tempel-setup-capf)
+  (add-hook 'lsp-mode-hook 'tempel-setup-capf)
+  (add-hook 'sly-mode-hook 'tempel-setup-capf)
+  :config
+  (defun tempel-include (elt)
+    (when (eq (car-safe elt) 'i)
+      (if-let (template (alist-get (cadr elt) (tempel--templates)))
+          (cons 'l template)
+        (message "Template %s not found" (cadr elt))
+        nil)))
+  (add-to-list 'tempel-user-elements #'tempel-include))
+
+
 
 ;; For uploading files
 (use-package 0x0
@@ -666,7 +665,8 @@ surrounded by word boundaries."
   :after eshell
   :config
   (add-to-list 'eshell-visual-options '("git" "--help" "--paginate"))
-  (add-to-list 'eshell-visual-commands '("htop" "top" "git" "log" "diff" "show" "less")))
+  (add-to-list 'eshell-visual-commands '("htop" "top" "git" "log" "diff"
+                                         "show" "less")))
 
 (use-package eshell
   :commands eshell
@@ -687,7 +687,7 @@ surrounded by word boundaries."
         (remove 'eshell-handle-ansi-color eshell-output-filter-functions))
   (setenv "TERM" "xterm-256color"))
 
-;; interactive opening of files image preview and more from any repl
+;; Interactive opening of files image preview and more from any repl
 (use-package shx
   :ensure t
   :hook (shell-mode . shx-mode))
@@ -743,7 +743,7 @@ surrounded by word boundaries."
                            project-root-markers)))
       (eval `(or ,@ results))))
 
-  (add-to-list 'project-find-functions #'my/project-find-root)) ; [built-in] Project Managment
+  (add-to-list 'project-find-functions #'my/project-find-root))
 
 ;;; COMPILATION
 (use-package compile
@@ -798,7 +798,7 @@ surrounded by word boundaries."
                       (filename . "OrgMode"))))))
   (add-hook 'ibuffer-mode-hook
             (lambda ()
-              (ibuffer-switch-to-saved-filter-groups "home")))) ; [built-in] Powerful interface for managing buffers
+              (ibuffer-switch-to-saved-filter-groups "home"))))
 
 ;;; ISEARCH
 (use-package isearch
@@ -823,7 +823,8 @@ surrounded by word boundaries."
   ;; C-g will return the cursor to it's orignal position
   (add-hook 'isearch-mode-end-hook 'my-goto-match-beginning)
   (defun my-goto-match-beginning ()
-    (when (and isearch-forward isearch-other-end (not isearch-mode-end-hook-quit))
+    (when (and isearch-forward isearch-other-end
+               (not isearch-mode-end-hook-quit))
       (goto-char isearch-other-end))))
 
 (use-package ffap
@@ -885,7 +886,12 @@ surrounded by word boundaries."
                 ("C-s" . phi-search)
                 ("C-r" . phi-search-backward)
                 ("C-w" . kill-region)
-                ("C-w" . yank))))
+                ("C-w" . kill-region)))
+  (defun toggle-corfu-auto-for-mc (&optional arg)
+    (if multiple-cursors-mode
+        (corfu-mode -1)
+      (corfu-mode 1)))
+  (cl-pushnew 'toggle-corfu-auto-for-mc multiple-cursors-mode-hook))
 
 (load (concat user-emacs-directory
               "lisp/evil-config.el"))
@@ -908,6 +914,8 @@ surrounded by word boundaries."
 (use-package hippie-exp
   :bind ([remap dabbrev-expand] . hippie-expand)
   :commands (hippie-expand)
+  :custom
+  (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'"))
   :config
   (setq hippie-expand-try-functions-list
         '(try-expand-dabbrev
@@ -965,7 +973,8 @@ surrounded by word boundaries."
   (set-display-table-slot
    standard-display-table
    'selective-display
-   (let ((face-offset (* (face-id 'font-lock-comment-face) (lsh 1 22))))
+   (let ((face-offset (* (face-id 'font-lock-comment-face)
+                         (lsh 1 22))))
      (vconcat (mapcar (lambda (c) (+ face-offset c)) " ▾")))))
 
 ;; Automatic code formatting
@@ -975,7 +984,6 @@ surrounded by word boundaries."
   (apheleia-global-mode +1))
 
 ;;; LSP
-
 ;; Should boost performance with lsp
 ;; https://emacs-lsp.github.io/lsp-mode/page/performance/
 (setenv "LSP_USE_PLISTS" "1")
@@ -994,6 +1002,7 @@ surrounded by word boundaries."
          (rust-mode . lsp-deferred))
   :commands (lsp lsp-deferred)
   :init
+  (setq lsp-clients-clangd-args '("--header-insertion-decorators=0" "--enable-config"))
   ;; Increase the amount of data emacs reads from processes
   (setq read-process-output-max (* 1024 1024))
   (setq lsp-enable-snippet nil)
@@ -1005,12 +1014,14 @@ surrounded by word boundaries."
   (setq lsp-keymap-prefix "C-x L")
   (add-hook 'lsp-completion-mode-hook
             (lambda ()
-              (setf (alist-get 'lsp-capf completion-category-defaults) '((styles . (orderless flex)))))))
+              (setf (alist-get 'lsp-capf completion-category-defaults)
+                    '((styles . (orderless flex)))))))
 :config
 (use-package lsp-haskell :ensure t :hook (haskell-mode . lsp-deferred))
 (use-package lsp-java :ensure t :hook (java-mode . lsp-deferred)
   :config
   (require 'lsp-java-boot)
+
 
   ;; to enable the lenses
   (add-hook 'lsp-mode-hook #'lsp-lens-mode)
@@ -1052,10 +1063,32 @@ surrounded by word boundaries."
   :commands (nvm-use nvm-use-for-buffer)
   :config
   (setq nvm-dir (concat (getenv "HOME") "/.config/nvm"))
-  (defun my/nvm-use ()
-    (interactive)
-    (nvm-use (completing-read "Enter Node Version"
-                              '("16.17.1")))))
+  (defun my/nvm-use () (interactive)
+    (nvm-use
+     (completing-read "Enter Node Version" '("16.17.1")))))
+
+(use-package consult-recoll
+  :bind (("M-s r" . consult-recoll)
+         ("C-c I" . recoll-index))
+  :init
+  (setq consult-recoll-inline-snippets t)
+  :config
+  (defun recoll-index (&optional arg) (interactive)
+    (start-process-shell-command "recollindex"
+                                 "*recoll-index-process*"
+                                 "recollindex")))
+
+(use-package org-recoll
+  :ensure nil
+  :commands (my/nvm-use)
+  :quelpa (nvm :fetcher github :repo "rejeep/nvm.el")
+  :commands (nvm-use nvm-use-for-buffer)
+  :config
+  (setq nvm-dir (concat (getenv "HOME") "/.config/nvm"))
+  (defun my/nvm-use () (interactive)
+    (nvm-use
+     (completing-read "Enter Node Version" '("16.17.1")))))
+
 ;;;; Haskell
 (use-package haskell-mode :ensure t :mode "\\.hs\\'"
   ;; lets you use C-c C-l
@@ -1064,21 +1097,71 @@ surrounded by word boundaries."
   (add-hook 'haskell-mode-hook 'interactive-haskell-mode)
   (add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
   (add-hook 'haskell-mode-hook 'haskell-indent-mode))
-(use-package flymake-hlint
-  :hook (haskell-mode . flymake-hlint-load))
 
 ;;;; PureScript
 (use-package purescript-mode :ensure t :mode "\\.purs\\'"
   :config
   (add-hook 'purescript-mode-hook 'purescript-indent-mode)
   ;; Setup auto formatting for purescript
-  (push '(purs-tidy . ("purs-tidy format")) apheleia-formatters)
+  (push '(purs-tidy . ("purty")) apheleia-formatters)
   (setf (alist-get 'purescript-mode apheleia-mode-alist) '(purs-tidy)))
 (use-package psci
   :ensure t
   :after purescript-mode
   :config
   (add-hook 'purescript-mode-hook 'inferior-psci-mode))
+
+;;;; WEB
+(use-package web-mode
+  :mode
+  ("\\.tsx\\'"
+   "\\.html\\'")
+  :bind (:map web-mode-map
+              ("C-M-i" . completion-at-point)
+              ("C-M-u" . web-mode-element-parent)
+              ("C-M-d" . web-mode-element-child))
+  :init
+  (setq web-mode-auto-close-style 2)
+  :config
+  (add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode)))
+
+(use-package emmet-mode
+  :hook ((js-jsx-mode typescript-mode) emmet-jsx-major-modes)
+  :bind
+  ("C-j" . emmet-expand-line)
+  (:map emmet-mode-keymap
+        ("M-}" . emmet-next-edit-point)
+        ("M-{" . emmet-prev-edit-point))
+  :config
+  (defun my/emmet-expand-capf ()
+    (let ((bounds (bounds-of-thing-at-point 'symbol))
+          (tap (thing-at-point 'symbol)))
+      (list (car bounds) (cdr bounds)
+            ;; Just return the symbol at point to so completion will be possible
+            ;; TODO Determine if there is a less hacky option
+            (lambda (string pred action) (list (thing-at-point 'symbol)))
+            ;; Annotate with what emmet expands to
+            ;; TODO find a way for this to show since right now
+            ;; corfu doesn't display this on a single completion
+            :annotation-function (lambda (str) (emmet-transform str))
+            ;; Don't try to complete with emmet if there is no possible
+            ;; expansion
+            :predicate (not (string= (emmet-transform tap)
+                                     tap))
+            ;; Expand Emmet Template On Match
+            :exit-function (lambda (str status)
+                             (when (eql status 'finished)
+                               (emmet-expand-line nil)))
+            ;; Allow for other completions to follow
+            :exlcusive 'no)))
+
+  (defun emmet-setup-capf ()
+    (setq-local completion-at-point-functions
+                (add-to-list 'completion-at-point-functions
+                             'my/emmet-expand-capf
+                             t)))
+  (add-hook 'emmet-mode-hook 'emmet-setup-capf))
 ;;;; Rust
 (use-package rust-mode    :ensure t :mode "\\.rs\\'"
   :init
@@ -1124,24 +1207,12 @@ surrounded by word boundaries."
   :init
   (electric-pair-mode t))
 (use-package puni
-  ;; :hook (;; use strict mode for programming languages and repls
-  ;;        (prog-mode cider-repl-mode eshell-mode
-  ;;                   fennel-repl-mode geiser-repl-mode inferior-emacs-lisp-mode
-  ;;                   inferior-lisp-mode inferior-scheme-mode lisp-interaction-mode
-  ;;                   racket-repl-mode scheme-interaction-mode sly-mrepl-mode)
-  ;;        . puni-strict-mode)
-  ;; (defun my/kill-sexp (&optional arg)
-  ;;   (interactive)
-  ;;   (progn (puni-expand-region)
-  ;;          (kill-region arg)))
+  :hook ((calc-mode term vterm) . #'puni-disable-puni-mode)
   :bind (("C-c s" . puni-mode)
          :map puni-mode-map
          ("C-c DEL" . flyspell-correct-previous)
          ("M-e"   . puni-end-of-sexp)
          ("M-a"   . puni-beginning-of-sexp)
-         ;; ("C-M-u" . (lambda (&optional arg)
-         ;;              (interactive)
-         ;;              (up-list -1)))
          ("C-M-f" . forward-sexp)
          ("C-M-b" . backward-sexp)
          ("C-)"   . puni-slurp-forward)
@@ -1149,23 +1220,36 @@ surrounded by word boundaries."
          ("C-}"   . puni-barf-forward)
          ("C-9"   . puni-slurp-backward)
          ("C-{"   . puni-barf-backward)
-         ("C-M-j" . sp-join-sexp)
+         ;; ("C-M-j" . sp-join-sexp)
          ("C-M-t" . puni-transpose)
-         ("C-M-k" . kill-sexp)
+         ("C-M-k" . puni-kill-thing-at-point)
          ("C-M-?" . puni-convolute)
          ("C-k"   . puni-kill-line)
          ("M-k"   . kill-sexp)
-         ("M-k"   . kill-sexp)
          ("S-SPC" . puni-expand-region)
-         ;; ("C-M-w" . sp-copy-sexp)
-         ;; ("M-C"   . sp-clone-sexp)
+         ("M-C"   . puni-clone-thing-at-point)
+         ("C-M-z" . puni-squeeze)
          ("C-M-z" . puni-squeeze)
          ("M-<backspace>" . backward-kill-word)
-         ("C-w" . my/kill-region))
+         ("C-w" . kill-region))
   :init
   (puni-global-mode t)
   :config
-  (add-hook 'term-mode-hook #'puni-disable-puni-mode)
+  (defun puni-kill-thing-at-point (&optional arg)
+    "Kill the next puni based thing at point"
+    (interactive)
+    (unless buffer-read-only
+      (puni-expand-region)
+      (kill-region (region-beginning) (region-end))))
+
+  (defun puni-clone-thing-at-point (&optional arg)
+    "Clone the next puni based thing at point"
+    (interactive)
+    (save-excursion
+      (puni-expand-region)
+      (kill-ring-save (region-beginning) (region-end)))
+    (yank)
+    (default-indent-new-line))
 
   ;;;; Better Killing And Yanking
   (setq rectangle-mark-mode nil)
@@ -1174,9 +1258,9 @@ surrounded by word boundaries."
   (defun remember-last-kill-type (&rest d)
     (setq *last-kill-was-rectangle* rectangle-mark-mode))
 
-  (advice-add 'kill-region :before #'remember-last-kill-type)
-  (advice-add 'kill-ring-save :before #'remember-last-kill-type)
-  (advice-add 'kill-rectangle :before #'remember-last-kill-type)
+  ;; (advice-add 'kill-region :before #'remember-last-kill-type)
+  ;; (advice-add 'kill-ring-save :before #'remember-last-kill-type)
+  ;; (advice-add 'kill-rectangle :before #'remember-last-kill-type)
 
   (defun my/kill-region (BEG END &optional REGION)
     (interactive (list (mark) (point) 'region))
@@ -1187,18 +1271,15 @@ surrounded by word boundaries."
                    (region-beginning) (region-end)))
      (t (backward-kill-sexp 1))))
 
-  (defun my/yank (&optional arg)
-    (interactive)
+  (defun my/yank (&optional arg) (interactive)
     (if *last-kill-was-rectangle*
         (yank-rectangle)
       (yank arg)))
 
-  (bind-key (kbd "C-y") 'my/yank)
-
   ;; Avoid terminal binding confilct
-  ;; (unless my/is-termux
-  ;;   (bind-key (kbd "M-[") #'puni-splice 'puni-mode-map)
-  ;;   (bind-key (kbd "M-]") #'puni-split 'puni-mode-map))
+  (unless my/is-termux
+    (bind-key (kbd "M-[") #'puni-splice 'puni-mode-map)
+    (bind-key (kbd "M-]") #'puni-split 'puni-mode-map))
   )
 
 (use-package flymake
@@ -1274,9 +1355,12 @@ surrounded by word boundaries."
                               (setq show-trailing-whitespace t)))
   (add-hook 'emacs-lisp-mode-hook
             (lambda () (add-hook 'local-write-file-hooks 'check-parens)))
+
+  (global-prettify-symbols-mode)
   (add-hook 'emacs-lisp-mode-hook 'prettify-symbols-mode)
   (add-hook 'lisp-mode-hook 'prettify-symbols-mode)
   (add-hook 'python-mode    'prettify-symbols-mode)
+
   (add-hook 'lisp-mode-hook #'(lambda () (setq indent-tabs-mode nil)))
 
 ;;;;; Smart Indentation
@@ -1299,7 +1383,10 @@ surrounded by word boundaries."
   :defer t
   :init (defun pulse-line (&rest _)
           (pulse-momentary-highlight-one-line (point)))
-  (dolist (command '(other-window windmove-do-window-select mouse-set-point mouse-select-window))
+  (dolist (command '(other-window
+                     windmove-do-window-select
+                     mouse-set-point
+                     mouse-select-window))
     (advice-add command :after #'pulse-line)))
 
 ;;;; Display hex colors in emacs
@@ -1360,111 +1447,14 @@ surrounded by word boundaries."
 )
 
 ;;; MODELINE
+(load (concat user-emacs-directory
+              "lisp/modeline.el"))
+
 (unless my/is-terminal
   (setq-default left-margin-width 2)
   (setq-default right-margin-width 2))
 (set-window-buffer nil (current-buffer))
 
-(defvar ml-text-scale-factor 1.0
-  "Scale of mode-line font size to default font size, as a float.
-This is needed to make sure that text is properly aligned.")
-
-(defun ml-fill-to-center (reserve face)
-  "Return empty space to the center, leaving RESERVE space on the right."
-  (when ml-text-scale-factor
-    (setq reserve (* ml-text-scale-factor reserve)))
-  (propertize " "
-              'display `((space :align-to (- (+ center (.5 . right-margin))
-                                             ,reserve
-                                             (.5 . left-margin))))
-              'face face))
-
-(defun ml-fill-to-right (reserve face)
-  "Return empty space, leaving RESERVE space on the right."
-  (when ml-text-scale-factor
-    (setq reserve (* ml-text-scale-factor reserve)))
-  (when (and window-system (eq 'right (get-scroll-bar-mode)))
-    (setq reserve (- reserve 2))) ; Powerline uses 3 here, but my scrollbars are narrower.
-  (propertize " "
-              'display `((space :align-to (- (+ right right-fringe right-margin)
-                                             ,reserve)))
-              'face face))
-
-(defun ml-render-2-part (left right &optional fill-face)
-  (concat left
-          (ml-fill-to-right (string-width (format-mode-line right)) fill-face)
-          right))
-
-
-;; determin the focused window
-(defvar cogent-line-selected-window (frame-selected-window))
-(defun cogent-line-set-selected-window (&rest _args)
-  (when (not (minibuffer-window-active-p (frame-selected-window)))
-    (setq cogent-line-selected-window (frame-selected-window))
-    (force-mode-line-update)))
-(defun cogent-line-unset-selected-window ()
-  (setq cogent-line-selected-window nil)
-  (force-mode-line-update))
-(defun cogent-line-selected-window-active-p ()
-  (eq cogent-line-selected-window (selected-window)))
-
-(add-hook 'window-configuration-change-hook #'cogent-line-set-selected-window)
-;; (add-hook 'focus-in-hook #'cogent-line-set-selected-window)
-;; (add-hook 'focus-out-hook #'cogent-line-unset-selected-window)
-;; (advice-add 'handle-switch-frame :after #'cogent-line-set-selected-window)
-(add-hook 'window-selection-change-functions #'cogent-line-set-selected-window)
-
-(setq-default mode-line-format
-              `(" "
-                ;; indicate if the buffer has been modified
-                (:eval (propertize
-                        (if (and (not buffer-read-only) (buffer-modified-p))
-                            "● " "  " )
-                        'face 'error))
-
-                ;; Buffer name (no longer than 1/3 of the screen)
-                mode-line-buffer-identification
-                ;; (:eval (concat  (let ((bname (buffer-name (current-buffer)))
-                ;;                       (max-len (/ (window-total-width) 3)))
-                ;;                   (if (> (length bname) max-len)
-                ;;                       (substring bname 0 max-len)
-                ;;                     bname))))
-                ;; value of current line number
-                " "
-                " %l:%c"
-                (:eval (propertize
-                        (concat " %p%"
-                                " "
-                                "「 %m 」")
-                        'face (if (cogent-line-selected-window-active-p)
-                                  'shadow
-                                'mode-line-inactive)))
-
-                ;; I still have yet to come up with a better option
-                (:eval
-                 (propertize " " 'display
-	                     `((space :align-to
-			              (- (+ right right-fringe right-margin)
-			                 ,(string-width (format-mode-line mode-line-misc-info)))))))
-                mode-line-misc-info))
-
-
-(use-package time
-  :defer 10
-  :config
-  (defface my/display-time
-    '((((type x w32 mac))
-       ;; #060525 is the background colour of my default face.
-       (:foreground "#060525" :inherit bold))
-      (((type tty))
-       (:foreground "blue")))
-    "Face used to display the time in the mode line.")
-  (setq display-time-string-forms
-        '((propertize (concat " " 12-hours ":" minutes " " am-pm " ")
-                      'face 'my/display-time)))
-  (set-face-attribute 'my/display-time nil :foreground "#fff" :background "#333"
-                      :box '(:line-width 1 :color "#323"))
-  (display-time-mode t))
 
 ;;; Server Setup
 (use-package server
@@ -1553,20 +1543,35 @@ This is needed to make sure that text is properly aligned.")
       (let ((scene (completing-read "Select OBS Command"
                                     '("Intermission"
                                       "Desktop"))))
-        (obs-websocket-send "SetCurrentScene" :scene-name scene))))
-
-;;; Xournal support in org files
-  (use-package org-xournalpp
-    :ensure t
-    :quelpa (org-xournalpp :fetcher gitlab :repo "vherrmann/org-xournalpp" :files ("*.el" "resources"))
-    :bind ("C-c x" . org-xournalpp-insert-new-image)
-    :config
-    (add-hook 'org-mode-hook 'org-xournalpp-mode)))
+        (obs-websocket-send "SetCurrentScene" :scene-name scene)))))
 
 (use-package evil-numbers
   :ensure t
   :bind (("C-x n a" . evil-numbers/inc-at-pt)
          ("C-x n x" . evil-numbers/dec-at-pt)))
+
+(use-package god-mode
+  :ensure t
+  :bind ((";" . god-local-mode)
+         :map god-local-mode-map
+              (";" . insert-appos-from-god)
+              ("i" . god-local-mode)
+              ("u" . undo-only))
+  :config
+  (defun insert-appos-from-god ()
+    (interactive)
+    (insert ";")
+    (god-local-mode -1))
+  (setq god-mode-alist '((nil . "C-")
+                         ("G" . "M-")
+                         ("g" . "C-M-")))
+  (defun my-god-mode-update-mode-line ()
+    (cond (god-local-mode (set-face-attribute 'cursor nil
+                                              :background "#fff29a"))
+          (t (set-face-attribute 'cursor nil
+                                 :background "magenta"))))
+
+  (add-hook 'post-command-hook 'my-god-mode-update-mode-line))
 
 (use-package repeat
   :defer 10
@@ -1574,31 +1579,12 @@ This is needed to make sure that text is properly aligned.")
   :init
   (repeat-mode +1))
 
-;; (use-package carp-mode
-;;   :ensure nil
-;;   :quelpa (carp-mode :fetcher github :repo "carp-lang/carp-emacs")
-;;   :config
-;;   (require 'carp-mode)
-;;   (require 'inf-carp-mode)
-;;   (require 'carp-flycheck)
-;;   (add-hook 'carp-mode-hook
-;;           (lambda ()
-;;             (flycheck-mode 1))))
-
 (use-package repeaters
   :ensure nil
   :quelpa (repeaters :fetcher github :repo "mmarshall540/repeaters")
   :config
   (repeaters-define-maps
-   '(("Lines"
-      next-line "C-n" "n"
-      previous-line "C-p" "p")
-     ("NAV"
-      puni-forward-sexp "C-M-f" "f"
-      puni-backward-sexp "C-M-b" "b"
-      backward-up-list "C-M-u" "u"
-      down-list "C-M-d" "d")
-     ("Errors"
+   '(("Errors"
       flymake-goto-prev-error "p"
       flymake-goto-next-error "n")
      ("Nums"
@@ -1655,3 +1641,4 @@ dmenu like interface"
     (load (concat user-emacs-directory f))))
 (put 'set-goal-column 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
+

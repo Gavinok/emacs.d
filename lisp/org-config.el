@@ -82,15 +82,21 @@
   (setq org-agenda-columns-add-appointments-to-effort-sum t)
   (when my/my-system
     (let ((school-notes "~/.local/Dropbox/DropsyncFiles/vimwiki/School"))
-      (setq org-agenda-files (seq-filter (lambda (x) (not (string-match "completed.org" x)))
-                                         (directory-files-recursively org-directory "\\.org$")))
+      (setq org-agenda-files
+            (seq-filter (lambda (x) (not (string-match "completed.org" x)))
+                        (directory-files-recursively org-directory "\\.org$")))
       (if (file-directory-p school-notes)
-          (setq org-agenda-files (append org-agenda-files
-                                         (directory-files-recursively school-notes "\\.org$"))))))
+          (setq org-agenda-files
+                (append org-agenda-files
+                        (directory-files-recursively school-notes "\\.org$"))))))
   (setq org-agenda-custom-commands
         '(("d" "Today's Tasks"
            ((agenda "" ((org-agenda-span 1)
-                        (org-agenda-overriding-header "Today's Tasks")))))
+                        (org-agenda-overriding-header "Today's Tasks")
+                        ))))
+          ("." "Todays Agenda"
+           ((agenda "" ((org-agenda-span 1)
+                        (org-agenda-skip-deadline-prewarning-if-scheduled t)))))
           ("n" "Next Tasks"
            ((todo "NEXT"
                   ((org-agenda-overriding-header "Next Tasks")))))
@@ -108,64 +114,81 @@
     (setq org-capture-templates
           '(("t" "Todo" entry (file (lambda () (concat org-directory "/refile.org")))
              "* TODO %?\nDEADLINE: %T\n %i\n %a")
-            ("e" "Errand" entry (file (lambda () (concat org-directory "/refile.org")))
-             "* TODO %? :errand\nDEADLINE: %T\n  %a")
-            ("c" "Cool Thing" entry (file (lambda () (concat org-directory "/refile.org")))
-             "* %?\nEntered on %U\n  %i\n  %a")
-            ("C" "Coops" entry (file+olp (lambda () (concat org-directory "/refile.org")) "COOP")
-             "* %?\nEntered on %U\n  %i\n  %a")
-            ("k" "Knowledge" entry (file+olp (lambda () (concat org-directory "/archive.org")) "Knowledge")
-             "* %?\nEntered on %U\n  %i\n  %a")
-            ("s" "Scheduled Event")
-            ("sm" "Meeting" entry (file+headline (lambda () (concat org-directory "/Work.org"))
-                                                 "Meetings")
-             "* Meeting with  %? :MEETING:\nSCHEDULED: %T\n:PROPERTIES:
-:LOCATION: %^{location|Anywhere|Home|Work|School}
-:END:")
-            ("se" "Event" entry (file+headline (lambda () (concat org-directory "/Work.org"))
-                                               "Events")
-             "* Meeting with  %?\nSCHEDULED: %T\n")
-            ("st" "Time Block" entry (file+headline (lambda () (concat org-directory "/Work.org"))
-                                                    "Time Blocks")
-             "* Work On %?\nSCHEDULED: %T\n")
-            ("M" "movie" entry (file+headline (lambda () (concat org-directory "/mylife.org")) "Movies to Watch")
+            ("M" "movie" entry
+             (file+headline (lambda () (concat org-directory "/mylife.org")) "Movies to Watch")
              "* %?\n")
-            ("v" "Video Idea" entry (file+olp (lambda () (concat org-directory "/youtube.org"))
-                                              "YouTube" "Video Ideas")
+            ("v" "Video Idea" entry
+             (file+olp (lambda () (concat org-directory "/youtube.org"))
+                       "YouTube" "Video Ideas")
              "* %?\n%? %a\n")
+
+            ("k" "Knowledge")
+            ("kc" "Cool Thing" entry
+             (file+olp (lambda () (concat org-directory "/archive.org")) "Cool Project")
+             "* %?\nEntered on %U\n  %i\n  %a")
+            ("kk" "Thing I Learned" entry
+             (file+olp (lambda () (concat org-directory "/archive.org")) "Knowledge")
+             "* %?\nEntered on %U\n  %i\n  %a")
+            ("ki" "Ideas" entry
+             (file+olp (lambda () (concat org-directory "/archive.org")) "Ideas")
+             "* %?\nEntered on %U\n  %i\n  %a")
+            ("kT" "Thoughts" entry
+             (file+olp (lambda () (concat org-directory "/archive.org")) "Thoughts")
+             "* %?\nEntered on %U\n  %i\n  %a")
+
+            ("s" "Scheduled Event")
+            ("se" "Errand" entry (file (lambda () (concat org-directory "/refile.org")))
+             "* TODO %? :errand\nDEADLINE: %T\n  %a")
+            ("sm" "Meeting" entry
+             (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
+             "* Meeting with  %? :MEETING:\nSCHEDULED: %T\n:PROPERTIES:\n:LOCATION: %^{location|Anywhere|Home|Work|School}\n:END:")
+            ("se" "Event" entry
+             (file+headline (lambda () (concat org-directory "/Work.org"))
+                            "Events")
+             "* Meeting with  %?\nSCHEDULED: %T\n")
+            ("st" "Time Block" entry
+             (file+headline (lambda () (concat org-directory "/Work.org"))
+                            "Time Blocks")
+             "* Work On %?\nSCHEDULED: %T\n")
+
             ;; Email Stuff
             ("m" "Email Workflow")
-            ("mf" "Follow Up" entry (file+olp (lambda () (concat org-directory "/Work.org")) "Follow Up")
+            ("mf" "Follow Up" entry
+             (file+olp (lambda () (concat org-directory "/Work.org")) "Follow Up")
              "* TODO Follow up with %:fromname on %a\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%i")
-            ("mr" "Read Later" entry (file+olp (lambda () (concat org-directory "/Work.org")) "Read Later")
+            ("mr" "Read Later" entry
+             (file+olp (lambda () (concat org-directory "/Work.org")) "Read Later")
              "* TODO Read %:subject\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%a\n%i"))))
+  (setq org-capture-templates-contexts
+        '(("m" ((in-mode . "mu4e-view-mode")
+                (in-mode . "mu4e-compose-mode")))))
 ;;;; Clocking
   (setq org-clock-idle-time 15)
   (setq org-clock-x11idle-program-name "xprintidle")
 
 ;;;; Refile targets
-  (setq org-refile-targets
-        '(("Work.org"    :maxlevel . 3)
-          ("archive.org" :maxlevel . 3)
-          ("mylife.org"  :maxlevel . 3)
-          ("youtube.org" :maxlevel . 3)
-          ("today.org"   :maxlevel . 3)))
+  (setq org-refile-targets '((org-agenda-files :maxlevel . 5)))
   (advice-add 'org-refile :after 'org-save-all-org-buffers)
-;; Font Sizes
-  (dolist (face '((org-level-1 . 1.30)
-                  (org-level-2 . 1.20)
-                  (org-level-3 . 1.10)
-                  (org-level-4 . 1.00)))
-    (set-face-attribute (car face) nil :family "PragmataPro Mono"
-                        :weight 'normal
-                        :height (cdr face)))
-)
-(use-package org-ql
-  :bind ("C-c q" . org-ql-search))
-
+  ;; Font Sizes
+  (let* ((variable-tuple "Sans Serif"))
+    (dolist (face '((org-document-title . 1.75)
+                    (org-level-1 . 1.75)
+                    (org-level-2 . 1.5)
+                    (org-level-3 . 1.25)))
+      (set-face-attribute (car face) nil
+                          ;; This may need to change
+                          :family variable-tuple
+                          ;; Think this is already the case for
+                          ;; everything other than the title but could
+                          ;; be wrong
+                          :foreground (face-foreground 'default nil 'default)
+                          :inherit 'default
+                          :underline nil
+                          :weight 'bold
+                          :height (cdr face)))))
 (use-package org-timeline
   :commands org-agenda
-  :config
+  :init
   (add-hook 'org-agenda-finalize-hook 'org-timeline-insert-timeline :append))
 
 ;;;; Drag And Drop
@@ -225,5 +248,4 @@
   (org-yaap-mode 1)
   (org-yaap-daemon-start))
 
-
-;; (add-hook 'after-init-hook (lambda (&rest args) (org-agenda-list 1)))
+;; (add-hook 'after-init-hook (lambda (&rest args) (org-agenda-List 1)))
