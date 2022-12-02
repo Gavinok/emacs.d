@@ -87,7 +87,7 @@ lisp-mode sly-mrepl emacs-lisp-mode
       "("(p "(predicate)")" "(p "return")")"n>
       "(t"                   (p "default")"))" q ")")
 (dolist "(dolist (" (p "needle") " " (p "hay-stack") " " (p "optional-returned-variable")")"n>
-        (r "(message needle)")")")
+  (r "(message needle)")")")
 
 emacs-lisp-mode
 
@@ -123,19 +123,20 @@ lisp-mode sly-mrepl-mode
 (the "(the "(p "type") " " (r "variable") ")")
 
 (deftype "(deftype " (p "Name Of Type") " ()"n>
-         "`(satisfies " (p "Predicate To Check Type") "))")
+  "`(satisfies " (p "Predicate To Check Type") "))")
 
 (typecase "(typecase " (r "variable")n>
           "(" (p "type")" "(p "(do this)")")"n>
           "(t "           (p "default")"))")
 
 (slot "(" (p "slotname" slot) n>
-      ":reader " (s slot) "*"n>
+      ":reader " (s slot) n>
       ":type " (p "String") n>
       ":initarg "  (format ":%s" slot) n>
+      ":initform " "(error \"" (format "%s" (upcase slot)) " required\"" ")" n>
       ":documentation \"A " (p "Slot Description.")"\")")
 
-(class "(defclass " (p "classname " classname) "* ()" n>
+(class "(defclass " (p "classname " classname) " ()" n>
        "(" (i slot) p ")" n>
        "(:documentation \"" (p "A general HTTP request.") "\"))")
 
@@ -143,9 +144,9 @@ lisp-mode sly-mrepl-mode
            "("(p "slot")" " (p "default-value") " :type" (p "type") "))")
 
 (defpackage "(defpackage " (p "my-package" package)n>
-  "(:use :cl)"n>
-  "(:import-from :" (p "alexandria")n>
-  (p ":with-gensyms :curry")")" p ")")
+            "(:use :cl)"n>
+            "(:import-from :" (p "alexandria")n>
+            (p ":with-gensyms :curry")")" p ")")
 
 (in-package (i defpackage) n>
             "(in-package :" (s package) ")")
@@ -264,7 +265,8 @@ typescript-mode
 
 c++-mode
 (stdlib
- "#include <iostream>")
+ "#include <stdio.h>"n
+ "#include <stdlib.h>")
 
 ;; STL Collections
 (array
@@ -341,8 +343,8 @@ rust-mode
       "}")
 
 (match "match " (p "var") " {"n>
-       (p "pattern x") " => " (p "1 + x")n
-       "}")
+  (p "pattern x") " => " (p "1 + x")n
+  "}")
 
 (derive "#[derive(" (p "Debug") ")]")
 

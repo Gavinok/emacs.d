@@ -214,6 +214,10 @@
                        ,spaceway-fg
                        :background "#333" ;; nil
                        ))))
+   `(tab-bar-tab-inactive ((,class (:foreground ;; "#EEDC82"
+                                    ,spaceway-grey-1
+                                    :background "#333" ;; nil
+                                    ))))
    `(mode-line ((,class (:foreground ;; "#EEDC82"
                          ,spaceway-fg
                          :background "#333" ;; nil

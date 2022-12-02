@@ -569,9 +569,12 @@ replaces it with the Latex equivalent."
   :config
   (global-hl-line-mode t)
   (set-cursor-color "#dc322f")
-  ;; (when my/my-system
-  ;;   (set-frame-parameter (selected-frame) 'alpha '(90 90))
-  ;;   (add-to-list 'default-frame-alist '(alpha 90 90)))
+  (when my/my-system
+    (set-frame-parameter (selected-frame) 'alpha '(100 100))
+    (set-frame-parameter (selected-frame) 'alpha-background 100)
+    (add-to-list 'default-frame-alist '(alpha-background 90))
+    (add-to-list 'default-frame-alist '(alpha 100 100))
+    )
   (load-theme 'spaceway t))
 
 (global-hl-line-mode t)
@@ -748,8 +751,22 @@ replaces it with the Latex equivalent."
 ;;; COMPILATION
 (use-package compile
   :defer t
+  :hook (((c++-mode c-mode java-mode javascript-mode go-mode nroff-mode) . generic-compiler)
+         (purescript-mode . spago-compiler))
   :bind (("C-x M-m" . compile)
          ("C-x C-m" . recompile))
+  :init
+  (defun spago-compiler ()
+    (unless (or (file-exists-p "makefile")
+		(file-exists-p "Makefile"))
+      (setq-local compile-command "spago run")))
+  (defun generic-compiler ()
+    (unless (or (file-exists-p "makefile")
+		(file-exists-p "Makefile"))
+      (setq-local compile-command
+		  (concat "compiler "
+			  (if buffer-file-name
+			      (shell-quote-argument buffer-file-name))))))
   :config
   (setq compilation-scroll-output t)
   (require 'ansi-color)
@@ -757,6 +774,15 @@ replaces it with the Latex equivalent."
     (let ((inhibit-read-only t))
       (ansi-color-apply-on-region (point-min) (point-max))))
   (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+  (defun generic-compiler ()
+    (unless (or (file-exists-p "makefile")
+		(file-exists-p "Makefile"))
+      (setq-local compile-command
+		  (concat "compiler "
+			  (if buffer-file-name
+			      (shell-quote-argument
+			       (file-name-sans-extension buffer-file-name)))))))
+  (add-hook 'c++-mode-hook #'generic-compiler)
   ;; (setq compilation-environment '("HELLO=Hello"))
   )
 
@@ -908,7 +934,7 @@ replaces it with the Latex equivalent."
   :init (global-auto-revert-mode t))
 
 (use-package savehist
-  :defer t
+  :defer 2
   :init (savehist-mode t)) ; Save command history
 
 (use-package hippie-exp
@@ -1002,14 +1028,20 @@ replaces it with the Latex equivalent."
          (rust-mode . lsp-deferred))
   :commands (lsp lsp-deferred)
   :init
-  (setq lsp-clients-clangd-args '("--header-insertion-decorators=0" "--enable-config"))
+  (setq lsp-clients-clangd-args '("--header-insertion-decorators=0" "--clang-tidy" "--enable-config"))
   ;; Increase the amount of data emacs reads from processes
   (setq read-process-output-max (* 1024 1024))
   (setq lsp-enable-snippet nil)
   (setq lsp-enable-on-type-formatting nil)
   (setq lsp-enable-indentation nil)
+
+  (setq lsp-javascript-display-inlay-hints t
+        lsp-javascript-display-return-type-hints t
+        lsp-javascript-display-variable-type-hints t
+        lsp-javascript-display-parameter-type-hints t)
   (with-eval-after-load 'js
     (define-key js-mode-map (kbd "M-.") nil))
+
   (setq lsp-diagnostics-provider :flymake)
   (setq lsp-keymap-prefix "C-x L")
   (add-hook 'lsp-completion-mode-hook
@@ -1195,7 +1227,7 @@ replaces it with the Latex equivalent."
                            "ros-conf.lisp")
         sly-lisp-implementations
         `((sbcl ("sbcl") :coding-system utf-8-unix)
-          (ccl ("ccl") :coding-system utf-8-unix)
+          (abcl ("abcl") :coding-system utf-8-unix)
           (ecl ("ecl") :coding-system utf-8-unix)
           (roswell ("ros" "-Q" "-l" ,ros-config "run"))
           (qlot ("qlot" "exec" "ros" "-l" ,ros-config "run" "-S" ".")
@@ -1222,11 +1254,11 @@ replaces it with the Latex equivalent."
          ("C-{"   . puni-barf-backward)
          ;; ("C-M-j" . sp-join-sexp)
          ("C-M-t" . puni-transpose)
-         ("C-M-k" . puni-kill-thing-at-point)
+         ;; ("C-M-k" . puni-kill-thing-at-point)
          ("C-M-?" . puni-convolute)
          ("C-k"   . puni-kill-line)
          ("M-k"   . kill-sexp)
-         ("S-SPC" . puni-expand-region)
+         ;; ("S-SPC" . puni-expand-region)
          ("M-C"   . puni-clone-thing-at-point)
          ("C-M-z" . puni-squeeze)
          ("C-M-z" . puni-squeeze)
@@ -1608,9 +1640,10 @@ replaces it with the Latex equivalent."
   :commands (pomm pomm-third-time)
   :config
   (pomm-mode-line-mode +1)
-  (setq pomm-audio-enabled t)
-  (setq pomm-work-period 20)
-  (setq alert-default-style 'libnotify))
+  (setq pomm-audio-enabled t
+        setq pomm-work-period 15
+        pomm-long-break-period 10
+        alert-default-style 'libnotify
 
 ;;;; Use emacs instead of dmenu
 (defun emenu (prompt options)
@@ -1626,7 +1659,7 @@ dmenu like interface"
     (with-selected-frame tmp-frame
       (unwind-protect
 	  (completing-read prompt options)
-        (delete-frame tmp-frame)))))
+        (delete-frame tmp-frame)))))))
 
 (setenv "LAUNCHER" "emenu -p ")
 (setenv "EDITOR" "emacsclient")

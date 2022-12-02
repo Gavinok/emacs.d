@@ -124,7 +124,7 @@
 
             ("k" "Knowledge")
             ("kc" "Cool Thing" entry
-             (file+olp (lambda () (concat org-directory "/archive.org")) "Cool Project")
+             (file+olp (lambda () (concat org-directory "/archive.org")) "Cool Projects")
              "* %?\nEntered on %U\n  %i\n  %a")
             ("kk" "Thing I Learned" entry
              (file+olp (lambda () (concat org-directory "/archive.org")) "Knowledge")
