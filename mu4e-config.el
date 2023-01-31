@@ -1,16 +1,14 @@
 ;;; EMAIL
 (use-package mu4e
   :unless my/is-termux
-  :load-path "/usr/share/emacs/site-lisp/mu4e"
   :ensure nil
   :bind (("C-x M" . mu4e)
          ("C-x m" . mu4e-compose-new)
-         ([remap mu4e~headers-jump-to-maildir] . my/jump-to-maildir))
-  :commands (mu4e mu4e-user-agent mu4e-compose-new org-mime-org-subtree-htmlize)
+         ([remap mu4e-headers-jump-to-maildir] . my/jump-to-maildir)
+         )
+  :demand t
+  ;; :commands (mu4e mu4e-user-agent mu4e-compose-new org-mime-org-subtree-htmlize)
   :init
-  ;; set *before* loading mu4e; and restart emacs if you want to change it
-  ;; users of use-packag~ should can use the :init section for this.
-  ;; (setq mu4e-view-use-old t)
   ;; Show full email address
   (setq mu4e-view-show-addresses 't
         mu4e-maildir "~/.local/share/mail"
@@ -30,8 +28,6 @@
   (setq mu4e-sent-messages-behavior 'delete
         message-kill-buffer-on-exit t)
 
-;;;; Attachment reminders
-  (use-package message-attachment-reminder)
 ;;;; Org In Emails
   (use-package org-mime
     :ensure t
@@ -99,14 +95,6 @@
                                 :query "mime:image/*" :key 112))) ; email client depends on mu command
 
 ;;;; Headers View
-  (set-face-attribute 'mu4e-flagged-face nil
-                      :foreground "#BF6262")
-  (set-face-attribute 'mu4e-flagged-face nil
-                      :background "#151515")
-  (set-face-attribute 'mu4e-unread-face nil
-                      :foreground "#BF6262")
-  (set-face-attribute 'mu4e-unread-face nil
-                      :background "#151515")
   (setq-default mu4e-use-fancy-chars t)
   (setq-default mu4e-header-sort-field :date)
   (setq-default mu4e-headers-show-threads nil)
@@ -114,5 +102,4 @@
                                       (:from-or-to    .   22)
                                       (:subject       .   70)
                                       (:human-date    .   nil)))
-  (mu4e-hide-other-mu4e-buffers))
-
+  )

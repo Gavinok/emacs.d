@@ -1,16 +1,9 @@
 ;;; ORG
 (if my/is-termux
     (setq org-directory "~/storage/shared/Dropbox/Documents/org")
-  (setq org-directory "~/Documents/org"))
+  (setq org-directory "~/.local/Dropbox/Documents/org"))
 
 ;;; ORG
-(use-package org-contrib
-  :after org
-  :config
-  (setq org-babel-clojure-backend 'cider)
-  ;; For exporting to markdown
-  (require 'ox-md))
-
 (use-package org
   :pin nongnu
   ;; :ensure org-contrib
@@ -77,9 +70,7 @@
      (lisp . t) (clojure . t) (scheme . t)
      (forth . t) (rust . t)))
   (setq org-confirm-babel-evaluate nil)
-;;;; Agenda Views
-  ;; Show effort estimates in agenda
-  (setq org-agenda-columns-add-appointments-to-effort-sum t)
+  ;;;; School notes
   (when my/my-system
     (let ((school-notes "~/.local/Dropbox/DropsyncFiles/vimwiki/School"))
       (setq org-agenda-files
@@ -89,6 +80,28 @@
           (setq org-agenda-files
                 (append org-agenda-files
                         (directory-files-recursively school-notes "\\.org$"))))))
+;;;; Clocking
+  (setq org-clock-idle-time 15)
+  (setq org-clock-x11idle-program-name "xprintidle")
+;;;; Refile targets
+  (setq org-refile-targets '((org-agenda-files :maxlevel . 5)))
+  (advice-add 'org-refile :after 'org-save-all-org-buffers))
+
+(use-package org-contrib :after org)
+
+(use-package ob-config :ensure nil :no-require t
+  :after org-contrib
+  :config
+  (setq org-babel-clojure-backend 'cider)
+  ;; For exporting to markdown
+  (require 'ox-md))
+
+(use-package org-agenda-config :ensure nil :no-require t
+  :after org
+  :config
+  ;; Show effort estimates in agenda
+  (setq org-agenda-columns-add-appointments-to-effort-sum t)
+  ;; Agenda Views
   (setq org-agenda-custom-commands
         '(("d" "Today's Tasks"
            ((agenda "" ((org-agenda-span 1)
@@ -107,85 +120,65 @@
           ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&+Effort>0"
            ((org-agenda-overriding-header "Low Effort Tasks")
             (org-agenda-max-todos 20)
-            (org-agenda-files org-agenda-files)))))
-;;;; Capture
-  (when my/my-system
-    (setq org-default-notes-file (concat org-directory "/refile.org"))
-    (setq org-capture-templates
-          '(("t" "Todo" entry (file (lambda () (concat org-directory "/refile.org")))
-             "* TODO %?\nDEADLINE: %T\n %i\n %a")
-            ("M" "movie" entry
-             (file+headline (lambda () (concat org-directory "/mylife.org")) "Movies to Watch")
-             "* %?\n")
-            ("v" "Video Idea" entry
-             (file+olp (lambda () (concat org-directory "/youtube.org"))
-                       "YouTube" "Video Ideas")
-             "* %?\n%? %a\n")
+            (org-agenda-files org-agenda-files))))))
 
-            ("k" "Knowledge")
-            ("kc" "Cool Thing" entry
-             (file+olp (lambda () (concat org-directory "/archive.org")) "Cool Projects")
-             "* %?\nEntered on %U\n  %i\n  %a")
-            ("kk" "Thing I Learned" entry
-             (file+olp (lambda () (concat org-directory "/archive.org")) "Knowledge")
-             "* %?\nEntered on %U\n  %i\n  %a")
-            ("ki" "Ideas" entry
-             (file+olp (lambda () (concat org-directory "/archive.org")) "Ideas")
-             "* %?\nEntered on %U\n  %i\n  %a")
-            ("kT" "Thoughts" entry
-             (file+olp (lambda () (concat org-directory "/archive.org")) "Thoughts")
-             "* %?\nEntered on %U\n  %i\n  %a")
+(use-package org-capture-config :ensure nil :no-require t
+  :when my/my-system
+  :after org
+  :init
+  (setq org-default-notes-file (concat org-directory "/refile.org"))
+  (setq org-capture-templates
+        '(("t" "Todo" entry (file (lambda () (concat org-directory "/refile.org")))
+           "* TODO %?\nDEADLINE: %T\n %i\n %a")
+          ("M" "movie" entry
+           (file+headline (lambda () (concat org-directory "/mylife.org")) "Movies to Watch")
+           "* %?\n")
+          ("v" "Video Idea" entry
+           (file+olp (lambda () (concat org-directory "/youtube.org"))
+                     "YouTube" "Video Ideas")
+           "* %?\n%? %a\n")
 
-            ("s" "Scheduled Event")
-            ("se" "Errand" entry (file (lambda () (concat org-directory "/refile.org")))
-             "* TODO %? :errand\nDEADLINE: %T\n  %a")
-            ("sm" "Meeting" entry
-             (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
-             "* Meeting with  %? :MEETING:\nSCHEDULED: %T\n:PROPERTIES:\n:LOCATION: %^{location|Anywhere|Home|Work|School}\n:END:")
-            ("se" "Event" entry
-             (file+headline (lambda () (concat org-directory "/Work.org"))
-                            "Events")
-             "* Meeting with  %?\nSCHEDULED: %T\n")
-            ("st" "Time Block" entry
-             (file+headline (lambda () (concat org-directory "/Work.org"))
-                            "Time Blocks")
-             "* Work On %?\nSCHEDULED: %T\n")
+          ("k" "Knowledge")
+          ("kc" "Cool Thing" entry
+           (file+olp (lambda () (concat org-directory "/archive.org")) "Cool Projects")
+           "* %?\nEntered on %U\n  %i\n  %a")
+          ("kk" "Thing I Learned" entry
+           (file+olp (lambda () (concat org-directory "/archive.org")) "Knowledge")
+           "* %?\nEntered on %U\n  %i\n  %a")
+          ("ki" "Ideas" entry
+           (file+olp (lambda () (concat org-directory "/archive.org")) "Ideas")
+           "* %?\nEntered on %U\n  %i\n  %a")
+          ("kT" "Thoughts" entry
+           (file+olp (lambda () (concat org-directory "/archive.org")) "Thoughts")
+           "* %?\nEntered on %U\n  %i\n  %a")
 
-            ;; Email Stuff
-            ("m" "Email Workflow")
-            ("mf" "Follow Up" entry
-             (file+olp (lambda () (concat org-directory "/Work.org")) "Follow Up")
-             "* TODO Follow up with %:fromname on %a\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%i")
-            ("mr" "Read Later" entry
-             (file+olp (lambda () (concat org-directory "/Work.org")) "Read Later")
-             "* TODO Read %:subject\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%a\n%i"))))
+          ("s" "Scheduled Event")
+          ("se" "Errand" entry (file (lambda () (concat org-directory "/refile.org")))
+           "* TODO %? :errand\nDEADLINE: %T\n  %a")
+          ("sm" "Meeting" entry
+           (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
+           "* Meeting with  %? :MEETING:\nSCHEDULED: %T\n:PROPERTIES:\n:LOCATION: %^{location|Anywhere|Home|Work|School}\n:END:")
+          ("se" "Event" entry
+           (file+headline (lambda () (concat org-directory "/Work.org"))
+                          "Events")
+           "* Meeting with  %?\nSCHEDULED: %T\n")
+          ("st" "Time Block" entry
+           (file+headline (lambda () (concat org-directory "/Work.org"))
+                          "Time Blocks")
+           "* Work On %?\nSCHEDULED: %T\n")
+
+          ;; Email Stuff
+          ("m" "Email Workflow")
+          ("mf" "Follow Up" entry
+           (file+olp (lambda () (concat org-directory "/Work.org")) "Follow Up")
+           "* TODO Follow up with %:fromname on %a\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%i")
+          ("mr" "Read Later" entry
+           (file+olp (lambda () (concat org-directory "/Work.org")) "Read Later")
+           "* TODO Read %:subject\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%a\n%i")))
   (setq org-capture-templates-contexts
         '(("m" ((in-mode . "mu4e-view-mode")
-                (in-mode . "mu4e-compose-mode")))))
-;;;; Clocking
-  (setq org-clock-idle-time 15)
-  (setq org-clock-x11idle-program-name "xprintidle")
+                (in-mode . "mu4e-compose-mode"))))))
 
-;;;; Refile targets
-  (setq org-refile-targets '((org-agenda-files :maxlevel . 5)))
-  (advice-add 'org-refile :after 'org-save-all-org-buffers)
-  ;; Font Sizes
-  (let* ((variable-tuple "Sans Serif"))
-    (dolist (face '((org-document-title . 1.75)
-                    (org-level-1 . 1.75)
-                    (org-level-2 . 1.5)
-                    (org-level-3 . 1.25)))
-      (set-face-attribute (car face) nil
-                          ;; This may need to change
-                          :family variable-tuple
-                          ;; Think this is already the case for
-                          ;; everything other than the title but could
-                          ;; be wrong
-                          :foreground (face-foreground 'default nil 'default)
-                          :inherit 'default
-                          :underline nil
-                          :weight 'bold
-                          :height (cdr face)))))
 (use-package org-timeline
   :commands org-agenda
   :init
@@ -201,14 +194,14 @@
 
 ;;;; Better Looking Bullets
 (use-package org-modern
+  :hook ((org-mode                 . org-modern-mode)
+         (org-agenda-finalize-hook . org-modern-agenda))
+  :custom ((org-modern-todo t)
+           (org-modern-table nil)
+           (org-modern-variable-pitch nil)
+           (org-modern-block-fringe nil))
   :commands (org-modern-mode org-modern-agenda)
-  :init
-  (setq org-modern-todo t
-        org-modern-table nil ; Currently breaks some things
-        org-modern-variable-pitch nil)
-  (add-hook 'org-mode-hook #'org-modern-mode)
-  (add-hook 'org-agenda-finalize-hook #'org-modern-agenda)
-  (global-org-modern-mode))
+  :init (global-org-modern-mode))
 
 ;;;; Templates
 (use-package org-tempo
@@ -219,8 +212,8 @@
                      ("el"  . "src emacs-lisp")
                      ("vim" . "src vim")
                      ("cpp" . "src C++ :includes <iostream>  :namespaces std"))))
-       (dolist (template templates)
-         (push template org-structure-template-alist))))
+    (dolist (template templates)
+      (push template org-structure-template-alist))))
 
 (use-package org-noter
   :after (pdf-tools)
@@ -231,9 +224,7 @@
   :after org
   :bind ("C-c t" . org-transclusion-add))
 
-(use-package org-protocol
-  :ensure nil
-  :after org)
+(use-package org-protocol :ensure nil :after org)
 
 ;; Org Agenda Notifications
 (use-package org-yaap
