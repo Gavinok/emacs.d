@@ -135,7 +135,7 @@ returns the equivalent latex version."
     "Takes an eqn expression eqn-expr and prints a message with the
 latex version of it."
     (interactive "sEnter eqn here: ")
-    (message (eqn-to-tex expr)))
+    (message (eqn-to-tex eqn-expr)))
 
   (defun eqn-to-tex-region (start end)
     "Replaces the active region containing a eqn expression and
@@ -146,21 +146,24 @@ replaces it with the Latex equivalent."
       (insert converted-expr)))
 
   (defun all-history ()
-    "Command for getting command history from basicallly every source out there."
+    "Command for getting command history from basically every source out
+     there.
+
+     No more \"Where did I call that again?\" going off in your head"
     (interactive)
-    (completing-read "All History: "
-                     (append shell-command-history
-                             compile-history
-                             (split-string
-                              (with-temp-buffer
-                                (insert-file-contents-literally eshell-history-file-name)
-                                (buffer-substring-no-properties (point-min) (point-max))
-                                "\n"))
-                             (split-string
-                              (with-temp-buffer
-                                (insert-file-contents-literally "~/.bash_history")
-                                (buffer-substring-no-properties (point-min) (point-max)))
-                              "\n"))))
+    (flet ((file->lines (file-name)
+                        (split-string
+                         (with-temp-buffer
+                           (insert-file-contents-literally file-name)
+                           (buffer-substring-no-properties (point-min) (point-max))
+                           "\n"))))
+      (completing-read
+       "All History: "
+       (append shell-command-history
+               compile-history
+               (when (boundp 'eshell-history-file-name)
+                 (file->lines eshell-history-file-name))
+               (file->lines "~/.bash_history")))))
 
   (defun gist-from-region (BEG END fname desc &optional private)
     "Collect the current region creating a github gist with the
@@ -283,7 +286,8 @@ Depends on the `gh' commandline tool"
   (setq-default bidi-inhibit-bpa t)
   (global-so-long-mode 1)
 
-  (setq-default use-dialog-box nil
+  (setq-default history-length 1000
+                use-dialog-box nil
                 delete-by-moving-to-trash t
                 create-lockfiles nil
                 auto-save-default nil
@@ -562,7 +566,7 @@ Depends on the `gh' commandline tool"
               ("S-TAB"   . corfu-previous)
               ([backtab] . corfu-previous)
               ("S-<return>" . corfu-insert)
-              ("RET"     . corfu-complete-and-quit))
+              ("RET"     . nil))
 
   :init
   (global-corfu-mode)
@@ -910,7 +914,17 @@ Depends on the `gh' commandline tool"
          ("M-s M-%" . isearch-query-replace)
          ("C-r"     . isearch-backward)
          (:map isearch-mode-map
-               ("\M-w" . isearch-save-and-exit)))
+               ("M-w" . isearch-save-and-exit))
+         (:map isearch-mode-map
+               ("M-/" . isearch-complete))
+         )
+  :custom ((isearch-lazy-count t)
+           (lazy-count-prefix-format nil)
+           (lazy-count-suffix-format " [%s of %s]")
+           (search-whitespace-regexp ".*?")
+           (isearch-lazy-highlight t)
+           (isearch-lax-whitespace t)
+           (isearch-regexp-lax-whitespace nil))
   :config
   (defun isearch-save-and-exit ()
     "Exit search normally. and save the `search-string' on kill-ring."
@@ -919,8 +933,8 @@ Depends on the `gh' commandline tool"
     (isearch-clean-overlays)
     (kill-new isearch-string))
 
-  ;; Avoid typing - and _ during searches
-  (setq search-whitespace-regexp "[-_ \t\n]+")
+  ;; ;; Avoid typing - and _ during searches
+  ;; (setq search-whitespace-regexp "(.|[-_ \t\n])+")
 
   ;; Place cursor at the start of the match similar to vim's t
   ;; C-g will return the cursor to it's orignal position
@@ -933,8 +947,8 @@ Depends on the `gh' commandline tool"
 (use-package ffap
   :ensure nil
   :bind ("C-x f" . ffap)
+  :custom (find-file-visit-truename t)
   :init
-  (setq find-file-visit-truename t)
   ;; Save my spot when I jump to another file
   (advice-add 'ffap :before #'push-mark))
 
@@ -1001,16 +1015,17 @@ Depends on the `gh' commandline tool"
 (use-package mouse
   :ensure nil
   :defer 3
+  :bind(("<wheel-down>"  .  next-line)
+        ("<wheel-down>"  .  next-line)
+        ("<wheel-left>"  .  backward-char)
+        ("<wheel-right>" . forward-char)
+        :map key-translation-map
+        ("<mouse-4>"     . "<wheel-up>")
+        ("<mouse-5>"     . "<wheel-down>")
+        ("<mouse-6>"     . "<wheel-left>")
+        ("<mouse-7>"     . "<wheel-right>"))
   :init
-  (context-menu-mode 1)
-  (define-key key-translation-map (kbd "<mouse-4>") (kbd "<wheel-up>"))
-  (define-key key-translation-map (kbd "<mouse-5>") (kbd "<wheel-down>"))
-  (define-key key-translation-map (kbd "<mouse-6>") (kbd "<wheel-left>"))
-  (define-key key-translation-map (kbd "<mouse-7>") (kbd "<wheel-right>"))
-  (bind-key (kbd "<wheel-up>") #'previous-line)
-  (bind-key (kbd "<wheel-down>") #'next-line)
-  (bind-key (kbd "<wheel-left>") #'backward-char)
-  (bind-key (kbd "<wheel-right>") #'forward-char))
+  (context-menu-mode 1))
 
 (use-package autorevert
   :ensure nil
@@ -1251,15 +1266,30 @@ Depends on the `gh' commandline tool"
     (add-hook 'purescript-mode-hook 'inferior-psci-mode))
 ;;;; WEB
   (use-package web-mode
-    :mode
-    ("\\.tsx\\'"
-     "\\.html\\'")
-    :bind (:map web-mode-map
-                ("C-M-i" . completion-at-point)
-                ("C-M-u" . web-mode-element-parent)
-                ("C-M-d" . web-mode-element-child))
+    :mode (("\\.tsx\\'"  . typescript-tsx-mode)
+           ("\\.html\\'" . web-mode))
+    :hook ((web-mode            . lsp-deferred)
+           (typescript-tsx-mode . lsp-deferred))
+    :bind (
+           :map typescript-tsx-mode-map
+           ("C-c C-M-f". sgml-skip-tag-forward)
+           ("C-c C-M-b". sgml-skip-tag-backward)
+           ("C-c C-f". sgml-skip-tag-forward)
+           ("C-c C-b". sgml-skip-tag-backward)
+           :map web-mode-map
+           ("C-c C-M-f". sgml-skip-tag-forward)
+           ("C-c C-M-b". sgml-skip-tag-backward)
+           ("C-c C-f". sgml-skip-tag-forward)
+           ("C-c C-b". sgml-skip-tag-backward)
+           ("C-M-i" . completion-at-point)
+           ("C-M-u" . web-mode-element-parent)
+           ("C-M-d" . web-mode-element-child))
     :init
-    (setq web-mode-auto-close-style 2)
+    (define-derived-mode typescript-tsx-mode typescript-mode "TypeScript-tsx")
+    (setq web-mode-markup-indent-offset 2
+          web-mode-css-indent-offset 2
+          web-mode-code-indent-offset 2
+          web-mode-auto-close-style 2)
     :config
     (add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode))
     (add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode)))
@@ -1272,7 +1302,7 @@ Depends on the `gh' commandline tool"
       :commands (rust-playground)
       :ensure t)
     :config
-)
+    )
 ;;;; Racket
   (use-package racket-mode  :ensure t :mode "\\.rkt\\'"
     :config
