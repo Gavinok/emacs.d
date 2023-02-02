@@ -72,6 +72,11 @@
   :defer 2
   :init (savehist-mode t))
 
+(use-package repeat
+  :defer 10
+  :init
+  (repeat-mode +1))
+
 ;;; MY STUFF
 (use-package custom-variables
   :ensure nil :no-require t
@@ -157,13 +162,13 @@ replaces it with the Latex equivalent."
                            (insert-file-contents-literally file-name)
                            (buffer-substring-no-properties (point-min) (point-max))
                            "\n"))))
-      (completing-read
-       "All History: "
-       (append shell-command-history
-               compile-history
-               (when (boundp 'eshell-history-file-name)
-                 (file->lines eshell-history-file-name))
-               (file->lines "~/.bash_history")))))
+          (completing-read
+           "All History: "
+           (append shell-command-history
+                   compile-history
+                   (when (boundp 'eshell-history-file-name)
+                     (file->lines eshell-history-file-name))
+                   (file->lines "~/.bash_history")))))
 
   (defun gist-from-region (BEG END fname desc &optional private)
     "Collect the current region creating a github gist with the
@@ -320,6 +325,8 @@ Depends on the `gh' commandline tool"
 
 (use-package font-setup :ensure nil :no-require
   :when my/my-system
+  :hook ((text-mode . pragmatapro-lig-mode)
+         (prog-mode . pragmatapro-lig-mode))
   :init
   ;; Fonts
   ;; The concise one which relies on "implicit fallback values"
@@ -347,20 +354,17 @@ Depends on the `gh' commandline tool"
   (load (concat user-emacs-directory
                 "lisp/pragmatapro-lig.el"))
   (require 'pragmatapro-lig)
-
   ;; Enable pragmatapro-lig-mode for specific modes
-  (add-hook 'text-mode-hook 'pragmatapro-lig-mode)
-  (add-hook 'prog-mode-hook 'pragmatapro-lig-mode)
-  (set-fontset-font
-   t 'unicode
-   "PragmataPro Mono:pixelsize=19:antialias=true:autohint=true"
-   nil 'append))
+  (set-fontset-font t 'unicode
+                    "PragmataPro Mono:pixelsize=19:antialias=true:autohint=true"
+                    nil 'append))
 
 (use-package unified-marks :ensure nil :no-require t
+  :custom
+  (global-mark-ring-max 256)
+  (set-mark-command-repeat-pop 256)
   :init
   ;; Unify Marks
-  (customize-set-value 'global-mark-ring-max 256)
-  (customize-set-value 'set-mark-command-repeat-pop 256)
   (defun my/push-mark-global (&optional location nomsg activate)
     "Always push to the global mark when push-mark is called"
     (let ((old (nth global-mark-ring-max global-mark-ring))
@@ -371,7 +375,9 @@ Depends on the `gh' commandline tool"
       (when old
         (set-marker old nil))))
   (advice-add 'push-mark :after #'my/push-mark-global))
-
+(use-package use-package-chords
+  :ensure t
+  :config (key-chord-mode 1))
 ;;; General Key Bindings
 (use-package crux
   :ensure t
@@ -442,9 +448,6 @@ Depends on the `gh' commandline tool"
     (marginalia-mode))
   (vertico-mode t)
   :config
-  ;; Used for the vertico-directory extension
-  (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy)
-
   ;; Do not allow the cursor in the minibuffer prompt
   (setq minibuffer-prompt-properties
         '(read-only t cursor-intangible t face minibuffer-prompt))
@@ -502,7 +505,10 @@ Depends on the `gh' commandline tool"
 (use-package evil-numbers
   :ensure t
   :bind (("C-x n a" . evil-numbers/inc-at-pt)
-         ("C-x n x" . evil-numbers/dec-at-pt)))
+         ("C-x n x" . evil-numbers/dec-at-pt)
+         :repeat-map evil-numbers-repeat-map
+         ("a" . evil-numbers/inc-at-pt)
+         ("x" . evil-numbers/dec-at-pt)))
 
 (use-package embark
   :ensure t
@@ -511,7 +517,15 @@ Depends on the `gh' commandline tool"
   (("C-="                     . embark-act)
    ([remap describe-bindings] . embark-bindings)
    :map embark-file-map
-   ("C-d"                     . dragon-drop))
+   ("C-d"                     . dragon-drop)
+   :map embark-defun-map
+   ("M-t" . chatgpt-gen-tests-for-region)
+   :map embark-general-map
+   ("M-c" . chatgpt-prompt)
+   :map embark-region-map
+   ("?"   . chatgpt-explain-region)
+   ("M-f" . chatgpt-fix-region)
+   ("M-f" . chatgpt-fix-region))
   :custom
   (embark-indicators
    '(embark-highlight-indicator
@@ -529,7 +543,7 @@ Depends on the `gh' commandline tool"
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
   :ensure t
-  :after (embark consult)
+  :after (:all embark consult)
   :demand t
   ;; if you want to have consult previews as you move around an
   ;; auto-updating embark collect buffer
@@ -538,6 +552,7 @@ Depends on the `gh' commandline tool"
 ;; For uploading files
 (use-package 0x0
   :ensure t
+  :after embark
   :bind (
          :map embark-file-map
          ("U"    . 0x0-upload-file)
@@ -560,23 +575,19 @@ Depends on the `gh' commandline tool"
 
   ;; Optionally use TAB for cycling, default is `corfu-complete'.
   :bind (:map corfu-map
-              ("M-SPC" . corfu-insert-separator)
-              ("TAB"     . corfu-next)
-              ([tab]     . corfu-next)
-              ("S-TAB"   . corfu-previous)
-              ([backtab] . corfu-previous)
+              ("M-SPC"      . corfu-insert-separator)
+              ("TAB"        . corfu-next)
+              ([tab]        . corfu-next)
+              ("S-TAB"      . corfu-previous)
+              ([backtab]    . corfu-previous)
               ("S-<return>" . corfu-insert)
-              ("RET"     . nil))
+              ("RET"        . nil))
 
   :init
   (global-corfu-mode)
   (corfu-history-mode)
   (corfu-popupinfo-mode) ; Popup completion info
   :config
-  (defun corfu-complete-and-quit ()
-    (interactive)
-    (corfu-complete)
-    (corfu-quit))
   (add-hook 'eshell-mode-hook
             (lambda () (setq-local corfu-quit-at-boundary t
                               corfu-quit-no-match t
@@ -610,10 +621,10 @@ Depends on the `gh' commandline tool"
   :after yasnippet
   :hook ((prog-mode . yas-setup-capf)
          (text-mode . yas-setup-capf)
-         (lsp-mode . yas-setup-capf)
-         (sly-mode . yas-setup-capf))
+         (lsp-mode  . yas-setup-capf)
+         (sly-mode  . yas-setup-capf))
   :bind (("C-c y" . cape-yasnippet)
-         ("M-+" . yas-insert-snippet))
+         ("M-+"   . yas-insert-snippet))
   :config
   (defun yas-setup-capf ()
     (setq-local completion-at-point-functions
@@ -638,12 +649,10 @@ Depends on the `gh' commandline tool"
 ;;; WRITING
 (use-package writegood-mode
   :hook (flyspell-mode . writegood-mode))
-
 (use-package writeroom-mode
   :commands (writeroom-mode global-writeroom-mode)
   :init
   (setq writeroom-width 90))
-
 (use-package flyspell-correct
   :bind ("C-c DEL" . flyspell-correct-previous)
   :hook ((markdown-mode nroff-mode org-mode
@@ -663,14 +672,7 @@ Depends on the `gh' commandline tool"
   :load-path "lisp/"
   :ensure nil
   :bind (
-         :map embark-defun-map
-         ("M-t" . chatgpt-gen-tests-for-region)
-         :map embark-general-map
-         ("M-c" . chatgpt-prompt)
-         :map embark-region-map
-         ("?"   . chatgpt-explain-region)
-         ("M-f" . chatgpt-fix-region)
-         ("M-f" . chatgpt-fix-region)))
+))
 
 ;;; Git
 (use-package magit
@@ -917,7 +919,8 @@ Depends on the `gh' commandline tool"
                ("M-w" . isearch-save-and-exit))
          (:map isearch-mode-map
                ("M-/" . isearch-complete))
-         )
+         (:repeat-map isearch-repeate-map
+         ("s" . isearch-repeat-forward)))
   :custom ((isearch-lazy-count t)
            (lazy-count-prefix-format nil)
            (lazy-count-suffix-format " [%s of %s]")
@@ -1015,15 +1018,20 @@ Depends on the `gh' commandline tool"
 (use-package mouse
   :ensure nil
   :defer 3
-  :bind(("<wheel-down>"  .  next-line)
+  :bind(("<wheel-up>"    .  previous-line)
         ("<wheel-down>"  .  next-line)
         ("<wheel-left>"  .  backward-char)
-        ("<wheel-right>" . forward-char)
-        :map key-translation-map
-        ("<mouse-4>"     . "<wheel-up>")
-        ("<mouse-5>"     . "<wheel-down>")
-        ("<mouse-6>"     . "<wheel-left>")
-        ("<mouse-7>"     . "<wheel-right>"))
+        ("<wheel-right>" .  forward-char)
+        ("<mouse-4>"     .  previous-line)
+        ("<mouse-5>"     . next-line)
+        ("<mouse-6>"     . backward-char)
+        ("<mouse-7>"     . forward-char)
+        ;; :map key-translation-map
+        ;; ("<mouse-4>"     . "<wheel-up>")
+        ;; ("<mouse-5>"     . "<wheel-down>")
+        ;; ("<mouse-6>"     . "<wheel-left>")
+        ;; ("<mouse-7>"     . "<wheel-right>")
+        )
   :init
   (context-menu-mode 1))
 
@@ -1058,7 +1066,7 @@ Depends on the `gh' commandline tool"
 (use-package hideshow
   :hook (prog-mode . hs-minor-mode)
   :bind (:map hs-minor-mode-map
-              ("C-<tab>" . hs-cycle)
+              ("C-<tab>"   . hs-cycle)
               ("<backtab>" . hs-global-cycle))
   :init
   (define-advice hs-toggle-hiding (:before (&rest _) move-point-to-mouse)
@@ -1066,8 +1074,7 @@ Depends on the `gh' commandline tool"
     (mouse-set-point last-input-event))
   (defun hs-cycle (&optional level)
     (interactive "p")
-    (let (message-log-max
-          (inhibit-message t))
+    (let (message-log-max (inhibit-message t))
       (if (= level 1)
           (pcase last-command
             ('hs-cycle
@@ -1093,9 +1100,8 @@ Depends on the `gh' commandline tool"
   (defun hs-global-cycle ()
     (interactive)
     (pcase last-command
-      ('hs-global-cycle
-       (save-excursion (hs-show-all))
-       (setq this-command 'hs-global-show))
+      ('hs-global-cycle (save-excursion (hs-show-all))
+                        (setq this-command 'hs-global-show))
       (_ (hs-hide-all))))
   (set-display-table-slot
    standard-display-table
@@ -1103,13 +1109,17 @@ Depends on the `gh' commandline tool"
    (let ((face-offset (* (face-id 'font-lock-comment-face)
                          (lsh 1 22))))
      (vconcat (mapcar (lambda (c) (+ face-offset c)) " ▾")))))
+
 (use-package outline
   :hook ((prog-mode tex-mode) . outline-minor-mode)
   :bind (:map outline-minor-mode-map
-              (;; ("<backtab>" . outline-cycle-buffer)
-               ("C-c u" . outline-up-heading)
-               ("C-c j" . outline-forward-same-level)
-               ("C-c k" . outline-backward-same-level)))
+              ("C-c u" . outline-up-heading)
+              ("C-c j" . outline-forward-same-level)
+              ("C-c k" . outline-backward-same-level)
+              :repeat-map outline-repeatmap
+              ("u" . outline-up-heading)
+              ("j" . outline-forward-same-level)
+              ("k" . outline-backward-same-level))
   :config
   ;; Outline Minor Mode
   (defun set-vim-foldmarker (fmr)
@@ -1133,7 +1143,14 @@ Depends on the `gh' commandline tool"
 (use-package apheleia
   :ensure t
   :config
-  (apheleia-global-mode +1))
+  (apheleia-global-mode +1)
+  ;; Setup auto formatting for purescript
+  (push '(purs-tidy "purs-tidy" "format") apheleia-formatters)
+  (setf (alist-get 'purescript-mode apheleia-mode-alist) '(purs-tidy))
+  ;; Setup auto formatting for haskell
+  (push '(fourmolu "fourmolu") apheleia-formatters)
+  (setf (alist-get 'haskell-mode apheleia-mode-alist) '(fourmolu)))
+
 ;;; LSP
 ;; Should boost performance with lsp
 ;; https://emacs-lsp.github.io/lsp-mode/page/performance/
@@ -1147,9 +1164,11 @@ Depends on the `gh' commandline tool"
   :commands (lsp lsp-deferred)
   :init
   (setenv "LSP_USE_PLISTS" "1")
-  (setq lsp-clients-clangd-args '("--header-insertion-decorators=0" "--clang-tidy" "--enable-config"))
   ;; Increase the amount of data emacs reads from processes
   (setq read-process-output-max (* 1024 1024))
+  (setq lsp-clients-clangd-args '("--header-insertion-decorators=0"
+                                  "--clang-tidy"
+                                  "--enable-config"))
   ;; General lsp-mode settings
   (setq lsp-completion-provider :none
         lsp-enable-snippet t
@@ -1246,24 +1265,18 @@ Depends on the `gh' commandline tool"
     :ensure t
     :hook ((haskell-mode . interactive-haskell-mode)
            (haskell-mode . turn-on-haskell-doc-mode)
-           (haskell-mode . haskell-indent-mode))  
+           (haskell-mode . haskell-indent-mode))
     :bind (:map haskell-mode-map
                 ("M-n" . haskell-goto-next-error)
                 ("M-p" . haskell-goto-prev-error)))
 ;;;; PureScript
   (use-package purescript-mode :ensure t :mode "\\.purs\\'"
+    :hook (purescript-mode . purescript-indent-mode)
     :config
-    (add-hook 'purescript-mode-hook 'purescript-indent-mode)
-    ;; Setup auto formatting for purescript
-    (push '(purs-tidy "purs-tidy" "format") apheleia-formatters)
-    (push '(fourmolu "fourmolu") apheleia-formatters)
-    (setf (alist-get 'purescript-mode apheleia-mode-alist) '(purs-tidy))
-    (setf (alist-get 'haskell-mode apheleia-mode-alist) '(fourmolu)))
-  (use-package psci
-    :ensure t
-    :after purescript-mode
-    :config
-    (add-hook 'purescript-mode-hook 'inferior-psci-mode))
+    (use-package psci
+      :ensure t
+      :hook (purescript-mode . inferior-psci-mode)))
+  
 ;;;; WEB
   (use-package web-mode
     :mode (("\\.tsx\\'"  . typescript-tsx-mode)
@@ -1289,10 +1302,7 @@ Depends on the `gh' commandline tool"
     (setq web-mode-markup-indent-offset 2
           web-mode-css-indent-offset 2
           web-mode-code-indent-offset 2
-          web-mode-auto-close-style 2)
-    :config
-    (add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode))
-    (add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode)))
+          web-mode-auto-close-style 2))
 ;;; Rust
   (use-package rust-mode    :ensure t :mode "\\.rs\\'"
     :init
@@ -1300,15 +1310,13 @@ Depends on the `gh' commandline tool"
     (setq lsp-rust-clippy-preference "on")
     (use-package rust-playground
       :commands (rust-playground)
-      :ensure t)
-    :config
-    )
+      :ensure t))
 ;;;; Racket
   (use-package racket-mode  :ensure t :mode "\\.rkt\\'"
     :config
     (require 'racket-xp)
     (add-hook 'racket-mode-hook #'racket-xp-mode)
-    (add-hook 'racket-mode-hook 'prettify-symbols-mode)
+    (add-hook 'racket-mode-hook #'prettify-symbols-mode)
     (defun setup-racket-eldoc ()
       (eldoc-mode +1)
       (setq eldoc-documentation-function #'racket-xp-eldoc-function))
@@ -1326,8 +1334,8 @@ Depends on the `gh' commandline tool"
          ;; Make all scripts executable. Ya this might be sketch but I don't
          (after-save      . executable-make-buffer-file-executable-if-script-p))
   :bind (:map emacs-lisp-mode-map
-              (("C-c RET" . emacs-lisp-macroexpand)
-               ("C-c C-k" . eval-buffer)))
+              ("C-c RET" . emacs-lisp-macroexpand)
+              ("C-c C-k" . eval-buffer))
   :init
   ;; Don't prompt for a reference
   (setq xref-prompt-for-identifier nil)
@@ -1479,10 +1487,18 @@ Depends on the `gh' commandline tool"
   :bind (("M-g d"   . flymake-show-buffer-diagnostics)
          ("M-g M-d" . flymake-show-project-diagnostics)
          ("M-g M-n" . flymake-goto-next-error)
-         ("M-g M-p" . flymake-goto-prev-error))
+         ("M-g M-p" . flymake-goto-prev-error)
+         :repeat-map flymake-repeatmap
+         ("p" . flymake-goto-prev-error)
+         ("n" . flymake-goto-next-error))
   :hook (prog-mode . (lambda () (flymake-mode t)))
   :config
   (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
+(use-package imenu
+  :ensure nil
+  :custom
+  (imenu-auto-rescan t)
+  (imenu-max-items nil))
 
 (use-package eldoc
   :defer 10
@@ -1550,7 +1566,7 @@ Depends on the `gh' commandline tool"
   :bind (:map dired-mode-map
               ("-" . dired-up-directory))
   :init
-  
+  (setq dired-bind-jump nil)
   :config
   (setq dired-listing-switches "-aghoA --group-directories-first")
 ;;;;; Hide . and .. in dired
@@ -1558,7 +1574,6 @@ Depends on the `gh' commandline tool"
         (setq dired-omit-files "^\\.?#\\|^\\.$\\|^\\.\\.$\\|^\\..*$"))
 ;;;;; xdg-open integration
   (require 'dired-x)
-  (setq dired-bind-jump nil)
   ;; prevent opening extra dired buffers
   ;; emacs 28
   (setq dired-kill-when-opening-new-dired-buffer t))
@@ -1675,38 +1690,6 @@ Depends on the `gh' commandline tool"
                          :files ("tree-sitter-langs-build.el"
                                  "treesit-*.el"
                                  "queries")))
-
-(use-package repeat
-  :defer 10
-  :unless (version< emacs-version "28")
-  :init
-  (repeat-mode +1))
-
-(use-package repeaters
-  :ensure nil
-  :unless (version< emacs-version "28")
-  :quelpa (repeaters :fetcher github :repo "mmarshall540/repeaters")
-  :config
-  (repeaters-define-maps
-   '(("Errors"
-      flymake-goto-prev-error "p"
-      flymake-goto-next-error "n")
-     ("Nums"
-      evil-numbers/inc-at-pt "a"
-      evil-numbers/dec-at-pt "x")
-     ("Org Nav"
-      org-next-visible-heading "n"
-      org-previous-visible-heading "p"
-      org-cycle "<tab>"
-      outline-up-heading "u"
-      org-forward-heading-same-level "f"
-      org-backward-heading-same-level "b"
-      outline-down-heading "d"
-      org-next-block "M-f")
-     ("Outline Nav"
-      outline-up-heading "C-c u" "u"
-      outline-forward-same-level "C-c j" "j"
-      outline-backward-same-level "C-c k" "k"))))
 
 (use-package pomm
   :ensure t

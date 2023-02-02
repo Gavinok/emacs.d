@@ -12,7 +12,16 @@
          ("C-c c" . org-capture)
          ("C-c a" . org-agenda)
          :map org-mode-map
-         ("C-M-i" . completion-at-point))
+         ("C-M-i" . completion-at-point)
+         :repeat-map org-mode-repeatmap
+         ("n"     . org-next-visible-heading)
+         ("p"     . org-previous-visible-heading)
+         ("<tab>" . org-cycle)
+         ("u"     . outline-up-heading)
+         ("f"     . org-forward-heading-same-level)
+         ("b"     . org-backward-heading-same-level)
+         ("d"     . outline-down-heading)
+         ("M-f"   . org-next-block))
   :config
   (setq org-startup-indented t)
   (setq my/org-latex-scale 1.75)
