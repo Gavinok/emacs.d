@@ -79,8 +79,34 @@
 
 ;;; MY STUFF
 (use-package custom-variables
-  :ensure nil :no-require t
+  :ensure nil :no-require t   :demand t
   :init
+  (cl-defmacro let-regex ((bindings (string regex)) &body body)
+  "Macro for creating BINDINGS to captured blocks of REGEX found in a STRING.
+BINDINGS: A list of different symbols to be bound to a captured section of the regex
+STRING: The string the regex is searching through
+REGEX: Regex used to match against the string
+
+If no binding is captured section of regex is found for a BINDING an error is signaled
+   ;; Example usage
+   (let-regex ((h w) (\"hello world\" \"\\(hello\\) \\(world\\)\"))
+                (message \"result was %s then %s\" h w))"
+  (let ((holder (gensym)))
+    `(let ((,holder (with-temp-buffer
+                      (insert ,string)
+                      (beginning-of-buffer)
+                      (search-forward-regexp ,regex nil nil)
+                      (let ((i 0))
+                        (mapcar (lambda (_a)
+                                  (setq i (+ i 1))
+                                  (match-string i))
+                                '( ,@bindings))))))
+       (let ,(mapcar (lambda (binding)
+                       `(,binding (or (pop ,holder)
+				      (error "Failed to find binding for %s"
+                                             ',binding))))
+                     bindings)
+         ,@body))))
   (defvar my/is-termux
     (string-suffix-p
      "Android" (string-trim (shell-command-to-string "uname -a")))
@@ -97,12 +123,52 @@
   :ensure nil :no-require t
   :bind (([remap scroll-up-command] . my/scroll-down)
          ([remap scroll-down-command].  #'my/scroll-up)
-         ("C-M-&" . my/shell-command-on-file)
+         ("C-M-&"   . my/shell-command-on-file)
          ("C-x O"   . other-other-window)
          ("M-f"     . sim-vi-w)
+         ("C-x n a" . my/increment-number-at-point)
+         ("C-x n x" . my/decrement-number-at-point)
+         ("C-c d"   . my/next-fn)
+         :repeat-map my/next-fn-map
+         ("d" . my/next-fn)
          :map image-mode-map
-         ("&"       . my/shell-command-on-file))
+         ("&"       . my/shell-command-on-file)
+         :repeat-map change-number-repeat-map
+         ("a" . my/increment-number-at-point)
+         ("x" . my/decrement-number-at-point))
   :init
+  (defun my/next-fn (&optional arg)
+    (interactive "P")
+    (apply (if arg
+               #'text-property-search-backward
+             #'text-property-search-forward)
+           'face
+           (cond
+            ((eql major-mode 'haskell-mode) 'haskell-definition-face)
+            (T                              'font-lock-function-name-face))
+           nil))
+
+  (defun my/change-number-at-point (change increment)
+    (search-forward-regexp (rx digit)) ; Go to the closest number
+    (let ((number (number-at-point))
+          (point (point)))
+      (when number
+        (progn
+          (forward-word)
+          (search-backward (number-to-string number))
+          (replace-match (number-to-string (funcall change number increment)))
+          (goto-char (- point 1))))))
+
+  (defun my/increment-number-at-point (&optional increment)
+    "Increment number at point like vim's C-a"
+    (interactive "p")
+    (my/change-number-at-point '+ (or increment 2)))
+
+  (defun my/decrement-number-at-point (&optional increment)
+    "Decrement number at point like vim's C-x"
+    (interactive "p")
+    (my/change-number-at-point '- (or increment 1)))
+
   (defun my/scroll-down (arg)
     "Move cursor down half a screen ARG times."
     (interactive "p")
@@ -162,13 +228,13 @@ replaces it with the Latex equivalent."
                            (insert-file-contents-literally file-name)
                            (buffer-substring-no-properties (point-min) (point-max))
                            "\n"))))
-          (completing-read
-           "All History: "
-           (append shell-command-history
-                   compile-history
-                   (when (boundp 'eshell-history-file-name)
-                     (file->lines eshell-history-file-name))
-                   (file->lines "~/.bash_history")))))
+      (completing-read
+       "All History: "
+       (append shell-command-history
+               compile-history
+               (when (boundp 'eshell-history-file-name)
+                 (file->lines eshell-history-file-name))
+               (file->lines "~/.bash_history")))))
 
   (defun gist-from-region (BEG END fname desc &optional private)
     "Collect the current region creating a github gist with the
@@ -249,8 +315,13 @@ Depends on the `gh' commandline tool"
          ("M-3" . split-window-right))
 
   :config
-  ;; set the title of the frame to the current file - Emacs
+  ;; Set the title of the frame to the current file - Emacs
   (setq-default frame-title-format '("%b - Emacs"))
+
+  ;; How I like my margins
+  (unless my/is-terminal
+    (setq-default left-margin-width 2)
+    (setq-default right-margin-width 2))
 
   ;; No delay when deleting pairs
   (setq-default delete-pair-blink-delay 0)
@@ -404,19 +475,6 @@ Depends on the `gh' commandline tool"
                       '("st-256color" . "xterm-256color"))
          (xterm-mouse-mode t)))
 
-(when (require 'auto-mark nil t)
-  (setq auto-mark-command-class-alist
-        '((anything . anything)
-          (goto-line . jump)
-          (indent-for-tab-command . ignore)
-          (undo . ignore)))
-  (setq auto-mark-command-classifiers
-        (list (lambda (command)
-                (if (and (eq command 'self-insert-command)
-                         (eq last-command-char ? ))
-                    'ignore))))
-  (global-auto-mark-mode 1))
-
 ;;; Aligning Text
 (use-package align
   :ensure nil
@@ -472,7 +530,7 @@ Depends on the `gh' commandline tool"
          ("C-x C-SPC"   . consult-global-mark)
          ("C-x M-:"     . consult-complex-command)
          ("C-c n"       . consult-org-agenda)
-         ("C-c m"     . my/notegrep)
+         ("C-c m"       . my/notegrep)
          :map help-map
          ("a" . consult-apropos)
          :map minibuffer-local-map
@@ -501,14 +559,6 @@ Depends on the `gh' commandline tool"
     (start-process-shell-command "recollindex"
                                  "*recoll-index-process*"
                                  "recollindex")))
-
-(use-package evil-numbers
-  :ensure t
-  :bind (("C-x n a" . evil-numbers/inc-at-pt)
-         ("C-x n x" . evil-numbers/dec-at-pt)
-         :repeat-map evil-numbers-repeat-map
-         ("a" . evil-numbers/inc-at-pt)
-         ("x" . evil-numbers/dec-at-pt)))
 
 (use-package embark
   :ensure t
@@ -634,6 +684,7 @@ Depends on the `gh' commandline tool"
 
 ;;; THEMEING
 (use-package spaceway-theme
+  :disabled t
   :ensure nil
   :load-path "lisp/spaceway/"
   :config
@@ -645,7 +696,13 @@ Depends on the `gh' commandline tool"
     (add-to-list 'default-frame-alist '(alpha-background 90))
     (add-to-list 'default-frame-alist '(alpha 100 100)))
   (load-theme 'spaceway t))
-
+(use-package doom-themes
+  :ensure t
+  :config
+  (load-theme 'doom-earl-grey t)
+  (set-face-attribute 'default nil :foreground "#333")
+  (global-hl-line-mode t)
+  (setenv "SCHEME" "light"))
 ;;; WRITING
 (use-package writegood-mode
   :hook (flyspell-mode . writegood-mode))
@@ -690,6 +747,7 @@ Depends on the `gh' commandline tool"
 (use-package forge :ensure t :after magit)
 (use-package ediff
   :after (magit vc)
+  :commands (ediff)
   :init
   ;; multiframe just doesn't make sense to me
   (with-eval-after-load 'winner
@@ -716,11 +774,11 @@ Depends on the `gh' commandline tool"
   :init (when my/my-system
           (setq term-prompt-regexp ".*ᛋ")))
 
-(use-package with-editor
-  :hook ((shell-mode-hook eshell-mode-hook term-exec-hook vterm-exec-hook)
-         . with-editor-export-editor)
-  :bind (([remap async-shell-command] . with-editor-async-shell-command)
-         ([remap shell-command] . with-editor-shell-command)))
+;; (use-package with-editor
+;;   :hook ((shell-mode-hook eshell-mode-hook term-exec-hook vterm-exec-hook)
+;;          . with-editor-export-editor)
+;;   :bind (([remap async-shell-command] . with-editor-async-shell-command)
+;;          ([remap shell-command] . with-editor-shell-command)))
 
 (use-package eshell
   :bind ("C-x E" . eshell))
@@ -749,11 +807,6 @@ Depends on the `gh' commandline tool"
   :commands eshell
   :config
   (setq eshell-destroy-buffer-when-process-dies t))
-
-(use-package coterm
-  :demand t
-  :config
-  (coterm-mode))
 
 (use-package fish-completion
   :demand t
@@ -919,7 +972,7 @@ Depends on the `gh' commandline tool"
                ("M-w" . isearch-save-and-exit))
          (:map isearch-mode-map
                ("M-/" . isearch-complete))
-         (:repeat-map isearch-repeate-map
+         (:repeat-map isearch-repeat-map
          ("s" . isearch-repeat-forward)))
   :custom ((isearch-lazy-count t)
            (lazy-count-prefix-format nil)
@@ -1155,7 +1208,9 @@ Depends on the `gh' commandline tool"
 ;; Should boost performance with lsp
 ;; https://emacs-lsp.github.io/lsp-mode/page/performance/
 (use-package lsp-mode
-  :bind ((:map lsp-mode-map
+  :defer t
+  :bind (("C-h ," . help-at-pt-buffer)
+         (:map lsp-mode-map
                ("M-<return>" . lsp-execute-code-action))
          (:map c++-mode-map
                ("C-c x" . lsp-clangd-find-other-file))
@@ -1183,6 +1238,17 @@ Depends on the `gh' commandline tool"
               (setf (alist-get 'lsp-capf completion-category-defaults)
                     '((styles . (orderless flex))))))
   :config
+  (defun help-at-pt-buffer ()
+    (interactive)
+    (let ((help (help-at-pt-kbd-string))
+          (h-at-p-buf "*Help At Point*"))
+      (if help
+          (progn (with-current-buffer (get-buffer-create h-at-p-buf)
+                   (view-mode -1)
+                   (erase-buffer) (insert (format "%s" (substitute-command-keys help)))
+                   (view-mode +1))
+                 (switch-to-buffer-other-window h-at-p-buf))
+        (if (not arg) (message "No local help at point")))))
   (use-package lsp-ui
     :ensure t
     :after lsp
@@ -1232,10 +1298,11 @@ Depends on the `gh' commandline tool"
 
 ;;; Debugging
 (use-package dap-mode
+  :ensure t
+  :defer t
   :bind (:map dap-mode-map
               ("C-x D D" . dap-debug)
               ("C-x D d" . dap-debug-last))
-  :after lsp-mode
   :init
   (defun my/dap-cpp-setup ()
     (require 'dap-gdb-lldb)
@@ -1265,18 +1332,25 @@ Depends on the `gh' commandline tool"
     :ensure t
     :hook ((haskell-mode . interactive-haskell-mode)
            (haskell-mode . turn-on-haskell-doc-mode)
-           (haskell-mode . haskell-indent-mode))
-    :bind (:map haskell-mode-map
-                ("M-n" . haskell-goto-next-error)
-                ("M-p" . haskell-goto-prev-error)))
+           (haskell-mode . haskell-indent-mode)
+           (haskell-mode . haskell-setup-outline-mode))
+    :bind (
+           :map haskell-mode-map
+           ("M-n" . haskell-goto-next-error)
+           ("M-p" . haskell-goto-prev-error))
+    :config
+    (defun haskell-setup-outline-mode ()
+      (make-local-variable 'outline-regexp)
+      (setq outline-regexp "\\`\\|\\s-+\\S-")))
 ;;;; PureScript
   (use-package purescript-mode :ensure t :mode "\\.purs\\'"
-    :hook (purescript-mode . purescript-indent-mode)
+    :hook ((purescript-mode . purescript-indent-mode)
+           (purescript-mode . turn-on-purescript-unicode-input-method))
     :config
     (use-package psci
       :ensure t
       :hook (purescript-mode . inferior-psci-mode)))
-  
+
 ;;;; WEB
   (use-package web-mode
     :mode (("\\.tsx\\'"  . typescript-tsx-mode)
@@ -1490,9 +1564,21 @@ Depends on the `gh' commandline tool"
          ("M-g M-p" . flymake-goto-prev-error)
          :repeat-map flymake-repeatmap
          ("p" . flymake-goto-prev-error)
-         ("n" . flymake-goto-next-error))
+         ("n" . flymake-goto-next-error)
+         :map flymake-diagnostics-buffer-mode-map
+         ("?" . flymake-show-diagnostic-here)
+         :map flymake-project-diagnostics-mode-map
+         ("?" . flymake-show-diagnostic-here))
   :hook (prog-mode . (lambda () (flymake-mode t)))
   :config
+  (defun flymake-show-diagnostic-here (pos &optional other-window)
+    "Show the full diagnostic of this error.
+Used to see multiline flymake errors"
+    (interactive (list (point) t))
+    (let* ((id (or (tabulated-list-get-id pos)
+                   (user-error "Nothing at point")))
+           (text (flymake-diagnostic-text (plist-get id :diagnostic))))
+      (message text)))
   (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
 (use-package imenu
   :ensure nil
@@ -1607,10 +1693,6 @@ Depends on the `gh' commandline tool"
 (load (concat user-emacs-directory
               "lisp/modeline.el"))
 
-(unless my/is-terminal
-  (setq-default left-margin-width 2)
-  (setq-default right-margin-width 2))
-
 ;;; Server Setup
 (use-package server
   :ensure nil
@@ -1627,7 +1709,7 @@ Depends on the `gh' commandline tool"
 ;; (load (concat user-emacs-directory
 ;;               "lisp/exwm-config.el"))
 (use-package pdf-tools
-  :defer t
+  :ensure t :defer t
   :commands (pdf-view-mode pdf-tools-install)
   :mode ("\\.[pP][dD][fF]\\'" . pdf-view-mode)
   :magic ("%PDF" . pdf-view-mode)
@@ -1649,8 +1731,8 @@ Depends on the `gh' commandline tool"
 
 ;; use emacs as a clipboard manager
 (use-package clipmon
+  :ensure t :defer 5
   :unless (and my/is-termux (not (executable-find "clipmon")))
-  :defer 5
   :config
   (clipmon-mode-start))
 
@@ -1660,7 +1742,7 @@ Depends on the `gh' commandline tool"
   :bind (("s-/" . winner-undo)
          ("s-?" . winner-redo))
   :config
-  :init (winner-mode 1)) ; Window Managment Undo
+:init (winner-mode 1)) ; Window Managment Undo
 
 ;; Install `plz' HTTP library (not on MELPA yet).
 (use-package plz
@@ -1684,8 +1766,8 @@ Depends on the `gh' commandline tool"
   )
 
 (use-package treesit-langs
-  :unless (version< emacs-version "29")
   :ensure nil
+  :unless (version< emacs-version "29")
   :quelpa (treesit-langs :fetcher github :repo "kiennq/treesit-langs"
                          :files ("tree-sitter-langs-build.el"
                                  "treesit-*.el"
@@ -1702,7 +1784,7 @@ Depends on the `gh' commandline tool"
   :config
   (pomm-mode-line-mode +1))
 
-(use-package envrc
+(use-package direnv
   :ensure t
   :config
   (envrc-global-mode))
