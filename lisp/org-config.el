@@ -77,7 +77,7 @@
    '((haskell . t) (emacs-lisp . t) (shell . t) (python . t)
      (C . t) (lua . t) (dot . t) (java . t)
      (lisp . t) (clojure . t) (scheme . t)
-     (forth . t) (rust . t)))
+     (forth . t)))
   (setq org-confirm-babel-evaluate nil)
   ;;;; School notes
   (when my/my-system

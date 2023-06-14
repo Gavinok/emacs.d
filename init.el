@@ -5,6 +5,20 @@
 ;; useful for quickly debugging emacs
 ;; (setq debug-on-error t)
 
+
+(add-to-list 'image-types 'svg)
+
+(setq wls-copy-process nil)
+(defun wls-copy (text)
+  (setq wls-copy-process (make-process :name "clip.exe"
+                                      :buffer nil
+                                      :command '("clip.exe")
+                                      :connection-type 'pipe))
+  (process-send-string wls-copy-process text)
+  (process-send-eof wls-copy-process))
+
+(setq interprogram-cut-function 'wls-copy)
+
 (setq initial-scratch-message nil)
 
 (defvar file-name-handler-alist-old file-name-handler-alist)
@@ -62,11 +76,11 @@
   :init
   (dired-async-mode 1))
 
-(use-package dwim-shell-command
-  :ensure t :demand t
-  :bind (([remap dired-do-shell-command] . dwim-shell-command))
-  :config
-  (require 'dwim-shell-commands))
+;; (use-package dwim-shell-command
+;;   :ensure t :demand t
+;;   :bind (([remap dired-do-shell-command] . dwim-shell-command))
+;;   :config
+;;   (require 'dwim-shell-commands))
 
 (use-package savehist
   :defer 2
@@ -115,9 +129,7 @@ If no binding is captured section of regex is found for a BINDING an error is si
     (not window-system)
     "Truthy value indicating if Emacs is currently running in a terminal.")
   (defvar my/my-system
-    (if (string-equal user-login-name "gavinok")
-        t
-      nil)
+    nil
     "Non-nil value if this is my system."))
 (use-package custom-functions
   :ensure nil :no-require t
@@ -375,7 +387,7 @@ Depends on the `gh' commandline tool"
 ;;;; Remove Extra Ui
   (fset 'yes-or-no-p 'y-or-n-p)    ; don't ask to spell out "yes"
   (show-paren-mode 1)              ; Highlight parenthesis
-  (setq-default x-select-enable-primary t) ; use primary as clipboard in emacs
+  (setq x-select-enable-primary nil) ; use primary as clipboard in emacs
   ;; avoid leaving a gap between the frame and the screen
   (setq-default frame-resize-pixelwise t)
 
@@ -394,7 +406,7 @@ Depends on the `gh' commandline tool"
   (customize-set-value 'recentf-make-menu-items 150)
   (customize-set-value 'recentf-make-saved-items 150))
 
-(use-package font-setup :ensure nil :no-require
+(use-package font-setup :ensure nil :no-require t
   :when my/my-system
   :hook ((text-mode . pragmatapro-lig-mode)
          (prog-mode . pragmatapro-lig-mode))
@@ -665,22 +677,22 @@ Depends on the `gh' commandline tool"
   (yas-global-mode))
 (use-package yasnippet-snippets
   :ensure t :after yasnippet)
-(use-package cape-yasnippet
-  :ensure nil
-  :quelpa (cape-yasnippet :fetcher github :repo "elken/cape-yasnippet")
-  :after yasnippet
-  :hook ((prog-mode . yas-setup-capf)
-         (text-mode . yas-setup-capf)
-         (lsp-mode  . yas-setup-capf)
-         (sly-mode  . yas-setup-capf))
-  :bind (("C-c y" . cape-yasnippet)
-         ("M-+"   . yas-insert-snippet))
-  :config
-  (defun yas-setup-capf ()
-    (setq-local completion-at-point-functions
-                (cons 'cape-yasnippet
-                      completion-at-point-functions)))
-  (push 'cape-yasnippet completion-at-point-functions))
+;; (use-package cape-yasnippet
+;;   :ensure nil
+;;   :quelpa (cape-yasnippet :fetcher github :repo "elken/cape-yasnippet")
+;;   :after yasnippet
+;;   :hook ((prog-mode . yas-setup-capf)
+;;          (text-mode . yas-setup-capf)
+;;          (lsp-mode  . yas-setup-capf)
+;;          (sly-mode  . yas-setup-capf))
+;;   :bind (("C-c y" . cape-yasnippet)
+;;          ("M-+"   . yas-insert-snippet))
+;;   :config
+;;   (defun yas-setup-capf ()
+;;     (setq-local completion-at-point-functions
+;;                 (cons 'cape-yasnippet
+;;                       completion-at-point-functions)))
+;;   (push 'cape-yasnippet completion-at-point-functions))
 
 ;;; THEMEING
 (use-package spaceway-theme
@@ -725,11 +737,11 @@ Depends on the `gh' commandline tool"
               "lisp/org-config.el"))
 
 ;;; ChatGPT
-(use-package chatgpt
-  :load-path "lisp/"
-  :ensure nil
-  :bind (
-))
+;; (use-package chatgpt
+;;   :load-path "lisp/"
+;;   :ensure nil
+;;   :bind (
+;; ))
 
 ;;; Git
 (use-package magit
@@ -1218,7 +1230,7 @@ Depends on the `gh' commandline tool"
                ("C-c x" . lsp-clangd-find-other-file)))
   :commands (lsp lsp-deferred)
   :init
-  (setenv "LSP_USE_PLISTS" "1")
+  ;; (setenv "LSP_USE_PLISTS" "1")
   ;; Increase the amount of data emacs reads from processes
   (setq read-process-output-max (* 1024 1024))
   (setq lsp-clients-clangd-args '("--header-insertion-decorators=0"
@@ -1263,7 +1275,8 @@ Depends on the `gh' commandline tool"
          (typescript-mode . lsp-deferred)
          (purescript-mode . lsp-deferred)
          (js-mode         . lsp-deferred)
-         (javascript-mode . lsp-deferred))
+         (javascript-mode . lsp-deferred)
+         (web-mode . lsp-deferred))
   :init
   (use-package lsp-javascript :ensure nil :no-require t
     :hook (javascript-mode . lsp-deferred)
@@ -1276,6 +1289,7 @@ Depends on the `gh' commandline tool"
       (define-key js-mode-map (kbd "M-.") 'xref-find-definitions)))
 
   (use-package lsp-rust :ensure nil :no-require t
+    :when (executable-find "rust-analyzer")
     :hook (rust-mode       . lsp-deferred)
     :config
     (lsp-rust-analyzer-inlay-hints-mode 1))
@@ -1304,11 +1318,11 @@ Depends on the `gh' commandline tool"
               ("C-x D D" . dap-debug)
               ("C-x D d" . dap-debug-last))
   :init
-  (defun my/dap-cpp-setup ()
-    (require 'dap-gdb-lldb)
-    (dap-gdb-lldb-setup))
+  ;; (defun my/dap-cpp-setup ()
+  ;;   (require 'dap-gdb-lldb)
+  ;;   (dap-gdb-lldb-setup))
   :config
-  (my/dap-cpp-setup)
+  ;; (my/dap-cpp-setup)
   (setq dap-auto-configure-features '(sessions locals controls tooltip)))
 
 ;;; Languages
@@ -1318,10 +1332,10 @@ Depends on the `gh' commandline tool"
   :quelpa (nvm :fetcher github :repo "rejeep/nvm.el")
   :commands (nvm-use nvm-use-for-buffer)
   :config
-  (setq nvm-dir (concat (getenv "HOME") "/.config/nvm"))
+  (setq nvm-dir (concat (getenv "HOME") "/.nvm"))
   (defun my/nvm-use () (interactive)
     (nvm-use
-     (completing-read "Enter Node Version" '("16.17.1")))))
+     (completing-read "Enter Node Version" '("18.16.0" "16.17.1")))))
 
 (use-package extra-languages
   :ensure nil :no-require t
@@ -1353,16 +1367,18 @@ Depends on the `gh' commandline tool"
 
 ;;;; WEB
   (use-package web-mode
-    :mode (("\\.tsx\\'"  . typescript-tsx-mode)
-           ("\\.html\\'" . web-mode))
+    :mode (("\\.tsx\\'"  . web-mode)
+           ("\\.html\\'" . web-mode)
+           ("\\.vue\\'"  . web-mode))
     :hook ((web-mode            . lsp-deferred)
-           (typescript-tsx-mode . lsp-deferred))
+           ;; (typescript-tsx-mode . lsp-deferred)
+           )
     :bind (
-           :map typescript-tsx-mode-map
-           ("C-c C-M-f". sgml-skip-tag-forward)
-           ("C-c C-M-b". sgml-skip-tag-backward)
-           ("C-c C-f". sgml-skip-tag-forward)
-           ("C-c C-b". sgml-skip-tag-backward)
+           ;; :map typescript-tsx-mode-map
+           ;; ("C-c C-M-f". sgml-skip-tag-forward)
+           ;; ("C-c C-M-b". sgml-skip-tag-backward)
+           ;; ("C-c C-f". sgml-skip-tag-forward)
+           ;; ("C-c C-b". sgml-skip-tag-backward)
            :map web-mode-map
            ("C-c C-M-f". sgml-skip-tag-forward)
            ("C-c C-M-b". sgml-skip-tag-backward)
@@ -1372,11 +1388,15 @@ Depends on the `gh' commandline tool"
            ("C-M-u" . web-mode-element-parent)
            ("C-M-d" . web-mode-element-child))
     :init
-    (define-derived-mode typescript-tsx-mode typescript-mode "TypeScript-tsx")
+    ;; (define-derived-mode typescript-tsx-mode typescript-mode "TypeScript-tsx")
     (setq web-mode-markup-indent-offset 2
           web-mode-css-indent-offset 2
           web-mode-code-indent-offset 2
-          web-mode-auto-close-style 2))
+          web-mode-auto-close-style 1
+          web-mode-enable-auto-indentation nil
+          web-mode-enable-auto-quoting nil
+          web-mode-enable-auto-pairing nil
+          web-mode-enable-auto-opening nil))
 ;;; Rust
   (use-package rust-mode    :ensure t :mode "\\.rs\\'"
     :init
@@ -1722,8 +1742,8 @@ Used to see multiline flymake errors"
                                  (org-pdftools-open link)))))
 
 ;;; mu4e
-(add-to-list 'load-path "/usr/share/emacs/site-lisp/")
-(load "~/.emacs.d/mu4e-config.el")
+;; (add-to-list 'load-path "/usr/share/emacs/site-lisp/")
+;; (load "~/.emacs.d/mu4e-config.el")
 
 (use-package keycast
   :ensure t
@@ -1732,7 +1752,7 @@ Used to see multiline flymake errors"
 ;; use emacs as a clipboard manager
 (use-package clipmon
   :ensure t :defer 5
-  :unless (and my/is-termux (not (executable-find "clipmon")))
+  :unless (or my/is-termux (not (executable-find "clipmon")))
   :config
   (clipmon-mode-start))
 
