@@ -15,7 +15,7 @@
 (add-hook 'after-init-hook
           `(lambda ()
              (setq file-name-handler-alist file-name-handler-alist-old)
-             (setq gc-cons-threshold (* 2 1000 1000)))
+             (setq gc-cons-threshold 20000000))
           t)
 ;;; Backups
 (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
@@ -565,6 +565,7 @@ Depends on the `gh' commandline tool"
   :bind
   ;; pick some comfortable binding
   (("C-="                     . embark-act)
+   ("C-<escape>"              . embark-act)
    ([remap describe-bindings] . embark-bindings)
    :map embark-file-map
    ("C-d"                     . dragon-drop)
@@ -620,7 +621,7 @@ Depends on the `gh' commandline tool"
   (corfu-auto-delay 0.0)
   (corfu-popupinfo-delay '(0.5 . 0.2))
   (corfu-preview-current 'insert) ; Do not preview current candidate
-  (corfu-preselect-first nil)
+  (corfu-preselect 'prompt)
   (corfu-on-exact-match nil)      ; Don't auto expand tempel snippets
 
   ;; Optionally use TAB for cycling, default is `corfu-complete'.
@@ -684,7 +685,6 @@ Depends on the `gh' commandline tool"
 
 ;;; THEMEING
 (use-package spaceway-theme
-  :disabled t
   :ensure nil
   :load-path "lisp/spaceway/"
   :config
@@ -695,8 +695,11 @@ Depends on the `gh' commandline tool"
     (set-frame-parameter (selected-frame) 'alpha-background 100)
     (add-to-list 'default-frame-alist '(alpha-background 90))
     (add-to-list 'default-frame-alist '(alpha 100 100)))
-  (load-theme 'spaceway t))
+  (load-theme 'spaceway t)
+  (setenv "SCHEME" "dark")
+  )
 (use-package doom-themes
+  :disabled t
   :ensure t
   :config
   (load-theme 'doom-earl-grey t)
@@ -705,20 +708,31 @@ Depends on the `gh' commandline tool"
   (setenv "SCHEME" "light"))
 ;;; WRITING
 (use-package writegood-mode
-  :hook (flyspell-mode . writegood-mode))
+  :hook (jinx-mode . writegood-mode))
+(use-package jinx
+  :bind ("C-c DEL" . jinx-correct)
+  :hook ((markdown-mode
+          nroff-mode org-mode
+          mail-mode
+          git-commit-mode
+          org-mode)
+         . jinx-mode)
+  :init
+  (global-jinx-mode 1)
+  )
 (use-package writeroom-mode
   :commands (writeroom-mode global-writeroom-mode)
   :init
   (setq writeroom-width 90))
-(use-package flyspell-correct
-  :bind ("C-c DEL" . flyspell-correct-previous)
-  :hook ((markdown-mode nroff-mode org-mode
-                        mail-mode
-                        git-commit-mode)
-         . flyspell-mode)
-  :init
-  (add-to-list 'ispell-skip-region-alist '("+begin_src" . "+end_src"))
-  (setq flyspell-use-meta-tab nil))
+;; (use-package flyspell-correct
+;;   :bind ("C-c DEL" . flyspell-correct-previous)
+;;   :hook ((markdown-mode nroff-mode org-mode
+;;                         mail-mode
+;;                         git-commit-mode)
+;;          . flyspell-mode)
+;;   :init
+;;   (add-to-list 'ispell-skip-region-alist '("+begin_src" . "+end_src"))
+;;   (setq flyspell-use-meta-tab nil))
 
 ;;; ORG
 (load (concat user-emacs-directory
@@ -966,14 +980,15 @@ Depends on the `gh' commandline tool"
 (use-package isearch
   :ensure nil
   :bind (("C-s"     . isearch-forward)
-         ("M-s M-%" . isearch-query-replace)
+         ("M-R"     . isearch-query-replace)
          ("C-r"     . isearch-backward)
          (:map isearch-mode-map
-               ("M-w" . isearch-save-and-exit))
-         (:map isearch-mode-map
+               ("M-w" . isearch-save-and-exit)
+               ("M-R" . isearch-query-replace)
                ("M-/" . isearch-complete))
-         (:repeat-map isearch-repeat-map
-         ("s" . isearch-repeat-forward)))
+         ;; (:repeat-map isearch-repeat-map
+         ;; ("s" . isearch-repeat-forward))
+         )
   :custom ((isearch-lazy-count t)
            (lazy-count-prefix-format nil)
            (lazy-count-suffix-format " [%s of %s]")
@@ -988,9 +1003,6 @@ Depends on the `gh' commandline tool"
     (isearch-done)
     (isearch-clean-overlays)
     (kill-new isearch-string))
-
-  ;; ;; Avoid typing - and _ during searches
-  ;; (setq search-whitespace-regexp "(.|[-_ \t\n])+")
 
   ;; Place cursor at the start of the match similar to vim's t
   ;; C-g will return the cursor to it's orignal position
@@ -1220,7 +1232,7 @@ Depends on the `gh' commandline tool"
   :init
   (setenv "LSP_USE_PLISTS" "1")
   ;; Increase the amount of data emacs reads from processes
-  (setq read-process-output-max (* 1024 1024))
+  (setq read-process-output-max (* 3 1024 1024))
   (setq lsp-clients-clangd-args '("--header-insertion-decorators=0"
                                   "--clang-tidy"
                                   "--enable-config"))
@@ -1230,13 +1242,14 @@ Depends on the `gh' commandline tool"
         lsp-enable-on-type-formatting nil
         lsp-enable-indentation nil
         lsp-diagnostics-provider :flymake
-        lsp-keymap-prefix "C-x L")
+        lsp-keymap-prefix "C-x L"
+        lsp-eldoc-render-all t)
   ;; to enable the lenses
   (add-hook 'lsp-mode-hook #'lsp-lens-mode)
   (add-hook 'lsp-completion-mode-hook
             (lambda ()
               (setf (alist-get 'lsp-capf completion-category-defaults)
-                    '((styles . (orderless flex))))))
+                    '((styles . (orderless-flex))))))
   :config
   (defun help-at-pt-buffer ()
     (interactive)
@@ -1483,7 +1496,8 @@ Depends on the `gh' commandline tool"
          (puni-mode  . electric-pair-mode))
   :bind (("C-c s" . puni-mode)
          :map puni-mode-map
-         ("C-c DEL" . flyspell-correct-previous)
+         ("C-c DEL" . jinx-correct)
+         ;; ("C-c DEL" . flyspell-correct-previous)
          ("M-e"   . puni-end-of-sexp)
          ("M-a"   . puni-beginning-of-sexp)
          ("C-M-f" . puni-forward-sexp-or-up-list)
@@ -1491,22 +1505,24 @@ Depends on the `gh' commandline tool"
          ("C-)"   . puni-slurp-forward)
          ("C-0"   . puni-slurp-forward)
          ("C-}"   . puni-barf-forward)
-         ("C-9"   . puni-slurp-backward)
          ("C-{"   . puni-barf-backward)
          ("C-("   . puni-slurp-backward)
+         ("C-9"   . puni-slurp-backward)
          ("M-("   . puni-wrap-round)
+         ("M-R" .   puni-raise)
          ;; ("C-M-j" . sp-join-sexp)
          ("C-M-t" . puni-transpose)
          ;; ("C-M-k" . puni-kill-thing-at-point)
          ("C-M-?" . puni-convolute)
          ("C-k"   . puni-kill-line)
          ("M-k"   . kill-sexp)
-         ;; ("S-SPC" . puni-expand-region)
          ("M-C"   . puni-clone-thing-at-point)
          ("C-M-z" . puni-squeeze)
          ("C-M-z" . puni-squeeze)
          ("M-<backspace>" . backward-kill-word)
          ("C-w" . kill-region))
+  :chords ("fj" . mark-sexp)
+
   :init
   (puni-global-mode t)
   :config
@@ -1628,7 +1644,6 @@ Used to see multiline flymake errors"
          :map help-mode-map
          ("C-c '" . separedit))
   :init
-
   ;; Default major-mode for edit buffer
   ;; can also be other mode e.g. ?org-mode?.
   (setq separedit-default-mode 'markdown-mode)
@@ -1742,7 +1757,7 @@ Used to see multiline flymake errors"
   :bind (("s-/" . winner-undo)
          ("s-?" . winner-redo))
   :config
-:init (winner-mode 1)) ; Window Managment Undo
+  :init (winner-mode 1)) ; Window Managment Undo
 
 ;; Install `plz' HTTP library (not on MELPA yet).
 (use-package plz
@@ -1775,19 +1790,51 @@ Used to see multiline flymake errors"
 
 (use-package pomm
   :ensure t
-  :commands (pomm pomm-third-time)
-  :init
-  (setq pomm-audio-enabled t
-        pomm-work-period 15
-        pomm-long-break-period 10
-        alert-default-style 'libnotify)
-  :config
-  (pomm-mode-line-mode +1))
+  ;; :commands (pomm pomm-third-time)
+  ;; :init
+  ;; (setq pomm-audio-enabled t
+  ;;       pomm-work-period 15
+  ;;       pomm-long-break-period 10
+  ;;       alert-default-style 'libnotify)
+  ;; :config
+  ;; (pomm-mode-line-mode +1)
+  )
 
 (use-package direnv
   :ensure t
   :config
   (envrc-global-mode))
+
+(use-package highlight-indent-guides
+  ;; provides column highlighting.  Useful when you start seeing too many nested
+  ;; layers.
+  :hook (prog-mode . highlight-indent-guides-mode)
+  :custom-face
+  (highlight-indent-guides-stack-character-face ((t  :foreground "#FFF")))
+  (highlight-indent-guides-character-face       ((t  :foreground "#EEE")))
+  (highlight-indent-guides-top-character-face   ((t  :foreground "#CCC")))
+  (highlight-indent-guides-even-face            ((t  :foreground "#BBB")))
+  (highlight-indent-guides-odd-face             ((t  :foreground "#AAA")))
+  :custom
+  (highlight-indent-guides-method 'character)
+  (highlight-indent-guides-responsive 'top))
+
+(use-package comby
+  :when (executable-find "comby"))
+
+(use-package strokes-mode
+  :ensure nil
+  :bind ("S-<down-mouse-2>" . strokes-do-stroke)
+  :commands (strokes-do-stroke strokes-global-set-stroke)
+  :init
+  (require 'vertico)
+  (vertico-mouse-mode t)
+  (strokes-mode t))
+
+;; (use-package carp
+;;   :load-path "~/.emacs.d/lisp/carp.el"
+;;   :init t
+;;   :hook (carp-mode ))
 
 (setenv "EDITOR" "emacsclient")
 (setenv "PAGER" "cat")

@@ -83,7 +83,7 @@
   (when my/my-system
     (let ((school-notes "~/.local/Dropbox/DropsyncFiles/vimwiki/School"))
       (setq org-agenda-files
-            (seq-filter (lambda (x) (not (string-match "completed.org" x)))
+            (seq-filter (lambda (x) (not (string-match "\\(completed.org\\|gcal.org\\)" x)))
                         (directory-files-recursively org-directory "\\.org$")))
       (if (file-directory-p school-notes)
           (setq org-agenda-files
@@ -248,4 +248,46 @@
   (org-yaap-mode 1)
   (org-yaap-daemon-start))
 
+(use-package my/backlinks :ensure nil :no-require t
+  :bind (
+         :map org-mode-map
+         ("M-," . org-mark-ring-goto))
+  :custom
+  (org-mark-ring-length 250)
+  :init
+  (defun peek-mark-ring ()
+    (interactive)
+    (with-current-buffer (get-buffer-create "*Org Mark Ring*")
+      (unless (eql major-mode #'org-mode)
+        (org-mode))
+      (erase-buffer)
+      (mapcar (lambda (b)
+                (insert b "\n"))
+              (cl-loop
+               with seen = nil
+               for m in org-mark-ring
+               while (not (find m seen))
+               do (push m seen)
+               collect (buffer-name (marker-buffer m)))))
+    (switch-to-buffer-other-window "*Org Mark Ring*")))
+
+;; For creating svg art in org files
+(use-package edraw
+  :ensure nil
+  :quelpa (edraw :fetcher github :repo "misohena/el-easydraw")
+  :after org
+  :config
+  (with-eval-after-load 'org
+    (require 'edraw-org)
+    (edraw-org-setup-default)))
+
 ;; (add-hook 'after-init-hook (lambda (&rest args) (org-agenda-List 1)))
+;; (mapcar (lambda (selected)
+;;           (plist-get
+;;            (plist-get selected
+;;                       'headline)
+;;            :raw-value))
+;;         (org-ql-select (directory-files-recursively org-directory "\\.org$")
+;;           '(and (property "LOCATION"))))
+
+(plist-get '(headline (1)) 'headline)
