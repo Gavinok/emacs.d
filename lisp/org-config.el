@@ -71,13 +71,15 @@
                     "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)"
                     "|" "DELEGATED(D)" "CANCELLED(c)")))
 ;;;; Babel
+  (use-package ob-typescript :demand t)
   (setq org-babel-lisp-eval-fn #'sly-eval)
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((haskell . t) (emacs-lisp . t) (shell . t) (python . t)
      (C . t) (lua . t) (dot . t) (java . t)
      (lisp . t) (clojure . t) (scheme . t)
-     (forth . t)))
+     (forth . t)
+     (typescript . t)))
   (setq org-confirm-babel-evaluate nil)
   ;;;; School notes
   (when my/my-system

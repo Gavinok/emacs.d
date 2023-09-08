@@ -29,7 +29,8 @@
 (add-hook 'after-init-hook
           `(lambda ()
              (setq file-name-handler-alist file-name-handler-alist-old)
-             (setq gc-cons-threshold (* 2 1000 1000)))
+             (setq gc-cons-threshold (* 2 1000 1000))
+             (setq gc-cons-percentage 0.1))
           t)
 ;;; Backups
 (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
@@ -134,7 +135,7 @@ If no binding is captured section of regex is found for a BINDING an error is si
 (use-package custom-functions
   :ensure nil :no-require t
   :bind (([remap scroll-up-command] . my/scroll-down)
-         ([remap scroll-down-command].  #'my/scroll-up)
+         ([remap scroll-down-command].  my/scroll-up)
          ("C-M-&"   . my/shell-command-on-file)
          ("C-x O"   . other-other-window)
          ("M-f"     . sim-vi-w)
@@ -180,6 +181,14 @@ If no binding is captured section of regex is found for a BINDING an error is si
     "Decrement number at point like vim's C-x"
     (interactive "p")
     (my/change-number-at-point '- (or increment 1)))
+
+  (defun my/center-pixel-wise (arg)
+    (interactive "P")
+    (let* ((win-pixel-edges (window-pixel-edges (selected-window)))
+           (delta  (- (/ (+ (nth 1 win-pixel-edges) (nth 3 win-pixel-edges)) 2)
+	              (cdr (window-absolute-pixel-position (point))))))
+      (message "%s %s" delta max-height)
+      (pixel-scroll-precision-interpolate delta nil 1)))
 
   (defun my/scroll-down (arg)
     "Move cursor down half a screen ARG times."
@@ -629,10 +638,10 @@ Depends on the `gh' commandline tool"
   (corfu-cycle t)                 ; Allows cycling through candidates
   (corfu-auto t)                  ; Enable auto completion
   (corfu-auto-prefix 2)
-  (corfu-auto-delay 0.0)
+  (corfu-auto-delay 1.5)
   (corfu-popupinfo-delay '(0.5 . 0.2))
   (corfu-preview-current 'insert) ; Do not preview current candidate
-  (corfu-preselect-first nil)
+  (corfu-preselect 'prompt)
   (corfu-on-exact-match nil)      ; Don't auto expand tempel snippets
 
   ;; Optionally use TAB for cycling, default is `corfu-complete'.
@@ -670,16 +679,17 @@ Depends on the `gh' commandline tool"
   ;; Ensure that pcomplete does not write to the buffer
   ;; and behaves as a pure `completion-at-point-function'.
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
-(use-package yasnippet
-  :ensure t
-  :init
-  (setq yas-nippet-dir "~/.emacs.d/snippets")
-  (yas-global-mode))
-(use-package yasnippet-snippets
-  :ensure t :after yasnippet)
+
+;; (use-package yasnippet
+;;   :ensure t
+;;   :init
+;;   (setq yas-nippet-dir "~/.emacs.d/snippets")
+;;   (yas-global-mode))
+;; (use-package yasnippet-snippets
+;;   :ensure t :after yasnippet)
 ;; (use-package cape-yasnippet
 ;;   :ensure nil
-;;   :quelpa (cape-yasnippet :fetcher github :repo "elken/cape-yasnippet")
+;;   :quelpa (yasnippet-capf :fetcher github :repo "elken/cape-yasnippet")
 ;;   :after yasnippet
 ;;   :hook ((prog-mode . yas-setup-capf)
 ;;          (text-mode . yas-setup-capf)
@@ -717,18 +727,21 @@ Depends on the `gh' commandline tool"
   (setenv "SCHEME" "light"))
 ;;; WRITING
 (use-package writegood-mode
-  :hook (flyspell-mode . writegood-mode))
+  :hook ((markdown-mode nroff-mode org-mode
+                        mail-mode
+                        git-commit-mode)
+         . writegood-mode))
 (use-package writeroom-mode
   :commands (writeroom-mode global-writeroom-mode)
   :init
   (setq writeroom-width 90))
-(use-package flyspell-correct
-  :bind ("C-c DEL" . flyspell-correct-previous)
-  :hook ((markdown-mode nroff-mode org-mode
-                        mail-mode
-                        git-commit-mode)
-         . flyspell-mode)
+
+(use-package jinx
+  :demand t
+  :ensure t
+  :bind ("C-c DEL" . jinx-correct)
   :init
+  (global-jinx-mode)
   (add-to-list 'ispell-skip-region-alist '("+begin_src" . "+end_src"))
   (setq flyspell-use-meta-tab nil))
 
@@ -1297,11 +1310,11 @@ Depends on the `gh' commandline tool"
   (use-package lsp-haskell :ensure t
     :hook (haskell-mode    . lsp-deferred))
 
-  (use-package lsp-java :ensure t
-    :hook (java-mode       . lsp-deferred)
-    :init
-    (require 'lsp-java-boot)
-    (add-hook 'java-mode-hook #'lsp-java-boot-lens-mode))
+  ;; (use-package lsp-java :ensure t
+  ;;   :hook (java-mode       . lsp-deferred)
+  ;;   :init
+  ;;   (require 'lsp-java-boot)
+  ;;   (add-hook 'java-mode-hook #'lsp-java-boot-lens-mode))
 
   (use-package lsp-pyright :ensure t
     :hook (python-mode . (lambda ()
@@ -1366,19 +1379,16 @@ Depends on the `gh' commandline tool"
       :hook (purescript-mode . inferior-psci-mode)))
 
 ;;;; WEB
+  (use-package lsp-tailwindcss
+    :init
+    (setq lsp-tailwindcss-add-on-mode t))
   (use-package web-mode
-    :mode (("\\.tsx\\'"  . web-mode)
+    :mode (("\\.ts\\'"  . web-mode)
+           ("\\.tsx\\'"  . web-mode)
            ("\\.html\\'" . web-mode)
            ("\\.vue\\'"  . web-mode))
-    :hook ((web-mode            . lsp-deferred)
-           ;; (typescript-tsx-mode . lsp-deferred)
-           )
+    :hook ((web-mode            . lsp-deferred))
     :bind (
-           ;; :map typescript-tsx-mode-map
-           ;; ("C-c C-M-f". sgml-skip-tag-forward)
-           ;; ("C-c C-M-b". sgml-skip-tag-backward)
-           ;; ("C-c C-f". sgml-skip-tag-forward)
-           ;; ("C-c C-b". sgml-skip-tag-backward)
            :map web-mode-map
            ("C-c C-M-f". sgml-skip-tag-forward)
            ("C-c C-M-b". sgml-skip-tag-backward)
@@ -1387,8 +1397,20 @@ Depends on the `gh' commandline tool"
            ("C-M-i" . completion-at-point)
            ("C-M-u" . web-mode-element-parent)
            ("C-M-d" . web-mode-element-child))
+    :custom
+    (web-mode-markup-indent-offset 2)
+    (web-mode-css-indent-offset 2)
+    (web-mode-code-indent-offset 2)
+    (web-mode-auto-close-style 1)
+    (web-mode-enable-auto-closing nil)
+    (web-mode-enable-auto-indentation nil)
+    (web-mode-enable-auto-quoting nil)
+    (web-mode-enable-auto-pairing nil)
+    (web-mode-enable-auto-opening nil)
+    (css-indent-offset 2)
+    (js-indent-level 2)
     :init
-    ;; (define-derived-mode typescript-tsx-mode typescript-mode "TypeScript-tsx")
+    (define-derived-mode typescript-mode web-mode "TypeScript")
     (setq web-mode-markup-indent-offset 2
           web-mode-css-indent-offset 2
           web-mode-code-indent-offset 2
@@ -1500,7 +1522,7 @@ Depends on the `gh' commandline tool"
 ;;;; Setup Folding For Programming
 (use-package puni
   :hook (((calc-mode term-mode vterm-mode) . puni-disable-puni-mode)
-         (puni-mode  . electric-pair-mode))
+         (puni-mode  . electric-pair-local-mode))
   :bind (("C-c s" . puni-mode)
          :map puni-mode-map
          ("C-c DEL" . flyspell-correct-previous)
@@ -1804,10 +1826,15 @@ Used to see multiline flymake errors"
   :config
   (pomm-mode-line-mode +1))
 
-(use-package direnv
-  :ensure t
-  :config
-  (envrc-global-mode))
+(setq pixel-scroll-precision-interpolate-page t)
+(pixel-scroll-precision-mode t)
+(global-set-key (kbd "C-v") #'my/scroll-down)
+(global-set-key (kbd "M-v") #'my/scroll-up)
+
+;; (use-package direnv
+;;   :ensure t
+;;   :config
+;;   (envrc-global-mode))
 
 (setenv "EDITOR" "emacsclient")
 (setenv "PAGER" "cat")
@@ -1822,3 +1849,14 @@ Used to see multiline flymake errors"
 (put 'set-goal-column 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
 (put 'dired-find-alternate-file 'disabled nil)
+
+(setenv "PATH" (concat (getenv "PATH") ":/home/gavinok/.cargo/bin"))
+
+;; (dap-register-debug-template "vc-auth"
+;;   (list :type "python"
+;;         :env '(("DEBUG" . "1"))
+;;         :target-module (expand-file-name "~/src/myapp/.env/bin/myapp")
+;;         :module "uvicron"
+;;         :args ["api.main:app" "--reload"]
+;;         :request "launch"
+;;         :name "vc-auth"))
