@@ -71,13 +71,15 @@
                     "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)"
                     "|" "DELEGATED(D)" "CANCELLED(c)")))
 ;;;; Babel
+  (use-package ob-typescript :demand t)
   (setq org-babel-lisp-eval-fn #'sly-eval)
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((haskell . t) (emacs-lisp . t) (shell . t) (python . t)
      (C . t) (lua . t) (dot . t) (java . t)
      (lisp . t) (clojure . t) (scheme . t)
-     (forth . t) (rust . t)))
+     (forth . t)
+     (typescript . t)))
   (setq org-confirm-babel-evaluate nil)
   ;;;; School notes
   (when my/my-system
@@ -167,10 +169,10 @@
           ("sm" "Meeting" entry
            (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
            "* Meeting with  %? :MEETING:\nSCHEDULED: %T\n:PROPERTIES:\n:LOCATION: %^{location|Anywhere|Home|Work|School}\n:END:")
-          ("se" "Event" entry
+          ("sE" "Event" entry
            (file+headline (lambda () (concat org-directory "/Work.org"))
                           "Events")
-           "* Meeting with  %?\nSCHEDULED: %T\n")
+           "* Go to the %?\nSCHEDULED: %T\n\n:PROPERTIES:\n:LOCATION: %^{location|Anywhere|Home|Work|School}\n:END:")
           ("st" "Time Block" entry
            (file+headline (lambda () (concat org-directory "/Work.org"))
                           "Time Blocks")

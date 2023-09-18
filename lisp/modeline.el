@@ -42,40 +42,55 @@ This is needed to make sure that text is properly aligned.")
   (eq cogent-line-selected-window (selected-window)))
 
 (add-hook 'window-configuration-change-hook #'cogent-line-set-selected-window)
-;; (add-hook 'focus-in-hook #'cogent-line-set-selected-window)
-;; (add-hook 'focus-out-hook #'cogent-line-unset-selected-window)
-;; (advice-add 'handle-switch-frame :after #'cogent-line-set-selected-window)
 (add-hook 'window-selection-change-functions #'cogent-line-set-selected-window)
 
+(setq my/mode-line-right-side '(:eval (when (mode-line-window-selected-p)
+                                     (list '(vc-mode vc-mode)
+                                           mode-line-misc-info))))
+(setq my/mode-line-left-side '(" "
+                            ;; indicate if the buffer has been modified
+                            (:eval (propertize
+                                    (if (and (not buffer-read-only) (buffer-modified-p))
+                                        "● " "  " )
+                                    'face 'error))
+
+                            ;; Buffer name (no longer than 1/3 of the screen)
+                            ;; mode-line-remote
+                            mode-line-buffer-identification
+                            " "
+                            (:eval (when (mode-line-window-selected-p)" %l:%c"))
+                            (:eval (propertize
+                                    (when (mode-line-window-selected-p)
+                                      (concat " %p%"
+                                              " "
+                                              "「 %m 」"))
+                                    'face (if (cogent-line-selected-window-active-p)
+                                              'shadow
+                                            'mode-line-inactive)))
+                            ))
+
+(setq my/mode-line-padding
+      '(:eval
+        (propertize " " 'display
+	            `((space :align-to
+			     (- (+ right right-fringe right-margin)
+			        ,(string-width
+                                  (format-mode-line mode-line-right-side))))))))
+
 (setq-default mode-line-format
-              `(" "
-                ;; indicate if the buffer has been modified
-                (:eval (propertize
-                        (if (and (not buffer-read-only) (buffer-modified-p))
-                            "● " "  " )
-                        'face 'error))
-
-                ;; Buffer name (no longer than 1/3 of the screen)
-                mode-line-buffer-identification
-                " "
-                " %l:%c"
-                (:eval (propertize
-                        (concat " %p%"
-                                " "
-                                "「 %m 」")
-                        'face (if (cogent-line-selected-window-active-p)
-                                  'shadow
-                                'mode-line-inactive)))
-
+              `(
+                ,@my/mode-line-left-side
                 ;; I still have yet to come up with a better option
-                (:eval
-                 (propertize " " 'display
-	                     `((space :align-to
-			              (- (+ right right-fringe right-margin)
-			                 ,(string-width (format-mode-line mode-line-misc-info)))))))
-                mode-line-misc-info))
+                ,my/mode-line-padding
+                ,my/mode-line-right-side))
 
+;; (defun vc-branch ()
+;;   (let ((backend (vc-backend buffer-file-name)))
+;;     (substring vc-mode (+ (if (eq backend 'hg) 2 3) 2))))
+;; (vc-branch)
 
+(set-face-attribute 'mode-line-inactive nil :foreground "#555" :background "#222"
+                      :box '(:line-width 2 :color "#222"))
 (use-package time
   :defer 10
   :config

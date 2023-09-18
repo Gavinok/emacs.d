@@ -225,6 +225,7 @@
                          ))))
    `(mode-line-inactive ((,class (:foreground ,"#555" ;; spaceway-grey-4
                                               :background "#222" ;; nil
+                                              (:line-width 1 :style released-button) 1
                                               ))))
    `(org-timeline-block ((,class (:foreground ,spaceway-bg :background ,spaceway-red-0))))
    `(org-timeline-elapsed ((,class (:foreground ,spaceway-fg :background ,spaceway-grey-2))))

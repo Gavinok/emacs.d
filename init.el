@@ -3,7 +3,23 @@
 ;; Minimize garbage collection during startup
 
 ;; useful for quickly debugging emacs
-;; (setq debug-on-error t)
+(setq debug-on-error t)
+(setq running-in-wsl (executable-find "wslpath"))
+
+(when running-in-wsl
+  (executable-find "wslpath")
+
+  (setq wls-copy-process nil)
+
+  (defun wls-copy (text)
+    (setq wls-copy-process (make-process :name "clip.exe"
+					 :buffer nil
+					 :command '("clip.exe")
+					 :connection-type 'pipe))
+    (process-send-string wls-copy-process text)
+    (process-send-eof wls-copy-process))
+
+  (setq interprogram-cut-function 'wls-copy))
 
 (setq initial-scratch-message nil)
 
@@ -15,7 +31,8 @@
 (add-hook 'after-init-hook
           `(lambda ()
              (setq file-name-handler-alist file-name-handler-alist-old)
-             (setq gc-cons-threshold 20000000))
+             (setq gc-cons-threshold (* 2 1000 1000))
+             (setq gc-cons-percentage 0.1))
           t)
 ;;; Backups
 (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
@@ -28,6 +45,7 @@
 
 
 ;;; PACKAGE LIST
+(setq package-install-upgrade-built-in t)
 (setq package-archives
       '(("melpa" . "https://melpa.org/packages/")
         ("elpa" . "https://elpa.gnu.org/packages/")
@@ -61,12 +79,6 @@
   :defer t
   :init
   (dired-async-mode 1))
-
-(use-package dwim-shell-command
-  :ensure t :demand t
-  :bind (([remap dired-do-shell-command] . dwim-shell-command))
-  :config
-  (require 'dwim-shell-commands))
 
 (use-package savehist
   :defer 2
@@ -115,14 +127,12 @@ If no binding is captured section of regex is found for a BINDING an error is si
     (not window-system)
     "Truthy value indicating if Emacs is currently running in a terminal.")
   (defvar my/my-system
-    (if (string-equal user-login-name "gavinok")
-        t
-      nil)
+    t
     "Non-nil value if this is my system."))
 (use-package custom-functions
   :ensure nil :no-require t
   :bind (([remap scroll-up-command] . my/scroll-down)
-         ([remap scroll-down-command].  #'my/scroll-up)
+         ([remap scroll-down-command].  my/scroll-up)
          ("C-M-&"   . my/shell-command-on-file)
          ("C-x O"   . other-other-window)
          ("M-f"     . sim-vi-w)
@@ -168,6 +178,14 @@ If no binding is captured section of regex is found for a BINDING an error is si
     "Decrement number at point like vim's C-x"
     (interactive "p")
     (my/change-number-at-point '- (or increment 1)))
+
+  (defun my/center-pixel-wise (arg)
+    (interactive "P")
+    (let* ((win-pixel-edges (window-pixel-edges (selected-window)))
+           (delta  (- (/ (+ (nth 1 win-pixel-edges) (nth 3 win-pixel-edges)) 2)
+	              (cdr (window-absolute-pixel-position (point))))))
+      (message "%s %s" delta max-height)
+      (pixel-scroll-precision-interpolate delta nil 1)))
 
   (defun my/scroll-down (arg)
     "Move cursor down half a screen ARG times."
@@ -284,17 +302,22 @@ Depends on the `gh' commandline tool"
     (forward-char -1)))
 
 ;;; Defaults
-(use-package undo-fu
-  :ensure t
-  :bind (("C-x u"   . undo-fu-only-undo)
-         ("C-/"     . undo-fu-only-undo)
-         ("C-z"     . undo-fu-only-undo)
-         ("C-S-z"   . undo-fu-only-redo)
-         ("C-x C-u" . undo-fu-only-redo)
-         ("C-?"     . undo-fu-only-redo)))
+;; (use-package undo-fu
+;;   :ensure t
+;;   :bind (("C-x u"   . undo-fu-only-undo)
+;;          ("C-/"     . undo-fu-only-undo)
+;;          ("C-z"     . undo-fu-only-undo)
+;;          ("C-S-z"   . undo-fu-only-redo)
+;;          ("C-x C-u" . undo-fu-only-redo)
+;;          ("C-?"     . undo-fu-only-redo)))
 (use-package undo-fu-session ; Persistant undo history
   :ensure t
   :demand t
+  :bind (("C-x u"   . undo-only)
+         ("C-/" . undo-only)
+         ("C-?" . undo-redo)
+         ("C-z"     . undo-only)
+         ("C-S-z"   . undo-redo))
   :config (global-undo-fu-session-mode))
 
 (use-package emacs
@@ -375,7 +398,10 @@ Depends on the `gh' commandline tool"
 ;;;; Remove Extra Ui
   (fset 'yes-or-no-p 'y-or-n-p)    ; don't ask to spell out "yes"
   (show-paren-mode 1)              ; Highlight parenthesis
-  (setq-default x-select-enable-primary t) ; use primary as clipboard in emacs
+  (if running-in-wsl
+      (setq-default x-select-enable-primary t) ; use primary as clipboard in emacs
+    (setq x-select-enable-primary nil) ; use primary as clipboard in emacs
+    )
   ;; avoid leaving a gap between the frame and the screen
   (setq-default frame-resize-pixelwise t)
 
@@ -394,7 +420,8 @@ Depends on the `gh' commandline tool"
   (customize-set-value 'recentf-make-menu-items 150)
   (customize-set-value 'recentf-make-saved-items 150))
 
-(use-package font-setup :ensure nil :no-require
+(use-package font-setup :ensure nil :no-require t
+  :demand t
   :when my/my-system
   :hook ((text-mode . pragmatapro-lig-mode)
          (prog-mode . pragmatapro-lig-mode))
@@ -429,6 +456,45 @@ Depends on the `gh' commandline tool"
   (set-fontset-font t 'unicode
                     "PragmataPro Mono:pixelsize=19:antialias=true:autohint=true"
                     nil 'append))
+
+(setq treesit-language-source-alist
+      '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+	(cmake "https://github.com/uyha/tree-sitter-cmake")
+	(css "https://github.com/tree-sitter/tree-sitter-css")
+	(elisp "https://github.com/Wilfred/tree-sitter-elisp")
+	(go "https://github.com/tree-sitter/tree-sitter-go")
+	(html "https://github.com/tree-sitter/tree-sitter-html")
+	(javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+	(json "https://github.com/tree-sitter/tree-sitter-json")
+	(make "https://github.com/alemuller/tree-sitter-make")
+	(markdown "https://github.com/ikatyang/tree-sitter-markdown")
+	(python "https://github.com/tree-sitter/tree-sitter-python")
+	(toml "https://github.com/tree-sitter/tree-sitter-toml")
+	(tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+        (vue "https://github.com/ikatyang/tree-sitter-vue")
+	(typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+	(yaml "https://github.com/ikatyang/tree-sitter-yaml")
+        (haskell "https://github.com/tree-sitter/tree-sitter-haskell")))
+
+(use-package typescript-ts-mode
+  :mode (("\\.ts\\'" . typescript-ts-mode)
+         ("\\.tsx\\'" . tsx-ts-mode)))
+(use-package yaml-ts-mode :mode (("\\.yml\\'" . yaml-ts-mode)))
+(use-package toml-ts-mode :mode (("\\.toml\\'" . toml-ts-mode)))
+(use-package json-ts-mode :mode (("\\.json\\'" . json-ts-mode)))
+(use-package sh-script :mode (("\\.sh\\'" . bash-ts-mode)))
+;; (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
+
+(setq major-mode-remap-alist
+      '((yaml-mode . yaml-ts-mode)
+	(bash-mode . bash-ts-mode)
+	(js2-mode . js-ts-mode)
+	(javascript-mode . js-ts-mode)
+	(typescript-mode . typescript-ts-mode)
+	(json-mode . json-ts-mode)
+	(css-mode . css-ts-mode)
+	(python-mode . python-ts-mode)
+        (sh-mode . bash-ts-mode)))
 
 (use-package unified-marks :ensure nil :no-require t
   :custom
@@ -618,7 +684,7 @@ Depends on the `gh' commandline tool"
   (corfu-cycle t)                 ; Allows cycling through candidates
   (corfu-auto t)                  ; Enable auto completion
   (corfu-auto-prefix 2)
-  (corfu-auto-delay 0.0)
+  (corfu-auto-delay 0.3)
   (corfu-popupinfo-delay '(0.5 . 0.2))
   (corfu-preview-current 'insert) ; Do not preview current candidate
   (corfu-preselect 'prompt)
@@ -659,6 +725,7 @@ Depends on the `gh' commandline tool"
   ;; Ensure that pcomplete does not write to the buffer
   ;; and behaves as a pure `completion-at-point-function'.
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
+
 (use-package yasnippet
   :ensure t
   :init
@@ -666,22 +733,22 @@ Depends on the `gh' commandline tool"
   (yas-global-mode))
 (use-package yasnippet-snippets
   :ensure t :after yasnippet)
-(use-package cape-yasnippet
+(use-package yasnippet-capf
   :ensure nil
-  :quelpa (cape-yasnippet :fetcher github :repo "elken/cape-yasnippet")
+  :quelpa (yasnippet-capf :fetcher github :repo "elken/yasnippet-capf")
   :after yasnippet
   :hook ((prog-mode . yas-setup-capf)
          (text-mode . yas-setup-capf)
          (lsp-mode  . yas-setup-capf)
          (sly-mode  . yas-setup-capf))
-  :bind (("C-c y" . cape-yasnippet)
+  :bind (("C-c y" . yasnippet-capf)
          ("M-+"   . yas-insert-snippet))
   :config
   (defun yas-setup-capf ()
     (setq-local completion-at-point-functions
-                (cons 'cape-yasnippet
+                (cons 'yasnippet-capf
                       completion-at-point-functions)))
-  (push 'cape-yasnippet completion-at-point-functions))
+  (push 'yasnippet-capf completion-at-point-functions))
 
 ;;; THEMEING
 (use-package spaceway-theme
@@ -689,17 +756,20 @@ Depends on the `gh' commandline tool"
   :load-path "lisp/spaceway/"
   :config
   (global-hl-line-mode t)
-  (set-cursor-color "#dc322f")
+  (set-frame-parameter nil 'cursor-color "#dc322f")
+  (add-to-list 'default-frame-alist '(cursor-color . "#dc322f"))
+
   (when my/my-system
-    (set-frame-parameter (selected-frame) 'alpha '(100 100))
-    (set-frame-parameter (selected-frame) 'alpha-background 100)
-    (add-to-list 'default-frame-alist '(alpha-background 90))
-    (add-to-list 'default-frame-alist '(alpha 100 100)))
+    (set-frame-parameter nil 'alpha-background 100)
+    (add-to-list 'default-frame-alist '(alpha-background . 100)))
+
   (load-theme 'spaceway t)
   (setenv "SCHEME" "dark")
   )
+
 (use-package doom-themes
   :disabled t
+  :demand t
   :ensure t
   :config
   (load-theme 'doom-earl-grey t)
@@ -708,42 +778,46 @@ Depends on the `gh' commandline tool"
   (setenv "SCHEME" "light"))
 ;;; WRITING
 (use-package writegood-mode
-  :hook (jinx-mode . writegood-mode))
-(use-package jinx
-  :bind ("C-c DEL" . jinx-correct)
-  :hook ((markdown-mode
-          nroff-mode org-mode
-          mail-mode
-          git-commit-mode
-          org-mode)
-         . jinx-mode)
-  :init
-  (global-jinx-mode 1)
-  )
+  :hook ((markdown-mode nroff-mode org-mode
+                        mail-mode
+                        git-commit-mode)
+         . writegood-mode))
+
+;; (use-package lsp-grammarly
+;;   :ensure t
+;;   :hook (writegood-mode . (lambda ()
+;;                        (require 'lsp-grammarly)
+;;                        (lsp-deferred))))
+                                        ; or lsp-deferred
+
 (use-package writeroom-mode
   :commands (writeroom-mode global-writeroom-mode)
   :init
   (setq writeroom-width 90))
-;; (use-package flyspell-correct
-;;   :bind ("C-c DEL" . flyspell-correct-previous)
-;;   :hook ((markdown-mode nroff-mode org-mode
-;;                         mail-mode
-;;                         git-commit-mode)
-;;          . flyspell-mode)
-;;   :init
-;;   (add-to-list 'ispell-skip-region-alist '("+begin_src" . "+end_src"))
-;;   (setq flyspell-use-meta-tab nil))
+
+(use-package jinx
+  :demand t
+  :ensure t
+  :bind ("C-c DEL" . jinx-correct)
+  :init
+  (global-jinx-mode)
+  (add-to-list 'ispell-skip-region-alist '("+begin_src" . "+end_src"))
+  (setq flyspell-use-meta-tab nil))
 
 ;;; ORG
 (load (concat user-emacs-directory
               "lisp/org-config.el"))
 
+;;; Email
+(load (concat user-emacs-directory
+              "lisp/mu4e-config.el"))
+
 ;;; ChatGPT
-(use-package chatgpt
-  :load-path "lisp/"
-  :ensure nil
-  :bind (
-))
+;; (use-package chatgpt
+;;   :load-path "lisp/"
+;;   :ensure nil
+;;   :bind (
+;; ))
 
 ;;; Git
 (use-package magit
@@ -758,6 +832,7 @@ Depends on the `gh' commandline tool"
     (interactive)
     (let ((dir (project-root (project-current t))))
       (magit-status dir))))
+
 (use-package forge :ensure t :after magit)
 (use-package ediff
   :after (magit vc)
@@ -801,6 +876,13 @@ Depends on the `gh' commandline tool"
   :ensure nil
   :after eshell
   :config
+  
+  (add-hook 'eshell-mode-hook
+            (lambda ()
+              (eshell/alias "e" "find-file $1")
+              (eshell/alias "ee" "find-file-other-window $1")
+              (eshell/alias "v" "view-file $1")
+              (eshell/alias "o" "crux-open-with $1")))
   (add-hook 'eshell-mode-hook
             (lambda ()
               (eshell/alias "e" "find-file $1")
@@ -936,6 +1018,7 @@ Depends on the `gh' commandline tool"
   (add-hook 'c++-mode-hook #'generic-compiler)
   ;; (setq compilation-environment '("HELLO=Hello"))
   )
+;; (error "after here")
 
 ;;; BUFFER MANAGMENT
 (use-package ibuffer
@@ -1230,7 +1313,7 @@ Depends on the `gh' commandline tool"
                ("C-c x" . lsp-clangd-find-other-file)))
   :commands (lsp lsp-deferred)
   :init
-  (setenv "LSP_USE_PLISTS" "1")
+  ;; (setenv "LSP_USE_PLISTS" "1")
   ;; Increase the amount of data emacs reads from processes
   (setq read-process-output-max (* 3 1024 1024))
   (setq lsp-clients-clangd-args '("--header-insertion-decorators=0"
@@ -1275,8 +1358,13 @@ Depends on the `gh' commandline tool"
          (c++-mode        . lsp-deferred)
          (typescript-mode . lsp-deferred)
          (purescript-mode . lsp-deferred)
+         (python-mode     . lsp-deferred)
+         (python-ts-mode     . lsp-deferred)
          (js-mode         . lsp-deferred)
-         (javascript-mode . lsp-deferred))
+         (javascript-mode . lsp-deferred)
+         (typescript-ts-mode . lsp-deferred)
+         (tsx-ts-mode . lsp-deferred)
+         (web-mode . lsp-deferred))
   :init
   (use-package lsp-javascript :ensure nil :no-require t
     :hook (javascript-mode . lsp-deferred)
@@ -1289,23 +1377,27 @@ Depends on the `gh' commandline tool"
       (define-key js-mode-map (kbd "M-.") 'xref-find-definitions)))
 
   (use-package lsp-rust :ensure nil :no-require t
+    :when (executable-find "rust-analyzer")
     :hook (rust-mode       . lsp-deferred)
     :config
-    (lsp-rust-analyzer-inlay-hints-mode 1))
+    (setq lsp-rust-analyzer-inlay-hints-mode 1))
 
   (use-package lsp-haskell :ensure t
     :hook (haskell-mode    . lsp-deferred))
 
-  (use-package lsp-java :ensure t
-    :hook (java-mode       . lsp-deferred)
-    :init
-    (require 'lsp-java-boot)
-    (add-hook 'java-mode-hook #'lsp-java-boot-lens-mode))
+  ;; (use-package lsp-java :ensure t
+  ;;   :hook (java-mode       . lsp-deferred)
+  ;;   :init
+  ;;   (require 'lsp-java-boot)
+  ;;   (add-hook 'java-mode-hook #'lsp-java-boot-lens-mode))
 
   (use-package lsp-pyright :ensure t
-    :hook (python-mode . (lambda ()
+    :hook ((python-mode . (lambda ()
                            (require 'lsp-pyright)
                            (lsp-deferred)))
+           (python-ts-mode . (lambda ()
+                           (require 'lsp-pyright)
+                           (lsp-deferred))))
     :init
     (setq python-shell-enable-font-lock nil)))
 
@@ -1317,11 +1409,11 @@ Depends on the `gh' commandline tool"
               ("C-x D D" . dap-debug)
               ("C-x D d" . dap-debug-last))
   :init
-  (defun my/dap-cpp-setup ()
-    (require 'dap-gdb-lldb)
-    (dap-gdb-lldb-setup))
+  ;; (defun my/dap-cpp-setup ()
+  ;;   (require 'dap-gdb-lldb)
+  ;;   (dap-gdb-lldb-setup))
   :config
-  (my/dap-cpp-setup)
+  ;; (my/dap-cpp-setup)
   (setq dap-auto-configure-features '(sessions locals controls tooltip)))
 
 ;;; Languages
@@ -1331,10 +1423,10 @@ Depends on the `gh' commandline tool"
   :quelpa (nvm :fetcher github :repo "rejeep/nvm.el")
   :commands (nvm-use nvm-use-for-buffer)
   :config
-  (setq nvm-dir (concat (getenv "HOME") "/.config/nvm"))
+  (setq nvm-dir "/home/gavinok/.config/nvm")
   (defun my/nvm-use () (interactive)
     (nvm-use
-     (completing-read "Enter Node Version" '("16.17.1")))))
+     (completing-read "Enter Node Version" '("18.16.0" "16.17.1")))))
 
 (use-package extra-languages
   :ensure nil :no-require t
@@ -1365,17 +1457,16 @@ Depends on the `gh' commandline tool"
       :hook (purescript-mode . inferior-psci-mode)))
 
 ;;;; WEB
+  (use-package lsp-tailwindcss
+    :init
+    (setq lsp-tailwindcss-add-on-mode t))
   (use-package web-mode
-    :mode (("\\.tsx\\'"  . typescript-tsx-mode)
-           ("\\.html\\'" . web-mode))
-    :hook ((web-mode            . lsp-deferred)
-           (typescript-tsx-mode . lsp-deferred))
+    :mode (;; ("\\.ts\\'"  . web-mode)
+           ;; ("\\.tsx\\'"  . web-mode)
+           ("\\.html\\'" . web-mode)
+           ("\\.vue\\'"  . web-mode))
+    :hook ((web-mode            . lsp-deferred))
     :bind (
-           :map typescript-tsx-mode-map
-           ("C-c C-M-f". sgml-skip-tag-forward)
-           ("C-c C-M-b". sgml-skip-tag-backward)
-           ("C-c C-f". sgml-skip-tag-forward)
-           ("C-c C-b". sgml-skip-tag-backward)
            :map web-mode-map
            ("C-c C-M-f". sgml-skip-tag-forward)
            ("C-c C-M-b". sgml-skip-tag-backward)
@@ -1384,12 +1475,28 @@ Depends on the `gh' commandline tool"
            ("C-M-i" . completion-at-point)
            ("C-M-u" . web-mode-element-parent)
            ("C-M-d" . web-mode-element-child))
+    :custom
+    (web-mode-markup-indent-offset 2)
+    (web-mode-css-indent-offset 2)
+    (web-mode-code-indent-offset 2)
+    (web-mode-auto-close-style 1)
+    (web-mode-enable-auto-closing nil)
+    (web-mode-enable-auto-indentation nil)
+    (web-mode-enable-auto-quoting nil)
+    (web-mode-enable-auto-pairing nil)
+    (web-mode-enable-auto-opening nil)
+    (css-indent-offset 2)
+    (js-indent-level 2)
     :init
-    (define-derived-mode typescript-tsx-mode typescript-mode "TypeScript-tsx")
+    (define-derived-mode typescript-mode web-mode "TypeScript")
     (setq web-mode-markup-indent-offset 2
           web-mode-css-indent-offset 2
           web-mode-code-indent-offset 2
-          web-mode-auto-close-style 2))
+          web-mode-auto-close-style 1
+          web-mode-enable-auto-indentation nil
+          web-mode-enable-auto-quoting nil
+          web-mode-enable-auto-pairing nil
+          web-mode-enable-auto-opening nil))
 ;;; Rust
   (use-package rust-mode    :ensure t :mode "\\.rs\\'"
     :init
@@ -1493,7 +1600,7 @@ Depends on the `gh' commandline tool"
 ;;;; Setup Folding For Programming
 (use-package puni
   :hook (((calc-mode term-mode vterm-mode) . puni-disable-puni-mode)
-         (puni-mode  . electric-pair-mode))
+         (puni-mode  . electric-pair-local-mode))
   :bind (("C-c s" . puni-mode)
          :map puni-mode-map
          ("C-c DEL" . jinx-correct)
@@ -1596,6 +1703,7 @@ Used to see multiline flymake errors"
            (text (flymake-diagnostic-text (plist-get id :diagnostic))))
       (message text)))
   (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
+
 (use-package imenu
   :ensure nil
   :custom
@@ -1667,6 +1775,8 @@ Used to see multiline flymake errors"
   :bind (:map dired-mode-map
               ("-" . dired-up-directory))
   :init
+  ;; let me drag files into other programs
+  (setq dired-mouse-drag-files t)
   (setq dired-bind-jump nil)
   :config
   (setq dired-listing-switches "-aghoA --group-directories-first")
@@ -1737,8 +1847,8 @@ Used to see multiline flymake errors"
                                  (org-pdftools-open link)))))
 
 ;;; mu4e
-(add-to-list 'load-path "/usr/share/emacs/site-lisp/")
-(load "~/.emacs.d/mu4e-config.el")
+;; (add-to-list 'load-path "/usr/share/emacs/site-lisp/")
+;; (load "~/.emacs.d/mu4e-config.el")
 
 (use-package keycast
   :ensure t
@@ -1747,7 +1857,7 @@ Used to see multiline flymake errors"
 ;; use emacs as a clipboard manager
 (use-package clipmon
   :ensure t :defer 5
-  :unless (and my/is-termux (not (executable-find "clipmon")))
+  :unless (or my/is-termux (not (executable-find "clipmon")))
   :config
   (clipmon-mode-start))
 
@@ -1768,10 +1878,9 @@ Used to see multiline flymake errors"
 
 ;; Install Ement.
 (use-package ement
-  :ensure nil
+  :ensure t
   :when my/my-system
   :commands (my/ement-connect)
-  :quelpa (ement :fetcher github :repo "alphapapa/ement.el")
   :init
   (customize-set-variable 'ement-room-message-format-spec "%B%r%R%t")
   (defun my/ement-connect ()
@@ -1779,14 +1888,6 @@ Used to see multiline flymake errors"
     (ement-connect :user-id "@gavinok:matrix.org"
                    :password (password-store-get "riot.im/gavinok")))
   )
-
-(use-package treesit-langs
-  :ensure nil
-  :unless (version< emacs-version "29")
-  :quelpa (treesit-langs :fetcher github :repo "kiennq/treesit-langs"
-                         :files ("tree-sitter-langs-build.el"
-                                 "treesit-*.el"
-                                 "queries")))
 
 (use-package pomm
   :ensure t
@@ -1800,10 +1901,15 @@ Used to see multiline flymake errors"
   ;; (pomm-mode-line-mode +1)
   )
 
-(use-package direnv
-  :ensure t
-  :config
-  (envrc-global-mode))
+(setq pixel-scroll-precision-interpolate-page t)
+(pixel-scroll-precision-mode t)
+(global-set-key (kbd "C-v") #'my/scroll-down)
+(global-set-key (kbd "M-v") #'my/scroll-up)
+
+;; (use-package direnv
+;;   :ensure t
+;;   :config
+;;   (envrc-global-mode))
 
 (use-package highlight-indent-guides
   ;; provides column highlighting.  Useful when you start seeing too many nested
@@ -1849,3 +1955,14 @@ Used to see multiline flymake errors"
 (put 'set-goal-column 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
 (put 'dired-find-alternate-file 'disabled nil)
+
+(setenv "PATH" (concat (getenv "PATH") ":/home/gavinok/.cargo/bin"))
+
+;; (dap-register-debug-template "vc-auth"
+;;   (list :type "python"
+;;         :env '(("DEBUG" . "1"))
+;;         :target-module (expand-file-name "~/src/myapp/.env/bin/myapp")
+;;         :module "uvicron"
+;;         :args ["api.main:app" "--reload"]
+;;         :request "launch"
+;;         :name "vc-auth"))
