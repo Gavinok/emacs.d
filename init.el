@@ -597,8 +597,6 @@ Depends on the `gh' commandline tool"
          ("C-x M-:"     . consult-complex-command)
          ("C-c n"       . consult-org-agenda)
          ("C-c m"       . my/notegrep)
-         :map help-map
-         ("a" . consult-apropos)
          :map minibuffer-local-map
          ("M-r" . consult-history))
   :custom
@@ -904,10 +902,10 @@ Depends on the `gh' commandline tool"
   :config
   (setq eshell-destroy-buffer-when-process-dies t))
 
-(use-package fish-completion
-  :demand t
-  :config
-  (global-fish-completion-mode))
+;; (use-package fish-completion
+;;   :demand t
+;;   :config
+;;   (global-fish-completion-mode))
 
 ;; More accurate color representation than ansi-color.el
 (use-package xterm-color
@@ -1259,33 +1257,17 @@ Depends on the `gh' commandline tool"
      (vconcat (mapcar (lambda (c) (+ face-offset c)) " ▾")))))
 
 (use-package outline
-  :hook ((prog-mode tex-mode) . outline-minor-mode)
+  :hook ((prog-mode) . outline-minor-mode)
   :bind (:map outline-minor-mode-map
               ("C-c u" . outline-up-heading)
               ("C-c j" . outline-forward-same-level)
               ("C-c k" . outline-backward-same-level)
-              :repeat-map outline-repeatmap
-              ("u" . outline-up-heading)
-              ("j" . outline-forward-same-level)
-              ("k" . outline-backward-same-level))
-  :config
-  ;; Outline Minor Mode
-  (defun set-vim-foldmarker (fmr)
-    "Set Vim-type foldmarkers for the current buffer"
-    (interactive "sSet local Vim foldmarker: ")
-    (if (equal fmr "")
-        (message "Abort")
-      (setq fmr (regexp-quote fmr))
-      (set (make-local-variable 'outline-regexp)
-           (concat ".*" fmr "\\([0-9]+\\)"))
-      (set (make-local-variable 'outline-level)
-           `(lambda ()
-              (save-excursion
-                (save-match-data
-                  (re-search-forward ,(concat fmr "\\([0-9]+\\)") nil t)
-                  (string-to-number (match-string 1))))))))
-  ;; Vim Like Folding
-  (set-vim-foldmarker "{{{"))
+              :repeat-map outline-navigation-repeat-map
+              ("TAB" . outline-cycle)
+              ([tab] . outline-cycle)
+              ("S-TAB" . outline-cycle-buffer)
+              ([backtab] . outline-cycle-buffer))
+  :custom (outline-minor-mode-use-buttons 'in-margins))
 
 ;; Automatic code formatting
 (use-package apheleia
@@ -1374,7 +1356,7 @@ Depends on the `gh' commandline tool"
           lsp-javascript-display-variable-type-hints t
           lsp-javascript-display-parameter-type-hints t)
     (with-eval-after-load 'js
-      (define-key js-mode-map (kbd "M-.") 'xref-find-definitions)))
+      (keymap-set js-mode-map "M-." 'xref-find-definitions)))
 
   (use-package lsp-rust :ensure nil :no-require t
     :when (executable-find "rust-analyzer")
@@ -1889,22 +1871,40 @@ Used to see multiline flymake errors"
                    :password (password-store-get "riot.im/gavinok")))
   )
 
-(use-package pomm
-  :ensure t
-  ;; :commands (pomm pomm-third-time)
-  ;; :init
-  ;; (setq pomm-audio-enabled t
-  ;;       pomm-work-period 15
-  ;;       pomm-long-break-period 10
-  ;;       alert-default-style 'libnotify)
-  ;; :config
-  ;; (pomm-mode-line-mode +1)
+(use-package hammy
+  :ensure nil
+  :quelpa (hammy :fetcher github :repo "alphapapa/hammy.el")
+  :commands (happy-start hammy-start-org-clock-in)
+  :config
+  (hammy-mode t)
+  (hammy-define (propertize "🍅" 'face '(:foreground "tomato"))
+                :documentation "The classic pomodoro timer."
+                :intervals
+                (list
+                 (interval :name "Work"
+                           :duration "25 minutes"
+                           :before (do (announce "Starting work time.")
+                                       (notify "Starting work time."))
+                           :advance (do (announce "Break time!")
+                                        (notify "Break time!")))
+                 (interval :name "Break"
+                           :duration (do (if (and (not (zerop cycles))
+                                                  (zerop (mod cycles 3)))
+                                             ;; If a multiple of three cycles have
+                                             ;; elapsed, the fourth work period was
+                                             ;; just completed, so take a longer break.
+                                             "30 minutes"
+                                           "5 minutes"))
+                           :before (do (announce "Starting break time.")
+                                       (notify "Starting break time."))
+                           :advance (do (announce "Break time is over!")
+                                        (notify "Break time is over!")))))
   )
 
 (setq pixel-scroll-precision-interpolate-page t)
 (pixel-scroll-precision-mode t)
-(global-set-key (kbd "C-v") #'my/scroll-down)
-(global-set-key (kbd "M-v") #'my/scroll-up)
+(keymap-global-set "C-v" #'my/scroll-down)
+(keymap-global-set "M-v" #'my/scroll-up)
 
 ;; (use-package direnv
 ;;   :ensure t
@@ -1937,6 +1937,9 @@ Used to see multiline flymake errors"
   (vertico-mouse-mode t)
   (strokes-mode t))
 
+(use-package docker
+  :bind (("C-x d" . docker)))
+
 ;; (use-package carp
 ;;   :load-path "~/.emacs.d/lisp/carp.el"
 ;;   :init t
@@ -1957,12 +1960,3 @@ Used to see multiline flymake errors"
 (put 'dired-find-alternate-file 'disabled nil)
 
 (setenv "PATH" (concat (getenv "PATH") ":/home/gavinok/.cargo/bin"))
-
-;; (dap-register-debug-template "vc-auth"
-;;   (list :type "python"
-;;         :env '(("DEBUG" . "1"))
-;;         :target-module (expand-file-name "~/src/myapp/.env/bin/myapp")
-;;         :module "uvicron"
-;;         :args ["api.main:app" "--reload"]
-;;         :request "launch"
-;;         :name "vc-auth"))

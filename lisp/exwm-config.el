@@ -122,8 +122,8 @@ back to switching frames."
           ([?\s-p] . ,(my/exwm-run "clipmenu"))
           ;; Workspaces
           ([?\s-g] . exwm-workspace-switch)))
-  (define-key exwm-mode-map (kbd "C-q") 'exwm-input-send-next-key)
-  (define-key exwm-mode-map (kbd "<s-escape>") 'exwm-input-release-keyboard)
+  (keymap-set exwm-mode-map "C-q" 'exwm-input-send-next-key)
+  (keymap-set exwm-mode-map "<s-escape>" 'exwm-input-release-keyboard)
 
   (require 'exwm)
 ;;;; Start EXWM

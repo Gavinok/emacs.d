@@ -45,7 +45,7 @@ This is needed to make sure that text is properly aligned.")
 (add-hook 'window-selection-change-functions #'cogent-line-set-selected-window)
 
 (setq my/mode-line-right-side '(:eval (when (mode-line-window-selected-p)
-                                     (list '(vc-mode vc-mode)
+                                     (list '(vc-mode vc-mode) " "
                                            mode-line-misc-info))))
 (setq my/mode-line-left-side '(" "
                             ;; indicate if the buffer has been modified
@@ -75,7 +75,7 @@ This is needed to make sure that text is properly aligned.")
 	            `((space :align-to
 			     (- (+ right right-fringe right-margin)
 			        ,(string-width
-                                  (format-mode-line mode-line-right-side))))))))
+                                  (format-mode-line my/mode-line-right-side))))))))
 
 (setq-default mode-line-format
               `(

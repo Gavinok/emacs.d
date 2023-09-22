@@ -71,10 +71,10 @@
               (string-prefix-p "/personal" (mu4e-message-field msg :maildir))))
           :vars '((user-mail-address                . "gavinfreeborn@gmail.com")
                   (user-full-name                   . "Gavin Jaeger-Freeborn")
-                  (mu4e-drafts-folder               . "/[Gmail].Drafts")
-                  (mu4e-sent-folder                 . "/[Gmail].Sent Mail")
-                  (mu4e-refile-folder               . "/[Gmail].All Mail")
-                  (mu4e-trash-folder                . "/[Gmail].Trash")))
+                  (mu4e-drafts-folder               . "/personal/[Gmail].Drafts")
+                  (mu4e-sent-folder                 . "/personal/[Gmail].Sent Mail")
+                  (mu4e-refile-folder               . "/personal/[Gmail].All Mail")
+                  (mu4e-trash-folder                . "/personal/[Gmail].Trash")))
          (make-mu4e-context
           :name "Work"
           :match-func
@@ -83,10 +83,10 @@
               (string-prefix-p "/quartech" (mu4e-message-field msg :maildir))))
           :vars '((user-mail-address                . "Gavin.Freeborn@quartech.com")
                   (user-full-name                   . "Gavin Jaeger-Freeborn")
-                  (mu4e-drafts-folder               . "/Drafts")
-                  (mu4e-sent-folder                 . "/Sent")
-                  (mu4e-refile-folder               . "/INBOX")
-                  (mu4e-trash-folder                . "/Trash")))))
+                  (mu4e-drafts-folder               . "/quartech/Drafts")
+                  (mu4e-sent-folder                 . "/quartech/Sent")
+                  (mu4e-refile-folder               . "/quartech/INBOX")
+                  (mu4e-trash-folder                . "/quartech/Trash")))))
 ;;;; Contacts
   (setq mail-personal-alias-file  "~/.config/mutt/aliases")
   (setq mu4e-org-contacts-file  (concat org-directory "/contacts.org"))
@@ -96,7 +96,7 @@
                '("org-contact-add" . mu4e-action-add-org-contact) t)
 ;;;; Bookmarks
   (setq mu4e-bookmarks '((:name "Main INBOX"
-                                :query "maildir:\"/INBOX\"" :key 115)
+                                :query "maildir:/personal/INBOX or maildir:/quartech/INBOX" :key 115)
                          (:name "To Handle"
                                 :query "((flag:flagged AND (NOT flag:replied)) OR (NOT flag:seen))" :key 116)
                          (:name "Today's messages"
