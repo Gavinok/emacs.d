@@ -98,13 +98,27 @@
   (advice-add 'org-refile :after 'org-save-all-org-buffers))
 
 (use-package org-contrib :after org)
-
+(use-package ox-pandoc
+  :when (executable-find "pandoc")
+  :ensure t
+  :after org)
+(use-package ox-rss :ensure t :after org)
+(use-package org-appear :after org
+  :custom
+  (org-hide-emphasis-markers t)
+  (org-appear-autolinks t)
+  (org-appear-inside-latex t)
+  (org-appear-autoentities t)
+  (org-appear-autosubmarkers t)
+  :config
+  (add-hook 'org-mode-hook 'org-appear-mode))
 (use-package ob-config :ensure nil :no-require t
   :after org-contrib
   :config
   (setopt org-babel-clojure-backend 'cider)
   ;; For exporting to markdown
-  (require 'ox-md))
+  (require 'ox-md)
+  (require 'ox-org))
 
 (use-package org-agenda-config :ensure nil :no-require t
   :after org
