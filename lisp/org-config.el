@@ -34,7 +34,7 @@
     (org-map-entries 'org-archive-subtree "/DONE" 'file)
     (org-map-entries 'org-archive-subtree "/CANCELLED" 'file))
 ;;;; Better defaults
-  (setq org-ellipsis " ▾"
+  (setopt org-ellipsis " ▾"
         org-hide-emphasis-markers t
         org-pretty-entities t
         ;; C-e binding is pretty annoying to me
@@ -47,10 +47,10 @@
         org-edit-src-content-indentation 2
         org-hide-block-startup nil
         org-src-preserve-indentation nil
-        org-startup-folded 'fold
+        org-startup-folded t
         org-cycle-separator-lines 2
         org-hide-leading-stars t
-        org-export-backends '(markdown ascii html icalendar latex odt)
+        org-export-backends '(md org ascii html icalendar latex odt rss)
         org-export-with-toc nil
         org-highlight-latex-and-related '(native)
         org-goto-auto-isearch nil
@@ -75,7 +75,7 @@
   (setq org-babel-lisp-eval-fn #'sly-eval)
   (org-babel-do-load-languages
    'org-babel-load-languages
-   '((haskell . t) (emacs-lisp . t) (shell . t) (python . t)
+   '((sqlite . t) (haskell . t) (emacs-lisp . t) (shell . t) (python . t)
      (C . t) (lua . t) (dot . t) (java . t)
      (lisp . t) (clojure . t) (scheme . t)
      (forth . t)
@@ -103,7 +103,7 @@
 (use-package ob-config :ensure nil :no-require t
   :after org-contrib
   :config
-  (setq org-babel-clojure-backend 'cider)
+  (setopt org-babel-clojure-backend 'cider)
   ;; For exporting to markdown
   (require 'ox-md))
 
@@ -111,9 +111,9 @@
   :after org
   :config
   ;; Show effort estimates in agenda
-  (setq org-agenda-columns-add-appointments-to-effort-sum t)
+  (setopt org-agenda-columns-add-appointments-to-effort-sum t)
   ;; Agenda Views
-  (setq org-agenda-custom-commands
+  (setopt org-agenda-custom-commands
         '(("d" "Today's Tasks"
            ((agenda "" ((org-agenda-span 1)
                         (org-agenda-overriding-header "Today's Tasks")
@@ -282,14 +282,3 @@
   (with-eval-after-load 'org
     (require 'edraw-org)
     (edraw-org-setup-default)))
-
-;; (add-hook 'after-init-hook (lambda (&rest args) (org-agenda-List 1)))
-;; (mapcar (lambda (selected)
-;;           (plist-get
-;;            (plist-get selected
-;;                       'headline)
-;;            :raw-value))
-;;         (org-ql-select (directory-files-recursively org-directory "\\.org$")
-;;           '(and (property "LOCATION"))))
-
-(plist-get '(headline (1)) 'headline)

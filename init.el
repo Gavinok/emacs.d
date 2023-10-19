@@ -3,7 +3,7 @@
 ;; Minimize garbage collection during startup
 
 ;; useful for quickly debugging emacs
-(setq debug-on-error t)
+;; (setq debug-on-error t)
 (setq running-in-wsl (executable-find "wslpath"))
 
 (when running-in-wsl
@@ -43,7 +43,6 @@
       delete-old-versions t
       backup-by-copying t)
 
-
 ;;; PACKAGE LIST
 (setq package-install-upgrade-built-in t)
 (setq package-archives
@@ -54,10 +53,6 @@
 ;;; BOOTSTRAP USE-PACKAGE
 (package-initialize)
 
-(setq use-package-always-ensure t)
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
 (eval-when-compile (require 'use-package))
 (setq use-package-verbose t
       comp-async-report-warnings-errors nil
@@ -333,6 +328,7 @@ Depends on the `gh' commandline tool"
          ("C-x M-t" . transpose-regions)
          ("C-;"     . negative-argument)
          ("C-M-;"   . negative-argument)
+         ("C-g"   . my/keyboard-quit-only-if-no-macro)
          ("M-1" . delete-other-windows)
          ("M-2" . split-window-below)
          ("M-3" . split-window-right))
@@ -512,9 +508,6 @@ Depends on the `gh' commandline tool"
       (when old
         (set-marker old nil))))
   (advice-add 'push-mark :after #'my/push-mark-global))
-(use-package use-package-chords
-  :ensure t
-  :config (key-chord-mode 1))
 ;;; General Key Bindings
 (use-package crux
   :ensure t
@@ -568,7 +561,7 @@ Depends on the `gh' commandline tool"
     :custom
     (marginalia-annotators
      '(marginalia-annotators-heavy marginalia-annotators-light nil))
-    :init
+    :config
     (marginalia-mode))
   (vertico-mode t)
   :config
@@ -614,7 +607,7 @@ Depends on the `gh' commandline tool"
          :map vertico-map
          ("C-x C-j" . consult-dir)))
 (use-package consult-recoll
-  :bind (("M-s r" . counsel-recoll)
+  :bind (("M-s r" . consult-recoll)
          ("C-c I" . recoll-index))
   :init
   (setq consult-recoll-inline-snippets t)
@@ -684,7 +677,7 @@ Depends on the `gh' commandline tool"
   (corfu-auto-prefix 2)
   (corfu-auto-delay 0.3)
   (corfu-popupinfo-delay '(0.5 . 0.2))
-  (corfu-preview-current 'insert) ; Do not preview current candidate
+  (corfu-preview-current 'insert) ; insert previewed candidate
   (corfu-preselect 'prompt)
   (corfu-on-exact-match nil)      ; Don't auto expand tempel snippets
 
@@ -758,8 +751,8 @@ Depends on the `gh' commandline tool"
   (add-to-list 'default-frame-alist '(cursor-color . "#dc322f"))
 
   (when my/my-system
-    (set-frame-parameter nil 'alpha-background 100)
-    (add-to-list 'default-frame-alist '(alpha-background . 100)))
+    (set-frame-parameter nil 'alpha-background 80)
+    (add-to-list 'default-frame-alist '(alpha-background . 80)))
 
   (load-theme 'spaceway t)
   (setenv "SCHEME" "dark")
@@ -800,7 +793,7 @@ Depends on the `gh' commandline tool"
   :init
   (global-jinx-mode)
   (add-to-list 'ispell-skip-region-alist '("+begin_src" . "+end_src"))
-  (setq flyspell-use-meta-tab nil))
+  (setopt flyspell-use-meta-tab nil))
 
 ;;; ORG
 (load (concat user-emacs-directory
@@ -839,7 +832,7 @@ Depends on the `gh' commandline tool"
   ;; multiframe just doesn't make sense to me
   (with-eval-after-load 'winner
     (add-hook 'ediff-quit-hook 'winner-undo))
-  (setq ediff-window-setup-function 'ediff-setup-windows-plain))
+  (setopt ediff-window-setup-function 'ediff-setup-windows-plain))
 
 (use-package diff-hl
   :unless my/is-termux
@@ -859,7 +852,7 @@ Depends on the `gh' commandline tool"
   :commands vterm
   :custom (vterm-max-scrollback 10000)
   :init (when my/my-system
-          (setq term-prompt-regexp ".*ᛋ")))
+          (setopt term-prompt-regexp ".*ᛋ")))
 
 ;; (use-package with-editor
 ;;   :hook ((shell-mode-hook eshell-mode-hook term-exec-hook vterm-exec-hook)
@@ -922,9 +915,6 @@ Depends on the `gh' commandline tool"
   (setenv "TERM" "xterm-256color"))
 
 ;; Interactive opening of files image preview and more from any repl
-(use-package shx
-  :ensure t
-  :hook (shell-mode . shx-mode))
 
 ;; As the built-in project.el support expects to use vc-mode hooks to
 ;; find the root of projects we need to provide something equivalent
@@ -937,12 +927,12 @@ Depends on the `gh' commandline tool"
          ("m" . project-magit)
          ("d" . project-dired))
   :init
-  (setq project-switch-commands
-        '((project-find-file "Find file" f)
-          (project-dired "Dired" d)
-          (project-vc-dir "VC-Dir" v)
-          (project-eshell "Eshell" e)
-          (project-shell "Shell" s)))
+  (setopt project-switch-commands
+          '((project-find-file "Find file" ?f)
+            (project-dired "Dired" ?d)
+            (project-vc-dir "VC-Dir" ?v)
+            (project-eshell "Eshell" ?e)
+            (project-shell "Shell" ?s)))
   :config
   ;; Optionally configure a function which returns the project root directory.
   ;; There are multiple reasonable alternatives to chose from.
@@ -1001,10 +991,7 @@ Depends on the `gh' commandline tool"
   :config
   (setq compilation-scroll-output t)
   (require 'ansi-color)
-  (defun colorize-compilation-buffer ()
-    (let ((inhibit-read-only t))
-      (ansi-color-apply-on-region (point-min) (point-max))))
-  (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+  (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
   (defun generic-compiler ()
     (unless (or (file-exists-p "makefile")
 		(file-exists-p "Makefile"))
@@ -1014,9 +1001,19 @@ Depends on the `gh' commandline tool"
 			      (shell-quote-argument
 			       (file-name-sans-extension buffer-file-name)))))))
   (add-hook 'c++-mode-hook #'generic-compiler)
-  ;; (setq compilation-environment '("HELLO=Hello"))
-  )
-;; (error "after here")
+
+  ;; Auto focus compilation buffer
+  (add-hook 'compilation-finish-functions 'finish-focus-comp)
+  (add-hook 'compilation-start-hook 'finish-focus-comp)
+
+  (defun finish-focus-comp (&optional buf-or-proc arg2)
+    (let* ((comp-buf (if (processp buf-or-proc)
+                         (process-buffer buf-or-proc)
+                       buf-or-proc))
+           (window (get-buffer-window comp-buf)))
+      (if window
+          (select-window window)
+        (switch-to-buffer-other-window comp-buf)))))
 
 ;;; BUFFER MANAGMENT
 (use-package ibuffer
@@ -1027,14 +1024,14 @@ Depends on the `gh' commandline tool"
   (setq ibuffer-show-empty-filter-groups nil)
 
   ;; Modify the default ibuffer-formats
-  (setq ibuffer-formats
+  (setopt ibuffer-formats
         '((mark modified read-only " "
                 (name 40 40 :left :elide)
                 " "
                 (mode 16 16 :left :elide)
                 " "
                 filename-and-process)))
-  (setq ibuffer-saved-filter-groups
+  (setopt ibuffer-saved-filter-groups
         '(("home"
            ("Windows" (and (mode . exwm-mode)
                            (not (name . "qutebrowser"))))
@@ -1116,11 +1113,11 @@ Depends on the `gh' commandline tool"
 ;;; popup window managment
 (use-package popper
   :ensure t ; or :straight t
-  :bind (("M-`"     . popper-toggle-latest)
+  :bind (("M-`"     . popper-toggle)
          ("M-~"     . popper-cycle)
          ("C-x M-`" . popper-toggle-type))
   :init
-  (setq popper-reference-buffers
+  (setopt popper-reference-buffers
         '("\\*Messages\\*"
           "\\*Warnings\\*"
           "\\*xref\\*"
@@ -1138,7 +1135,7 @@ Depends on the `gh' commandline tool"
           "\\*GDB.*out\\*"
           help-mode
           compilation-mode))
-  (setq popper-display-control 'user)
+  (setopt popper-display-control 'user)
   (popper-mode +1))
 
 (use-package multiple-cursors
@@ -1910,20 +1907,6 @@ Used to see multiline flymake errors"
 ;;   :ensure t
 ;;   :config
 ;;   (envrc-global-mode))
-
-(use-package highlight-indent-guides
-  ;; provides column highlighting.  Useful when you start seeing too many nested
-  ;; layers.
-  :hook (prog-mode . highlight-indent-guides-mode)
-  :custom-face
-  (highlight-indent-guides-stack-character-face ((t  :foreground "#FFF")))
-  (highlight-indent-guides-character-face       ((t  :foreground "#EEE")))
-  (highlight-indent-guides-top-character-face   ((t  :foreground "#CCC")))
-  (highlight-indent-guides-even-face            ((t  :foreground "#BBB")))
-  (highlight-indent-guides-odd-face             ((t  :foreground "#AAA")))
-  :custom
-  (highlight-indent-guides-method 'character)
-  (highlight-indent-guides-responsive 'top))
 
 (use-package comby
   :when (executable-find "comby"))
