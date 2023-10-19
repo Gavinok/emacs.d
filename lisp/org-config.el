@@ -6,7 +6,6 @@
 ;;; ORG
 (use-package org
   :pin nongnu
-  ;; :ensure org-contrib
   :commands (org-capture org-agenda)
   :bind (("C-c l" . org-store-link)
          ("C-c c" . org-capture)
@@ -168,7 +167,7 @@
            "* TODO %? :errand\nDEADLINE: %T\n  %a")
           ("sm" "Meeting" entry
            (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
-           "* Meeting with  %? :MEETING:\nSCHEDULED: %T\n:PROPERTIES:\n:LOCATION: %^{location|Anywhere|Home|Work|School}\n:END:")
+           "* Meeting with  %? :MEETING:\nSCHEDULED: %T\n:PROPERTIES:\n:LOCATION: %^{location|Anywhere|Home|Work|School|FGPC}\n:END:")
           ("sE" "Event" entry
            (file+headline (lambda () (concat org-directory "/Work.org"))
                           "Events")

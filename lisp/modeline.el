@@ -59,14 +59,14 @@ This is needed to make sure that text is properly aligned.")
                             mode-line-buffer-identification
                             " "
                             (:eval (when (mode-line-window-selected-p)" %l:%c"))
-                            (:eval (propertize
-                                    (when (mode-line-window-selected-p)
+                            (:eval (when (mode-line-window-selected-p)
+                                     (propertize
                                       (concat " %p%"
                                               " "
-                                              "「 %m 」"))
-                                    'face (if (cogent-line-selected-window-active-p)
-                                              'shadow
-                                            'mode-line-inactive)))
+                                              "「 %m 」")
+                                      'face (if (cogent-line-selected-window-active-p)
+                                                'shadow
+                                              'mode-line-inactive))))
                             ))
 
 (setq my/mode-line-padding

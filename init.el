@@ -334,6 +334,16 @@ Depends on the `gh' commandline tool"
          ("M-3" . split-window-right))
 
   :config
+  (defun my/keyboard-quit-only-if-no-macro ()
+    "A workaround to let me accidently hit C-g while recording a macro"
+    (interactive)
+    (if (or defining-kbd-macro executing-kbd-macro)
+        (progn
+          (if (region-active-p)
+              (deactivate-mark)
+            (message "Macro running. Can't quit.")))
+
+      (keyboard-quit)))
   ;; Set the title of the frame to the current file - Emacs
   (setq-default frame-title-format '("%b - Emacs"))
 
@@ -419,8 +429,6 @@ Depends on the `gh' commandline tool"
 (use-package font-setup :ensure nil :no-require t
   :demand t
   :when my/my-system
-  :hook ((text-mode . pragmatapro-lig-mode)
-         (prog-mode . pragmatapro-lig-mode))
   :init
   ;; Fonts
   ;; The concise one which relies on "implicit fallback values"
@@ -446,8 +454,9 @@ Depends on the `gh' commandline tool"
     (fontaine-set-preset 'regular))
   ;; Load pragmatapro-lig.el
   (load (concat user-emacs-directory
-                "lisp/pragmatapro-lig.el"))
-  (require 'pragmatapro-lig)
+                "lisp/pragmatapro-prettify-symbols-v0.829.el"))
+  (add-hook 'prog-mode-hook 'prettify-hook)
+  ;; (require 'pragmatapro-lig)
   ;; Enable pragmatapro-lig-mode for specific modes
   (set-fontset-font t 'unicode
                     "PragmataPro Mono:pixelsize=19:antialias=true:autohint=true"
@@ -461,7 +470,8 @@ Depends on the `gh' commandline tool"
 	(go "https://github.com/tree-sitter/tree-sitter-go")
 	(html "https://github.com/tree-sitter/tree-sitter-html")
 	(javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
-	(json "https://github.com/tree-sitter/tree-sitter-json")
+	(dockerfile "https://github.com/camdencheek/tree-sitter-dockerfile")
+        (json "https://github.com/tree-sitter/tree-sitter-json")
 	(make "https://github.com/alemuller/tree-sitter-make")
 	(markdown "https://github.com/ikatyang/tree-sitter-markdown")
 	(python "https://github.com/tree-sitter/tree-sitter-python")
@@ -526,7 +536,6 @@ Depends on the `gh' commandline tool"
 (use-package simple
   :ensure nil
   :bind (("M-SPC" . cycle-spacing)))
-
 ;;; TERMINAL SETTINGS
 (when my/is-terminal
   (progn (set-face-background 'default "undefinded")
@@ -1254,16 +1263,19 @@ Depends on the `gh' commandline tool"
      (vconcat (mapcar (lambda (c) (+ face-offset c)) " ▾")))))
 
 (use-package outline
-  :hook ((prog-mode) . outline-minor-mode)
+  :hook (prog-mode . outline-minor-mode)
   :bind (:map outline-minor-mode-map
               ("C-c u" . outline-up-heading)
               ("C-c j" . outline-forward-same-level)
               ("C-c k" . outline-backward-same-level)
+              ("C-x C-a" . outline-show-all)
               :repeat-map outline-navigation-repeat-map
               ("TAB" . outline-cycle)
+              ("C-TAB" . outline-cycle)
               ([tab] . outline-cycle)
               ("S-TAB" . outline-cycle-buffer)
-              ([backtab] . outline-cycle-buffer))
+              ([backtab] . outline-cycle-buffer)
+              ("C-a" . outline-show-all))
   :custom (outline-minor-mode-use-buttons 'in-margins))
 
 ;; Automatic code formatting
@@ -1311,7 +1323,7 @@ Depends on the `gh' commandline tool"
   (add-hook 'lsp-completion-mode-hook
             (lambda ()
               (setf (alist-get 'lsp-capf completion-category-defaults)
-                    '((styles . (orderless-flex))))))
+                    '((styles . (orderless))))))
   :config
   (defun help-at-pt-buffer ()
     (interactive)
@@ -1364,11 +1376,11 @@ Depends on the `gh' commandline tool"
   (use-package lsp-haskell :ensure t
     :hook (haskell-mode    . lsp-deferred))
 
-  ;; (use-package lsp-java :ensure t
-  ;;   :hook (java-mode       . lsp-deferred)
-  ;;   :init
-  ;;   (require 'lsp-java-boot)
-  ;;   (add-hook 'java-mode-hook #'lsp-java-boot-lens-mode))
+  (use-package lsp-java :ensure t
+    :hook (java-mode       . lsp-deferred)
+    :init
+    (require 'lsp-java-boot)
+    (add-hook 'java-mode-hook #'lsp-java-boot-lens-mode))
 
   (use-package lsp-pyright :ensure t
     :hook ((python-mode . (lambda ()
@@ -1378,6 +1390,8 @@ Depends on the `gh' commandline tool"
                            (require 'lsp-pyright)
                            (lsp-deferred))))
     :init
+    (push 'pyright compilation-error-regexp-alist)
+    (push '(pyright "^\\ \\ \\([a-zA-Z0-9/\\._-]+\\):\\([0-9]+\\):\\([0-9]+\\).*$" 1 2 3) compilation-error-regexp-alist-alist)
     (setq python-shell-enable-font-lock nil)))
 
 ;;; Debugging
@@ -1503,7 +1517,7 @@ Depends on the `gh' commandline tool"
   :hook ((prog-mode       . infer-indentation-style)
          (prog-mode       . (lambda () (setq-local show-trailing-whitespace t)))
          (emacs-lisp-mode . (lambda () (add-hook 'local-write-file-hooks 'check-parens)))
-         (lisp-mode       . (lambda () (setq indent-tabs-mode nil)))
+         (lisp-mode       . (lambda () (indent-tabs-mode -1)))
          ;; Make all scripts executable. Ya this might be sketch but I don't
          (after-save      . executable-make-buffer-file-executable-if-script-p))
   :bind (:map emacs-lisp-mode-map
@@ -1516,8 +1530,8 @@ Depends on the `gh' commandline tool"
 
   ;; Smart Indentation
   (defun infer-indentation-style ()
-    ;; if our source file uses tabs, we use tabs, if spaces spaces, and if
-    ;; neither, we use the current indent-tabs-mode
+    "if our source file uses tabs, we use tabs, if spaces spaces, and if
+     neither, we use the current indent-tabs-mode"
     (let ((space-count (how-many "^  " (point-min) (point-max)))
           (tab-count (how-many "^\t" (point-min) (point-max))))
       (if (> space-count tab-count) (setq indent-tabs-mode nil))
@@ -1607,8 +1621,6 @@ Depends on the `gh' commandline tool"
          ("C-M-z" . puni-squeeze)
          ("M-<backspace>" . backward-kill-word)
          ("C-w" . kill-region))
-  :chords ("fj" . mark-sexp)
-
   :init
   (puni-global-mode t)
   :config
