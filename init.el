@@ -480,7 +480,8 @@ Depends on the `gh' commandline tool"
         (vue "https://github.com/ikatyang/tree-sitter-vue")
 	(typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
 	(yaml "https://github.com/ikatyang/tree-sitter-yaml")
-        (haskell "https://github.com/tree-sitter/tree-sitter-haskell")))
+        (haskell "https://github.com/tree-sitter/tree-sitter-haskell")
+        (typst "https://github.com/uben0/tree-sitter-typst")))
 
 (use-package typescript-ts-mode
   :mode (("\\.ts\\'" . typescript-ts-mode)
@@ -760,8 +761,8 @@ Depends on the `gh' commandline tool"
   (add-to-list 'default-frame-alist '(cursor-color . "#dc322f"))
 
   (when my/my-system
-    (set-frame-parameter nil 'alpha-background 80)
-    (add-to-list 'default-frame-alist '(alpha-background . 80)))
+    (set-frame-parameter nil 'alpha-background 85)
+    (add-to-list 'default-frame-alist '(alpha-background . 85)))
 
   (load-theme 'spaceway t)
   (setenv "SCHEME" "dark")
@@ -776,6 +777,14 @@ Depends on the `gh' commandline tool"
   (set-face-attribute 'default nil :foreground "#333")
   (global-hl-line-mode t)
   (setenv "SCHEME" "light"))
+(use-package ef-themes
+  :demand t
+  :ensure t
+  :config
+  (load-theme 'ef-cherie t)
+  ;; (set-face-attribute 'default nil :foreground "#333")
+  (global-hl-line-mode t)
+  (setenv "SCHEME" "dark"))
 ;;; WRITING
 (use-package writegood-mode
   :hook ((markdown-mode nroff-mode org-mode
@@ -980,36 +989,56 @@ Depends on the `gh' commandline tool"
 ;;; COMPILATION
 (use-package compile
   :defer t
-  :hook (((c++-mode c-mode java-mode javascript-mode go-mode nroff-mode) . generic-compiler)
-         (purescript-mode . spago-compiler))
-  :bind (("C-x M-m" . compile)
-         ("C-x C-m" . recompile))
-  :init
-  (defun has-makefile-p ()
-    (or (file-exists-p "makefile")
-	(file-exists-p "Makefile")))
-  (defun spago-compiler ()
-    (unless (has-makefile-p)
-      (setq-local compile-command "spago run")))
-  (defun generic-compiler ()
-    (unless (has-makefile-p)
-      (setq-local compile-command
-		  (concat "compiler "
-			  (when buffer-file-name
-			    (shell-quote-argument buffer-file-name))))))
+  :hook ((compilation-filter . ansi-color-compilation-filter))
+  ;; Using C-u before recompile acts identical to the M-x compile
+  :bind (("C-x C-m" . recompile))
   :config
-  (setq compilation-scroll-output t)
+  (setopt compilation-scroll-output t)
+  (setopt compilation-ask-about-save nil)
   (require 'ansi-color)
-  (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
+  ;; Custom compilers
   (defun generic-compiler ()
-    (unless (or (file-exists-p "makefile")
-		(file-exists-p "Makefile"))
+    (concat "compiler "
+	    (if buffer-file-name
+		(shell-quote-argument buffer-file-name))))
+  (defun run-on-file (cmd)
+    `(lambda () (concat ,cmd " "
+                        (shell-quote-argument buffer-file-name))))
+
+  (setq generic-compiler-modes
+        '(c++-mode c-mode java-mode haskell-mode
+          javascript-mode go-mode go-ts-mode
+          nroff-mode java-mode))
+  (setq custom-compiler-modes
+        `((purescript-mode . "spago run")
+          (bash-ts-mode    . ,(run-on-file "sh"))))
+
+  (defun get-compiler ()
+    (let* ((default-compile-command "make -k ")
+           (compiler (assoc-default major-mode
+                                    (append
+                                     (cl-loop for mode in generic-compiler-modes
+                                              collect (cons mode #'generic-compiler))
+                                     custom-compiler-modes)
+                                    'eql default-compile-command)))
+      (cond ((or (file-exists-p "makefile")
+	         (file-exists-p "Makefile"))
+             default-compile-command)
+            ((functionp compiler) (funcall compiler))
+            ((stringp compiler) compiler)
+            (t default-compile-command))))
+
+  ;; A total hack I realized I could do thanks to M-x compile
+  ;; executing `(let ((command (eval compile-command))) ...)'
+  (setq-default compile-command '(get-compiler))
+
+  (defun generic-compiler ()
+    (unless (has-makefile-p)
       (setq-local compile-command
 		  (concat "compiler "
 			  (if buffer-file-name
 			      (shell-quote-argument
-			       (file-name-sans-extension buffer-file-name)))))))
-  (add-hook 'c++-mode-hook #'generic-compiler)
+			       (buffer-file-name buffer-file-name)))))))
 
   ;; Auto focus compilation buffer
   (add-hook 'compilation-finish-functions 'finish-focus-comp)
@@ -1263,7 +1292,7 @@ Depends on the `gh' commandline tool"
      (vconcat (mapcar (lambda (c) (+ face-offset c)) " ▾")))))
 
 (use-package outline
-  :hook (prog-mode . outline-minor-mode)
+  ;; :hook (prog-mode . outline-minor-mode)
   :bind (:map outline-minor-mode-map
               ("C-c u" . outline-up-heading)
               ("C-c j" . outline-forward-same-level)
@@ -1310,6 +1339,9 @@ Depends on the `gh' commandline tool"
   (setq lsp-clients-clangd-args '("--header-insertion-decorators=0"
                                   "--clang-tidy"
                                   "--enable-config"))
+  ;; Small speedups
+  (setq lsp-log-max nil)
+  (fset #'jsonrpc--log-event #'ignore)
   ;; General lsp-mode settings
   (setq lsp-completion-provider :none
         lsp-enable-snippet t
@@ -1867,6 +1899,14 @@ Used to see multiline flymake errors"
   :quelpa (plz :fetcher github :repo "alphapapa/plz.el")
   :after ement)
 
+;; Quick and hacky templates
+(use-package placeholder
+  :ensure nil
+  :quelpa (placeholder :fetcher github :repo "oantolin/placeholder")
+  :bind (("C-c n" . placeholder-forward)
+         ("C-c p" . placeholder-backward)
+         ("C-c x" . placeholder-insert)))
+
 ;; Install Ement.
 (use-package ement
   :ensure t
@@ -1885,7 +1925,6 @@ Used to see multiline flymake errors"
   :quelpa (hammy :fetcher github :repo "alphapapa/hammy.el")
   :commands (happy-start hammy-start-org-clock-in)
   :config
-  (hammy-mode t)
   (hammy-define (propertize "🍅" 'face '(:foreground "tomato"))
                 :documentation "The classic pomodoro timer."
                 :intervals
@@ -1935,6 +1974,13 @@ Used to see multiline flymake errors"
 (use-package docker
   :bind (("C-x d" . docker)))
 
+(use-package asdf
+  :init
+  (unless (package-installed-p 'use-package)
+    (package-vc-install "https://github.com/tabfugnic/asdf.el"))
+  :config
+  (asdf-enable))
+
 ;; (use-package carp
 ;;   :load-path "~/.emacs.d/lisp/carp.el"
 ;;   :init t
@@ -1955,3 +2001,9 @@ Used to see multiline flymake errors"
 (put 'dired-find-alternate-file 'disabled nil)
 
 (setenv "PATH" (concat (getenv "PATH") ":/home/gavinok/.cargo/bin"))
+
+(use-package typst-ts-mode
+  :ensure nil
+  :quelpa (typst-ts-mode :fetcher sourcehut :repo "meow_king/typst-ts-mode")
+  :custom
+  (typst-ts-mode-watch-options "--open"))

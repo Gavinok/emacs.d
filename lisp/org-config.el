@@ -3,6 +3,9 @@
     (setq org-directory "~/storage/shared/Dropbox/Documents/org")
   (setq org-directory "~/.local/Dropbox/Documents/org"))
 
+;; Help resolve conflicting timestamps
+(load "./org-conflict.el")
+
 ;;; ORG
 (use-package org
   :pin nongnu
@@ -28,7 +31,7 @@
         (plist-put org-format-latex-options :scale my/org-latex-scale))
   (add-hook 'org-mode-hook (lambda () (setq indent-tabs-mode nil)))
 ;;;; Archive Completed Tasks
-  (defun my-org-archive-done-tasks ()
+  (defun my/org-archive-done-tasks ()
     (interactive)
     (org-map-entries 'org-archive-subtree "/DONE" 'file)
     (org-map-entries 'org-archive-subtree "/CANCELLED" 'file))

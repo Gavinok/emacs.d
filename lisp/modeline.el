@@ -107,3 +107,5 @@ This is needed to make sure that text is properly aligned.")
   (set-face-attribute 'my/display-time nil :foreground "#fff" :background "#333"
                       :box '(:line-width 1 :color "#323"))
   (display-time-mode t))
+(set-face-attribute  'org-mode-line-clock nil :foreground "#fff" :background "#333"
+                     :box '(:line-width 1 :color "#323") :inherit 'bold)
