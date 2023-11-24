@@ -1459,7 +1459,11 @@ Depends on the `gh' commandline tool"
     :init
     (push 'pyright compilation-error-regexp-alist)
     (push '(pyright "^\\ \\ \\([a-zA-Z0-9/\\._-]+\\):\\([0-9]+\\):\\([0-9]+\\).*$" 1 2 3) compilation-error-regexp-alist-alist)
-    (setq python-shell-enable-font-lock nil)))
+    (setq python-shell-enable-font-lock nil)
+    (use-package pyvenv
+      :commands (pyvenv-activate)
+      :config
+      (pyvenv-mode t))))
 
 ;;; Debugging
 (use-package dap-mode
