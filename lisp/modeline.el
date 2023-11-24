@@ -45,29 +45,30 @@ This is needed to make sure that text is properly aligned.")
 (add-hook 'window-selection-change-functions #'cogent-line-set-selected-window)
 
 (setq my/mode-line-right-side '(:eval (when (mode-line-window-selected-p)
-                                     (list '(vc-mode vc-mode) " "
-                                           mode-line-misc-info))))
+                                        (list '(vc-mode vc-mode) " "
+                                              mode-line-misc-info))))
 (setq my/mode-line-left-side '(" "
-                            ;; indicate if the buffer has been modified
-                            (:eval (propertize
-                                    (if (and (not buffer-read-only) (buffer-modified-p))
-                                        "● " "  " )
-                                    'face 'error))
+                               ;; indicate if the buffer has been modified
+                               (:eval (propertize
+                                       (if (and (not buffer-read-only) (buffer-modified-p))
+                                           "● " "  " )
+                                       'face 'error))
 
-                            ;; Buffer name (no longer than 1/3 of the screen)
-                            ;; mode-line-remote
-                            mode-line-buffer-identification
-                            " "
-                            (:eval (when (mode-line-window-selected-p)" %l:%c"))
-                            (:eval (when (mode-line-window-selected-p)
-                                     (propertize
-                                      (concat " %p%"
-                                              " "
-                                              "「 %m 」")
-                                      'face (if (cogent-line-selected-window-active-p)
-                                                'shadow
-                                              'mode-line-inactive))))
-                            ))
+                               ;; Buffer name (no longer than 1/3 of the screen)
+                               ;; mode-line-remote
+                               mode-line-buffer-identification
+                               " "
+                               (:eval (when (mode-line-window-selected-p)" %l:%c"))
+                               (:eval (when (mode-line-window-selected-p)
+                                        (propertize
+                                         (concat " %p%"
+                                                 "  "
+                                                 "「 %m 」")
+                                         'face (if (cogent-line-selected-window-active-p)
+                                                   'shadow
+                                                 'mode-line-inactive))))
+                               (:eval (car-safe codeium-mode-line))
+                               ))
 
 (setq my/mode-line-padding
       '(:eval
@@ -84,13 +85,14 @@ This is needed to make sure that text is properly aligned.")
                 ,my/mode-line-padding
                 ,my/mode-line-right-side))
 
+
 ;; (defun vc-branch ()
 ;;   (let ((backend (vc-backend buffer-file-name)))
 ;;     (substring vc-mode (+ (if (eq backend 'hg) 2 3) 2))))
 ;; (vc-branch)
 
 (set-face-attribute 'mode-line-inactive nil :foreground "#555" :background "#222"
-                      :box '(:line-width 2 :color "#222"))
+                    :box '(:line-width 2 :color "#222"))
 (use-package time
   :defer 10
   :config
@@ -109,3 +111,4 @@ This is needed to make sure that text is properly aligned.")
   (display-time-mode t))
 (set-face-attribute  'org-mode-line-clock nil :foreground "#fff" :background "#333"
                      :box '(:line-width 1 :color "#323") :inherit 'bold)
+

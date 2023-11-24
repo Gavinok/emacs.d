@@ -4,8 +4,9 @@
   (setq org-directory "~/.local/Dropbox/Documents/org"))
 
 ;; Help resolve conflicting timestamps
-(load "./org-conflict.el")
-
+(concat user-emacs-directory
+        "lisp/org-conflict.el")
+;; (add-hook 'org-ctrl-c-ctrl-c-hook 'org-conflict-check-timestamp-or-range)
 ;;; ORG
 (use-package org
   :pin nongnu
@@ -37,34 +38,34 @@
     (org-map-entries 'org-archive-subtree "/CANCELLED" 'file))
 ;;;; Better defaults
   (setopt org-ellipsis " ▾"
-        org-hide-emphasis-markers t
-        org-pretty-entities t
-        ;; C-e binding is pretty annoying to me
-        org-special-ctrl-a/e '(t . nil)
-        org-special-ctrl-k t
-        org-src-fontify-natively t
-        org-fontify-whole-heading-line t
-        org-fontify-quote-and-verse-blocks t
-        org-src-tab-acts-natively t
-        org-edit-src-content-indentation 2
-        org-hide-block-startup nil
-        org-src-preserve-indentation nil
-        org-startup-folded t
-        org-cycle-separator-lines 2
-        org-hide-leading-stars t
-        org-export-backends '(md org ascii html icalendar latex odt rss)
-        org-export-with-toc nil
-        org-highlight-latex-and-related '(native)
-        org-goto-auto-isearch nil
-        ;; make C-c a s work like googls
-        org-agenda-search-view-always-boolean t
-        org-agenda-timegrid-use-ampm t
-        org-agenda-time-grid
-        '((daily today require-timed remove-match)
-          (800 830 1000 1030 1200 1230 1400 1430 1600 1630 1700 1730 1800 1830 2000 )
-          "......" "────────────────")
-        org-agenda-current-time-string
-        "← now ─────────────────")
+          org-hide-emphasis-markers t
+          org-pretty-entities t
+          ;; C-e binding is pretty annoying to me
+          org-special-ctrl-a/e '(t . nil)
+          org-special-ctrl-k t
+          org-src-fontify-natively t
+          org-fontify-whole-heading-line t
+          org-fontify-quote-and-verse-blocks t
+          org-src-tab-acts-natively t
+          org-edit-src-content-indentation 2
+          org-hide-block-startup nil
+          org-src-preserve-indentation nil
+          org-startup-folded t
+          org-cycle-separator-lines 2
+          org-hide-leading-stars t
+          org-export-backends '(md org ascii html icalendar latex odt rss)
+          org-export-with-toc nil
+          org-highlight-latex-and-related '(native)
+          org-goto-auto-isearch nil
+          ;; make C-c a s work like googls
+          org-agenda-search-view-always-boolean t
+          org-agenda-timegrid-use-ampm t
+          org-agenda-time-grid
+          '((daily today require-timed remove-match)
+            (800 830 1000 1030 1200 1230 1400 1430 1600 1630 1700 1730 1800 1830 2000 )
+            "......" "────────────────")
+          org-agenda-current-time-string
+          "← now ─────────────────")
   (setq org-log-done 'time)
   (setq org-log-into-drawer t)
   (setq org-todo-keywords
@@ -73,7 +74,7 @@
                     "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)"
                     "|" "DELEGATED(D)" "CANCELLED(c)")))
 ;;;; Babel
-  (use-package ob-typescript :demand t)
+  (use-package ob-typescript :ensure t :demand t)
   (setq org-babel-lisp-eval-fn #'sly-eval)
   (org-babel-do-load-languages
    'org-babel-load-languages
@@ -100,13 +101,14 @@
   (setq org-refile-targets '((org-agenda-files :maxlevel . 5)))
   (advice-add 'org-refile :after 'org-save-all-org-buffers))
 
-(use-package org-contrib :after org)
+(use-package org-contrib :ensure t :after org)
 (use-package ox-pandoc
   :when (executable-find "pandoc")
   :ensure t
   :after org)
 (use-package ox-rss :ensure t :after org)
 (use-package org-appear :after org
+  :ensure t
   :custom
   (org-hide-emphasis-markers t)
   (org-appear-autolinks t)
@@ -130,24 +132,24 @@
   (setopt org-agenda-columns-add-appointments-to-effort-sum t)
   ;; Agenda Views
   (setopt org-agenda-custom-commands
-        '(("d" "Today's Tasks"
-           ((agenda "" ((org-agenda-span 1)
-                        (org-agenda-overriding-header "Today's Tasks")
-                        ))))
-          ("." "Todays Agenda"
-           ((agenda "" ((org-agenda-span 1)
-                        (org-agenda-skip-deadline-prewarning-if-scheduled t)))))
-          ("n" "Next Tasks"
-           ((todo "NEXT"
-                  ((org-agenda-overriding-header "Next Tasks")))))
+          '(("d" "Today's Tasks"
+             ((agenda "" ((org-agenda-span 1)
+                          (org-agenda-overriding-header "Today's Tasks")
+                          ))))
+            ("." "Todays Agenda"
+             ((agenda "" ((org-agenda-span 1)
+                          (org-agenda-skip-deadline-prewarning-if-scheduled t)))))
+            ("n" "Next Tasks"
+             ((todo "NEXT"
+                    ((org-agenda-overriding-header "Next Tasks")))))
 
-          ("W" "Work Tasks" tags-todo "+work")
+            ("W" "Work Tasks" tags-todo "+work")
 
-          ;; Low-effort next actions
-          ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&+Effort>0"
-           ((org-agenda-overriding-header "Low Effort Tasks")
-            (org-agenda-max-todos 20)
-            (org-agenda-files org-agenda-files))))))
+            ;; Low-effort next actions
+            ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&+Effort>0"
+             ((org-agenda-overriding-header "Low Effort Tasks")
+              (org-agenda-max-todos 20)
+              (org-agenda-files org-agenda-files))))))
 
 (use-package org-capture-config :ensure nil :no-require t
   :when my/my-system
@@ -213,6 +215,7 @@
 
 ;;;; Drag And Drop
 (use-package org-download
+  :ensure t
   :bind ("C-c i" . org-download-screenshot)
   :hook ((org-mode dired-mode) . org-download-enable)
   :init
@@ -221,6 +224,7 @@
 
 ;;;; Better Looking Bullets
 (use-package org-modern
+  :ensure t
   :hook ((org-mode                 . org-modern-mode)
          (org-agenda-finalize-hook . org-modern-agenda))
   :custom ((org-modern-todo t)

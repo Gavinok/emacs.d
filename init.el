@@ -89,7 +89,7 @@
   :ensure nil :no-require t   :demand t
   :init
   (cl-defmacro let-regex ((bindings (string regex)) &body body)
-  "Macro for creating BINDINGS to captured blocks of REGEX found in a STRING.
+    "Macro for creating BINDINGS to captured blocks of REGEX found in a STRING.
 BINDINGS: A list of different symbols to be bound to a captured section of the regex
 STRING: The string the regex is searching through
 REGEX: Regex used to match against the string
@@ -98,22 +98,22 @@ If no binding is captured section of regex is found for a BINDING an error is si
    ;; Example usage
    (let-regex ((h w) (\"hello world\" \"\\(hello\\) \\(world\\)\"))
                 (message \"result was %s then %s\" h w))"
-  (let ((holder (gensym)))
-    `(let ((,holder (with-temp-buffer
-                      (insert ,string)
-                      (beginning-of-buffer)
-                      (search-forward-regexp ,regex nil nil)
-                      (let ((i 0))
-                        (mapcar (lambda (_a)
-                                  (setq i (+ i 1))
-                                  (match-string i))
-                                '( ,@bindings))))))
-       (let ,(mapcar (lambda (binding)
-                       `(,binding (or (pop ,holder)
-				      (error "Failed to find binding for %s"
-                                             ',binding))))
-                     bindings)
-         ,@body))))
+    (let ((holder (gensym)))
+      `(let ((,holder (with-temp-buffer
+                        (insert ,string)
+                        (beginning-of-buffer)
+                        (search-forward-regexp ,regex nil nil)
+                        (let ((i 0))
+                          (mapcar (lambda (_a)
+                                    (setq i (+ i 1))
+                                    (match-string i))
+                                  '( ,@bindings))))))
+         (let ,(mapcar (lambda (binding)
+                         `(,binding (or (pop ,holder)
+				        (error "Failed to find binding for %s"
+                                               ',binding))))
+                       bindings)
+           ,@body))))
   (defvar my/is-termux
     (string-suffix-p
      "Android" (string-trim (shell-command-to-string "uname -a")))
@@ -433,6 +433,7 @@ Depends on the `gh' commandline tool"
   ;; Fonts
   ;; The concise one which relies on "implicit fallback values"
   (use-package fontaine
+    :ensure t
     :unless my/is-terminal
     :config
     (setq fontaine-presets
@@ -557,17 +558,20 @@ Depends on the `gh' commandline tool"
 
 ;;; COMPLETION
 (use-package vertico
+  :ensure t
   :init
   ;; Enable vertico using the vertico-flat-mode
   (require 'vertico-directory)
   (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy)
 
   (use-package orderless
+    :ensure t
     :commands (orderless)
     :custom (completion-styles '(orderless flex)))
   (load (concat user-emacs-directory
                 "lisp/affe-config.el"))
   (use-package marginalia
+    :ensure t
     :custom
     (marginalia-annotators
      '(marginalia-annotators-heavy marginalia-annotators-light nil))
@@ -583,6 +587,7 @@ Depends on the `gh' commandline tool"
   (setq enable-recursive-minibuffers t))
 ;;;; Extra Completion Functions
 (use-package consult
+  :ensure t
   :after vertico
   :bind (("C-x b"       . consult-buffer)
          ("C-x C-k C-k" . consult-kmacro)
@@ -617,15 +622,16 @@ Depends on the `gh' commandline tool"
          :map vertico-map
          ("C-x C-j" . consult-dir)))
 (use-package consult-recoll
+  :ensure t
   :bind (("M-s r" . consult-recoll)
          ("C-c I" . recoll-index))
   :init
   (setq consult-recoll-inline-snippets t)
   :config
   (defun recoll-index (&optional arg) (interactive)
-    (start-process-shell-command "recollindex"
-                                 "*recoll-index-process*"
-                                 "recollindex")))
+         (start-process-shell-command "recollindex"
+                                      "*recoll-index-process*"
+                                      "recollindex")))
 
 (use-package embark
   :ensure t
@@ -680,6 +686,7 @@ Depends on the `gh' commandline tool"
 
 ;;;; Code Completion
 (use-package corfu
+  :ensure t
   ;; Optional customizations
   :custom
   (corfu-cycle t)                 ; Allows cycling through candidates
@@ -708,10 +715,12 @@ Depends on the `gh' commandline tool"
   :config
   (add-hook 'eshell-mode-hook
             (lambda () (setq-local corfu-quit-at-boundary t
-                              corfu-quit-no-match t
-                              corfu-auto nil)
+                                   corfu-quit-no-match t
+                                   corfu-auto nil)
               (corfu-mode))))
+
 (use-package cape
+  :ensure t
   :defer 10
   :bind ("C-c f" . cape-file)
   :init
@@ -726,7 +735,6 @@ Depends on the `gh' commandline tool"
   ;; Ensure that pcomplete does not write to the buffer
   ;; and behaves as a pure `completion-at-point-function'.
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
-
 (use-package yasnippet
   :ensure t
   :init
@@ -787,6 +795,7 @@ Depends on the `gh' commandline tool"
   (setenv "SCHEME" "dark"))
 ;;; WRITING
 (use-package writegood-mode
+  :ensure t
   :hook ((markdown-mode nroff-mode org-mode
                         mail-mode
                         git-commit-mode)
@@ -853,6 +862,7 @@ Depends on the `gh' commandline tool"
   (setopt ediff-window-setup-function 'ediff-setup-windows-plain))
 
 (use-package diff-hl
+  :ensure t
   :unless my/is-termux
   :defer 5
   :hook ((magit-pre-refresh . diff-hl-magit-pre-refresh)
@@ -1007,8 +1017,8 @@ Depends on the `gh' commandline tool"
 
   (setq generic-compiler-modes
         '(c++-mode c-mode java-mode haskell-mode
-          javascript-mode go-mode go-ts-mode
-          nroff-mode java-mode))
+                   javascript-mode go-mode go-ts-mode
+                   nroff-mode java-mode))
   (setq custom-compiler-modes
         `((purescript-mode . "spago run")
           (bash-ts-mode    . ,(run-on-file "sh"))))
@@ -1063,31 +1073,31 @@ Depends on the `gh' commandline tool"
 
   ;; Modify the default ibuffer-formats
   (setopt ibuffer-formats
-        '((mark modified read-only " "
-                (name 40 40 :left :elide)
-                " "
-                (mode 16 16 :left :elide)
-                " "
-                filename-and-process)))
+          '((mark modified read-only " "
+                  (name 40 40 :left :elide)
+                  " "
+                  (mode 16 16 :left :elide)
+                  " "
+                  filename-and-process)))
   (setopt ibuffer-saved-filter-groups
-        '(("home"
-           ("Windows" (and (mode . exwm-mode)
-                           (not (name . "qutebrowser"))))
-           ("Qutebrowser" (name . "qutebrowser"))
-           ("Shells" (mode . shell-mode))
-           ("emacs-config" (or (filename . ".emacs.d")
-                               (filename . "emacs-config")))
+          '(("home"
+             ("Windows" (and (mode . exwm-mode)
+                             (not (name . "qutebrowser"))))
+             ("Qutebrowser" (name . "qutebrowser"))
+             ("Shells" (mode . shell-mode))
+             ("emacs-config" (or (filename . ".emacs.d")
+                                 (filename . "emacs-config")))
 
-           ("Web Dev" (or (mode . html-mode)
-                          (mode . css-mode)))
-           ("Magit" (name . "\*magit"))
-           ("Help" (or (name . "\*Help\*")
-                       (name . "\*Apropos\*")
-                       (name . "\*info\*")))
-           ("Browser" (mode . eaf-mode))
-           ("Ement" (name . "\*Ement *"))
-           ("Org" (or (mode . org-mode)
-                      (filename . "OrgMode"))))))
+             ("Web Dev" (or (mode . html-mode)
+                            (mode . css-mode)))
+             ("Magit" (name . "\*magit"))
+             ("Help" (or (name . "\*Help\*")
+                         (name . "\*Apropos\*")
+                         (name . "\*info\*")))
+             ("Browser" (mode . eaf-mode))
+             ("Ement" (name . "\*Ement *"))
+             ("Org" (or (mode . org-mode)
+                        (filename . "OrgMode"))))))
   (add-hook 'ibuffer-mode-hook
             (lambda ()
               (ibuffer-switch-to-saved-filter-groups "home"))))
@@ -1142,9 +1152,9 @@ Depends on the `gh' commandline tool"
   :bind-keymap
   ("C-c p" . perspective-map)
   :bind (:map perspective-map
-         ("s" . persp-switch)
-         ("C-l" . persp-state-load)
-         ("B" . persp-switch-to-scratch-buffer))
+              ("s" . persp-switch)
+              ("C-l" . persp-state-load)
+              ("B" . persp-switch-to-scratch-buffer))
   :config
   (persp-mode t))
 
@@ -1156,27 +1166,27 @@ Depends on the `gh' commandline tool"
          ("C-x M-`" . popper-toggle-type))
   :init
   (setopt popper-reference-buffers
-        '("\\*Messages\\*"
-          "\\*Warnings\\*"
-          "\\*xref\\*"
-          "\\*Backtrace\\*"
-          "*Flymake diagnostics.*"
-          "\\*eldoc\\*"
-          "\\*compilation\\*"
-          "\\*rustic-"
-          "^*tex"
-          "\\*Ement Notifications\\*"
-          "Output\\*$"
-          "\\*Async Shell Command\\*"
-          "\\*Dtache Shell Command\\*"
-          "\\*mu4e-update\\*"
-          "\\*GDB.*out\\*"
-          help-mode
-          compilation-mode))
+          '("\\*Messages\\*"
+            "\\*Warnings\\*"
+            "\\*xref\\*"
+            "\\*Backtrace\\*"
+            "*Flymake diagnostics.*"
+            "\\*eldoc\\*"
+            "\\*compilation\\*"
+            "\\*rustic-"
+            "^*tex"
+            "\\*Ement Notifications\\*"
+            "Output\\*$"
+            "\\*Async Shell Command\\*"
+            "\\*Dtache Shell Command\\*"
+            "\\*mu4e-update\\*"
+            "\\*GDB.*out\\*"
+            help-mode
+            compilation-mode))
   (setopt popper-display-control 'user)
   (popper-mode +1))
-
 (use-package multiple-cursors
+  :ensure t
   :bind (("C-M-'" . mc/edit-lines)
          ("C-M-|" . mc/mark-all-in-region-regexp)
          ;; Call with a 0 arg to skip one
@@ -1416,11 +1426,11 @@ Depends on the `gh' commandline tool"
 
   (use-package lsp-pyright :ensure t
     :hook ((python-mode . (lambda ()
-                           (require 'lsp-pyright)
-                           (lsp-deferred)))
+                            (require 'lsp-pyright)
+                            (lsp-deferred)))
            (python-ts-mode . (lambda ()
-                           (require 'lsp-pyright)
-                           (lsp-deferred))))
+                               (require 'lsp-pyright)
+                               (lsp-deferred))))
     :init
     (push 'pyright compilation-error-regexp-alist)
     (push '(pyright "^\\ \\ \\([a-zA-Z0-9/\\._-]+\\):\\([0-9]+\\):\\([0-9]+\\).*$" 1 2 3) compilation-error-regexp-alist-alist)
@@ -1450,8 +1460,8 @@ Depends on the `gh' commandline tool"
   :config
   (setq nvm-dir "/home/gavinok/.config/nvm")
   (defun my/nvm-use () (interactive)
-    (nvm-use
-     (completing-read "Enter Node Version" '("18.16.0" "16.17.1")))))
+         (nvm-use
+          (completing-read "Enter Node Version" '("18.16.0" "16.17.1")))))
 
 (use-package extra-languages
   :ensure nil :no-require t
@@ -1483,6 +1493,7 @@ Depends on the `gh' commandline tool"
 
 ;;;; WEB
   (use-package lsp-tailwindcss
+    :ensure t
     :init
     (setq lsp-tailwindcss-add-on-mode t))
   (use-package web-mode
@@ -1570,6 +1581,7 @@ Depends on the `gh' commandline tool"
       (if (> tab-count space-count) (setq indent-tabs-mode t)))))
 
 (use-package emmet-mode
+  :ensure t
   :hook ((js-jsx-mode typescript-mode) emmet-jsx-major-modes)
   :bind
   ("C-j" . emmet-expand-line)
@@ -1624,6 +1636,7 @@ Depends on the `gh' commandline tool"
 
 ;;;; Setup Folding For Programming
 (use-package puni
+  :ensure t
   :hook (((calc-mode term-mode vterm-mode) . puni-disable-puni-mode)
          (puni-mode  . electric-pair-local-mode))
   :bind (("C-c s" . puni-mode)
@@ -1693,9 +1706,9 @@ Depends on the `gh' commandline tool"
      (t (backward-kill-sexp 1))))
 
   (defun my/yank (&optional arg) (interactive)
-    (if *last-kill-was-rectangle*
-        (yank-rectangle)
-      (yank arg)))
+         (if *last-kill-was-rectangle*
+             (yank-rectangle)
+           (yank arg)))
 
   ;; Avoid terminal binding conflict
   (unless my/is-termux
@@ -1835,7 +1848,7 @@ Used to see multiline flymake errors"
   (add-to-list 'tab-bar-format #'tab-bar-format-menu-bar)
   ;; TODO Determin a better way to add some of my modeline to the tab bar
   ;; (customize-set-variable 'tab-bar-format (cons #'tab-bar-format-global tab-bar-format))
-)
+  )
 
 ;;; MODELINE
 (load (concat user-emacs-directory
@@ -1926,27 +1939,27 @@ Used to see multiline flymake errors"
   :commands (happy-start hammy-start-org-clock-in)
   :config
   (hammy-define (propertize "🍅" 'face '(:foreground "tomato"))
-                :documentation "The classic pomodoro timer."
-                :intervals
-                (list
-                 (interval :name "Work"
-                           :duration "25 minutes"
-                           :before (do (announce "Starting work time.")
-                                       (notify "Starting work time."))
-                           :advance (do (announce "Break time!")
-                                        (notify "Break time!")))
-                 (interval :name "Break"
-                           :duration (do (if (and (not (zerop cycles))
-                                                  (zerop (mod cycles 3)))
-                                             ;; If a multiple of three cycles have
-                                             ;; elapsed, the fourth work period was
-                                             ;; just completed, so take a longer break.
-                                             "30 minutes"
-                                           "5 minutes"))
-                           :before (do (announce "Starting break time.")
-                                       (notify "Starting break time."))
-                           :advance (do (announce "Break time is over!")
-                                        (notify "Break time is over!")))))
+    :documentation "The classic pomodoro timer."
+    :intervals
+    (list
+     (interval :name "Work"
+               :duration "25 minutes"
+               :before (do (announce "Starting work time.")
+                           (notify "Starting work time."))
+               :advance (do (announce "Break time!")
+                            (notify "Break time!")))
+     (interval :name "Break"
+               :duration (do (if (and (not (zerop cycles))
+                                      (zerop (mod cycles 3)))
+                                 ;; If a multiple of three cycles have
+                                 ;; elapsed, the fourth work period was
+                                 ;; just completed, so take a longer break.
+                                 "30 minutes"
+                               "5 minutes"))
+               :before (do (announce "Starting break time.")
+                           (notify "Starting break time."))
+               :advance (do (announce "Break time is over!")
+                            (notify "Break time is over!")))))
   )
 
 (setq pixel-scroll-precision-interpolate-page t)
@@ -1972,11 +1985,13 @@ Used to see multiline flymake errors"
   (strokes-mode t))
 
 (use-package docker
+  :ensure t
   :bind (("C-x d" . docker)))
 
 (use-package asdf
+  :ensure nil
   :init
-  (unless (package-installed-p 'use-package)
+  (unless (package-installed-p 'asdf)
     (package-vc-install "https://github.com/tabfugnic/asdf.el"))
   :config
   (asdf-enable))
