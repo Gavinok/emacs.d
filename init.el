@@ -469,6 +469,7 @@ Depends on the `gh' commandline tool"
 	(css "https://github.com/tree-sitter/tree-sitter-css")
 	(elisp "https://github.com/Wilfred/tree-sitter-elisp")
 	(go "https://github.com/tree-sitter/tree-sitter-go")
+	(gomod "https://github.com/camdencheek/tree-sitter-go-mod")
 	(html "https://github.com/tree-sitter/tree-sitter-html")
 	(javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
 	(dockerfile "https://github.com/camdencheek/tree-sitter-dockerfile")
@@ -482,27 +483,48 @@ Depends on the `gh' commandline tool"
 	(typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
 	(yaml "https://github.com/ikatyang/tree-sitter-yaml")
         (haskell "https://github.com/tree-sitter/tree-sitter-haskell")
-        (typst "https://github.com/uben0/tree-sitter-typst")))
+        (typst "https://github.com/uben0/tree-sitter-typst")
+        (java "https://github.com/tree-sitter/tree-sitter-java")
+        (ruby "https://github.com/tree-sitter/tree-sitter-ruby")
+        (rust "https://github.com/tree-sitter/tree-sitter-rust")))
 
-(use-package typescript-ts-mode
-  :mode (("\\.ts\\'" . typescript-ts-mode)
-         ("\\.tsx\\'" . tsx-ts-mode)))
+(use-package typst-ts-mode
+  :mode (("\\.typ\\'" . typst-ts-mode))
+  :custom
+  (typst-ts-mode-watch-options "--open")
+  :init
+  (unless (package-installed-p 'typst-ts-mode)
+    (package-vc-install "https://git.sr.ht/~meow_king/typst-ts-mode" nil nil)))
+(use-package vue-ts-mode
+  :mode (("\\.vue\\'" . vue-ts-mode))
+  :init
+  (unless (package-installed-p 'vue-ts-mode)
+    (package-vc-install "https://github.com/theschmocker/vue-ts-mode" nil nil)))
+(use-package dockerfile-ts-mode
+  :mode (("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'" . dockerfile-ts-mode)))
 (use-package yaml-ts-mode :mode (("\\.yml\\'" . yaml-ts-mode)))
 (use-package toml-ts-mode :mode (("\\.toml\\'" . toml-ts-mode)))
 (use-package json-ts-mode :mode (("\\.json\\'" . json-ts-mode)))
 (use-package sh-script :mode (("\\.sh\\'" . bash-ts-mode)))
 ;; (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
 
-(setq major-mode-remap-alist
-      '((yaml-mode . yaml-ts-mode)
-	(bash-mode . bash-ts-mode)
-	(js2-mode . js-ts-mode)
-	(javascript-mode . js-ts-mode)
-	(typescript-mode . typescript-ts-mode)
-	(json-mode . json-ts-mode)
-	(css-mode . css-ts-mode)
-	(python-mode . python-ts-mode)
-        (sh-mode . bash-ts-mode)))
+(setopt major-mode-remap-alist
+        '((c-or-c++-mode . c-or-c++-ts-mode)
+          (c++-mode . c++-ts-mode)
+          (c-mode . c-ts-mode)
+          (yaml-mode . yaml-ts-mode)
+	  (bash-mode . bash-ts-mode)
+	  (js2-mode . js-ts-mode)
+	  (java-mode . java-ts-mode)
+	  (javascript-mode . js-ts-mode)
+	  (typescript-mode . typescript-ts-mode)
+	  (json-mode . json-ts-mode)
+	  (css-mode . css-ts-mode)
+	  (python-mode . python-ts-mode)
+          (sh-mode . bash-ts-mode)
+          (bash-mode . bash-ts-mode)
+          (rust-mode . rust-ts-mode)
+          (ruby-mode . ruby-ts-mode)))
 
 (use-package unified-marks :ensure nil :no-require t
   :custom
@@ -776,23 +798,15 @@ Depends on the `gh' commandline tool"
   (setenv "SCHEME" "dark")
   )
 
-(use-package doom-themes
-  :disabled t
-  :demand t
-  :ensure t
-  :config
-  (load-theme 'doom-earl-grey t)
-  (set-face-attribute 'default nil :foreground "#333")
-  (global-hl-line-mode t)
-  (setenv "SCHEME" "light"))
-(use-package ef-themes
-  :demand t
-  :ensure t
-  :config
-  (load-theme 'ef-cherie t)
-  ;; (set-face-attribute 'default nil :foreground "#333")
-  (global-hl-line-mode t)
-  (setenv "SCHEME" "dark"))
+;; (use-package doom-themes
+;;   :demand t
+;;   :ensure t
+;;   :config
+;;   (load-theme 'doom-earl-grey t)
+;;   (set-face-attribute 'default nil :foreground "#333")
+;;   (global-hl-line-mode t)
+;;   (setenv "SCHEME" "light"))
+
 ;;; WRITING
 (use-package writegood-mode
   :ensure t
@@ -1397,6 +1411,7 @@ Depends on the `gh' commandline tool"
          (javascript-mode . lsp-deferred)
          (typescript-ts-mode . lsp-deferred)
          (tsx-ts-mode . lsp-deferred)
+         (vue-ts-mode . lsp-deferred)
          (web-mode . lsp-deferred))
   :init
   (use-package lsp-javascript :ensure nil :no-require t
@@ -1972,8 +1987,9 @@ Used to see multiline flymake errors"
 ;;   :config
 ;;   (envrc-global-mode))
 
-(use-package comby
-  :when (executable-find "comby"))
+;; (use-package comby
+;;   :ensure t
+;;   :when (executable-find "comby"))
 
 (use-package strokes-mode
   :ensure nil
@@ -2017,8 +2033,3 @@ Used to see multiline flymake errors"
 
 (setenv "PATH" (concat (getenv "PATH") ":/home/gavinok/.cargo/bin"))
 
-(use-package typst-ts-mode
-  :ensure nil
-  :quelpa (typst-ts-mode :fetcher sourcehut :repo "meow_king/typst-ts-mode")
-  :custom
-  (typst-ts-mode-watch-options "--open"))
