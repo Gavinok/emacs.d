@@ -2053,3 +2053,8 @@ Used to see multiline flymake errors"
 
 (setenv "PATH" (concat (getenv "PATH") ":/home/gavinok/.cargo/bin"))
 
+(with-eval-after-load 'eglot
+  (push `(java-mode . ("/home/gavinok/java-language-server/dist/lang_server_linux.sh")) eglot-server-programs)
+  (push `(sgml-mode . ("emmet-language-server" "--stdio")) eglot-server-programs)
+  (push `((typst-mode typst-ts-mode) . ("typst-lsp")) eglot-server-programs))
+
