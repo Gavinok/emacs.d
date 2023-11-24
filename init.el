@@ -1769,6 +1769,12 @@ Used to see multiline flymake errors"
       (message text)))
   (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
 
+(use-package flymake-ruff
+  :ensure t
+  :when (executable-find "ruff")
+  :hook ((python-mode . flymake-ruff-load)
+         (python-ts-mode . flymake-ruff-load)))
+
 (use-package imenu
   :ensure nil
   :custom
