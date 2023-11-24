@@ -1438,6 +1438,16 @@ Depends on the `gh' commandline tool"
     :init
     (require 'lsp-java-boot)
     (add-hook 'java-mode-hook #'lsp-java-boot-lens-mode))
+  (defun set-java-version ()
+    (interactive)
+    (let ((version-dir (completing-read "Select Java Version: "
+                                        (seq-filter (lambda (dir)
+                                                      (string-search "java" dir))
+                                                    (directory-files "/usr/lib/jvm" t)))))
+      (setenv "PATH" (concat version-dir
+                             "/bin/:"
+                             (getenv "PATH") ))
+      (setenv "JAVA_HOME" version-dir)))
 
   (use-package lsp-pyright :ensure t
     :hook ((python-mode . (lambda ()
