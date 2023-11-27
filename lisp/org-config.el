@@ -100,7 +100,13 @@
 ;;;; Refile targets
   (setq org-refile-targets '((org-agenda-files :maxlevel . 5)))
   (advice-add 'org-refile :after 'org-save-all-org-buffers))
-
+(use-package org-src-context
+  :after org
+  :init
+  (unless (package-installed-p 'org-src-context)
+    (package-vc-install "https://github.com/karthink/org-src-context"))
+  :config
+  (org-src-context-mode t))
 (use-package org-contrib :ensure t :after org)
 (use-package ox-pandoc
   :when (executable-find "pandoc")
