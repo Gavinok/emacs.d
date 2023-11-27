@@ -463,68 +463,13 @@ Depends on the `gh' commandline tool"
                     "PragmataPro Mono:pixelsize=19:antialias=true:autohint=true"
                     nil 'append))
 
-(setq treesit-language-source-alist
-      '((bash "https://github.com/tree-sitter/tree-sitter-bash")
-	(cmake "https://github.com/uyha/tree-sitter-cmake")
-	(css "https://github.com/tree-sitter/tree-sitter-css")
-	(elisp "https://github.com/Wilfred/tree-sitter-elisp")
-	(go "https://github.com/tree-sitter/tree-sitter-go")
-	(gomod "https://github.com/camdencheek/tree-sitter-go-mod")
-	(html "https://github.com/tree-sitter/tree-sitter-html")
-	(javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
-	(dockerfile "https://github.com/camdencheek/tree-sitter-dockerfile")
-        (json "https://github.com/tree-sitter/tree-sitter-json")
-	(make "https://github.com/alemuller/tree-sitter-make")
-	(markdown "https://github.com/ikatyang/tree-sitter-markdown")
-	(python "https://github.com/tree-sitter/tree-sitter-python")
-	(toml "https://github.com/tree-sitter/tree-sitter-toml")
-	(tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
-        (vue "https://github.com/ikatyang/tree-sitter-vue")
-	(typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
-	(yaml "https://github.com/ikatyang/tree-sitter-yaml")
-        (haskell "https://github.com/tree-sitter/tree-sitter-haskell")
-        (typst "https://github.com/uben0/tree-sitter-typst")
-        (java "https://github.com/tree-sitter/tree-sitter-java")
-        (ruby "https://github.com/tree-sitter/tree-sitter-ruby")
-        (rust "https://github.com/tree-sitter/tree-sitter-rust")))
-
-(use-package typst-ts-mode
-  :mode (("\\.typ\\'" . typst-ts-mode))
+(use-package treesit-auto
+  :ensure t
   :custom
-  (typst-ts-mode-watch-options "--open")
-  :init
-  (unless (package-installed-p 'typst-ts-mode)
-    (package-vc-install "https://git.sr.ht/~meow_king/typst-ts-mode" nil nil)))
-(use-package vue-ts-mode
-  :mode (("\\.vue\\'" . vue-ts-mode))
-  :init
-  (unless (package-installed-p 'vue-ts-mode)
-    (package-vc-install "https://github.com/theschmocker/vue-ts-mode" nil nil)))
-(use-package dockerfile-ts-mode
-  :mode (("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'" . dockerfile-ts-mode)))
-(use-package yaml-ts-mode :mode (("\\.yml\\'" . yaml-ts-mode)))
-(use-package toml-ts-mode :mode (("\\.toml\\'" . toml-ts-mode)))
-(use-package json-ts-mode :mode (("\\.json\\'" . json-ts-mode)))
-(use-package sh-script :mode (("\\.sh\\'" . bash-ts-mode)))
-;; (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
-
-(setopt major-mode-remap-alist
-        '((c-or-c++-mode . c-or-c++-ts-mode)
-          (c++-mode . c++-ts-mode)
-          (c-mode . c-ts-mode)
-          (yaml-mode . yaml-ts-mode)
-	  (bash-mode . bash-ts-mode)
-	  (js2-mode . js-ts-mode)
-	  (java-mode . java-ts-mode)
-	  (javascript-mode . js-ts-mode)
-	  (typescript-mode . typescript-ts-mode)
-	  (json-mode . json-ts-mode)
-	  (css-mode . css-ts-mode)
-	  (python-mode . python-ts-mode)
-          (sh-mode . bash-ts-mode)
-          (bash-mode . bash-ts-mode)
-          (rust-mode . rust-ts-mode)
-          (ruby-mode . ruby-ts-mode)))
+  (treesit-auto-install 'prompt)
+  :config
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode))
 
 (use-package unified-marks :ensure nil :no-require t
   :custom
