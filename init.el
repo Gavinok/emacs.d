@@ -317,7 +317,7 @@ Depends on the `gh' commandline tool"
 
 (use-package emacs
   :ensure nil
-  :defer nil
+  :demand t
   :bind (("C-c w"   . fixup-whitespace)
          ("C-x C-d" . delete-pair)
          ("M-c"     . capitalize-dwim)
@@ -934,9 +934,9 @@ Depends on the `gh' commandline tool"
             project-root)))
 
   (defvar project-root-markers
-    '(".git" "spago.dhall" "CMakeList.txt" "package.clj"
-      "package.json" "mix.exs" "Project.toml" ".project" "Cargo.toml"
-      "qlfile"))
+    '("pyproject.toml" "requirements.txt" "spago.dhall" "CMakeList.txt"
+      "package.clj" "package.json" "Project.toml" ".project" "Cargo.toml"
+      "mix.exs" "qlfile" ".git"))
 
   (defun my/project-find-root (path)
     (let* ((this-dir (file-name-as-directory (file-truename path)))
@@ -1144,27 +1144,29 @@ Depends on the `gh' commandline tool"
             compilation-mode))
   (setopt popper-display-control 'user)
   (popper-mode +1))
+(use-package replace
+  :demand t
+  :bind (("C-x R" . query-replace-regexp)))
 (use-package multiple-cursors
   :ensure t
-  :bind (("C-M-'" . mc/edit-lines)
-         ("C-M-|" . mc/mark-all-in-region-regexp)
-         ;; Call with a 0 arg to skip one
+  :bind (;; Call with a 0 arg to skip one
          ("C-M-." . mc/mark-next-like-this)
          ("C-M-," . mc/mark-previous-like-this))
   :config
   ;; Use phi-search to replace isearch when using multiple cursors
-  (use-package phi-search
-    :bind (:map mc/keymap
-                ("C-s" . phi-search)
-                ("C-r" . phi-search-backward)
-                ("C-w" . kill-region)
-                ("C-w" . kill-region)))
   (defun toggle-corfu-auto-for-mc (&optional arg)
     (if multiple-cursors-mode
         (corfu-mode -1)
       (corfu-mode 1)))
   (cl-pushnew 'toggle-corfu-auto-for-mc multiple-cursors-mode-hook))
-
+(use-package phi-search
+  :after multiple-cursors
+  :ensure t
+  :bind (:map mc/keymap
+              ("C-s" . phi-search)
+              ("C-r" . phi-search-backward)
+              ("C-w" . kill-region)
+              ("C-w" . kill-region)))
 (use-package mouse
   :ensure nil
   :defer 3
@@ -1184,6 +1186,16 @@ Depends on the `gh' commandline tool"
         )
   :init
   (context-menu-mode 1))
+(use-package strokes-mode
+  :ensure nil
+  :bind (("S-<down-mouse-1>" . strokes-do-stroke)
+         ("S-<down-mouse-3>" . mouse-appearance-menu))
+  :commands (strokes-do-stroke strokes-global-set-stroke)
+  :init
+  (eval-after-load 'vertico
+    (vertico-mouse-mode t))
+  (strokes-mode t)
+  (setopt focus-follows-mouse t))
 
 (use-package autorevert
   :ensure nil
@@ -1310,7 +1322,6 @@ Depends on the `gh' commandline tool"
                                   "--enable-config"))
   ;; Small speedups
   (setq lsp-log-max nil)
-  (fset #'jsonrpc--log-event #'ignore)
   ;; General lsp-mode settings
   (setq lsp-completion-provider :none
         lsp-enable-snippet t
@@ -1350,8 +1361,8 @@ Depends on the `gh' commandline tool"
          (c++-mode        . lsp-deferred)
          (typescript-mode . lsp-deferred)
          (purescript-mode . lsp-deferred)
-         (python-mode     . lsp-deferred)
-         (python-ts-mode     . lsp-deferred)
+         ;; (python-mode     . lsp-deferred)
+         ;; (python-ts-mode     . lsp-deferred)
          (js-mode         . lsp-deferred)
          (javascript-mode . lsp-deferred)
          (typescript-ts-mode . lsp-deferred)
@@ -1411,19 +1422,19 @@ Depends on the `gh' commandline tool"
       (pyvenv-mode t))))
 
 ;;; Debugging
-(use-package dap-mode
-  :ensure t
-  :defer t
-  :bind (:map dap-mode-map
-              ("C-x D D" . dap-debug)
-              ("C-x D d" . dap-debug-last))
-  :init
-  ;; (defun my/dap-cpp-setup ()
-  ;;   (require 'dap-gdb-lldb)
-  ;;   (dap-gdb-lldb-setup))
-  :config
-  ;; (my/dap-cpp-setup)
-  (setq dap-auto-configure-features '(sessions locals controls tooltip)))
+;; (use-package dap-mode
+;;   :ensure t
+;;   :defer t
+;;   :bind (:map dap-mode-map
+;;               ("C-x D D" . dap-debug)
+;;               ("C-x D d" . dap-debug-last))
+;;   :init
+;;   ;; (defun my/dap-cpp-setup ()
+;;   ;;   (require 'dap-gdb-lldb)
+;;   ;;   (dap-gdb-lldb-setup))
+;;   :config
+;;   ;; (my/dap-cpp-setup)
+;;   (setq dap-auto-configure-features '(sessions locals controls tooltip)))
 
 ;;; Languages
 (use-package nvm
@@ -1615,31 +1626,28 @@ Depends on the `gh' commandline tool"
          (puni-mode  . electric-pair-local-mode))
   :bind (("C-c s" . puni-mode)
          :map puni-mode-map
-         ("C-c DEL" . jinx-correct)
-         ;; ("C-c DEL" . flyspell-correct-previous)
-         ("M-e"   . puni-end-of-sexp)
-         ("M-a"   . puni-beginning-of-sexp)
-         ("C-M-f" . puni-forward-sexp-or-up-list)
-         ("C-M-b" . puni-backward-sexp-or-up-list)
-         ("C-)"   . puni-slurp-forward)
-         ("C-0"   . puni-slurp-forward)
-         ("C-}"   . puni-barf-forward)
-         ("C-{"   . puni-barf-backward)
-         ("C-("   . puni-slurp-backward)
-         ("C-9"   . puni-slurp-backward)
-         ("M-("   . puni-wrap-round)
-         ("M-R" .   puni-raise)
-         ;; ("C-M-j" . sp-join-sexp)
-         ("C-M-t" . puni-transpose)
-         ;; ("C-M-k" . puni-kill-thing-at-point)
-         ("C-M-?" . puni-convolute)
-         ("C-k"   . puni-kill-line)
-         ("M-k"   . kill-sexp)
-         ("M-C"   . puni-clone-thing-at-point)
-         ("C-M-z" . puni-squeeze)
-         ("C-M-z" . puni-squeeze)
+         ("C-c DEL"       . jinx-correct)
+         ("M-e"           . puni-end-of-sexp)
+         ("M-a"           . puni-beginning-of-sexp)
+         ("C-M-f"         . puni-forward-sexp-or-up-list)
+         ("C-M-b"         . puni-backward-sexp-or-up-list)
+         ("C-)"           . puni-slurp-forward)
+         ("C-0"           . puni-slurp-forward)
+         ("C-}"           . puni-barf-forward)
+         ("C-{"           . puni-barf-backward)
+         ("C-("           . puni-slurp-backward)
+         ("C-9"           . puni-slurp-backward)
+         ("M-("           . puni-wrap-round)
+         ("M-R"           . puni-raise)
+         ("C-M-t"         . puni-transpose)
+         ("C-M-?"         . puni-convolute)
+         ("C-k"           . puni-kill-line)
+         ("M-k"           . kill-sexp)
+         ("M-C"           . puni-clone-thing-at-point)
+         ("C-M-z"         . puni-squeeze)
+         ("C-M-z"         . puni-squeeze)
          ("M-<backspace>" . backward-kill-word)
-         ("C-w" . kill-region))
+         ("C-w"           . kill-region))
   :init
   (puni-global-mode t)
   :config
@@ -1729,8 +1737,11 @@ Used to see multiline flymake errors"
 (use-package eldoc
   :defer 10
   :init
-  (setq eldoc-echo-area-display-truncation-message t)
-  (setq eldoc-echo-area-use-multiline-p nil)
+  (setopt eldoc-echo-area-display-truncation-message t)
+  (setopt eldoc-echo-area-use-multiline-p nil)
+  ;; Make sure Eldoc will show us all of the feedback at point.
+  ;; no more clobbering
+  (setopt eldoc-documentation-strategy #'eldoc-documentation-compose)
   (global-eldoc-mode t))
 
 (use-package paren-face
@@ -1956,15 +1967,6 @@ Used to see multiline flymake errors"
 ;;   :ensure t
 ;;   :when (executable-find "comby"))
 
-(use-package strokes-mode
-  :ensure nil
-  :bind ("S-<down-mouse-2>" . strokes-do-stroke)
-  :commands (strokes-do-stroke strokes-global-set-stroke)
-  :init
-  (require 'vertico)
-  (vertico-mouse-mode t)
-  (strokes-mode t))
-
 (use-package docker
   :ensure t
   :bind (("C-x d" . docker)))
@@ -1999,7 +2001,52 @@ Used to see multiline flymake errors"
 (setenv "PATH" (concat (getenv "PATH") ":/home/gavinok/.cargo/bin"))
 
 (with-eval-after-load 'eglot
+  (push `(python-ts-mode . ("multi-lsp-proxy" "--config" "/home/gavinok/multi-lsp-proxy.toml")) eglot-server-programs)
   (push `(java-mode . ("/home/gavinok/java-language-server/dist/lang_server_linux.sh")) eglot-server-programs)
   (push `(sgml-mode . ("emmet-language-server" "--stdio")) eglot-server-programs)
-  (push `((typst-mode typst-ts-mode) . ("typst-lsp")) eglot-server-programs))
+  (push `((typst-mode typst-ts-mode) . ("typst-lsp")) eglot-server-programs)
+  (when nil
+    ;; tricks for improving performance
+    (fset #'jsonrpc--log-event #'ignore)
+    (setopt eglot-events-buffer-size 0
+            eglot-ignored-server-capabilities '(:hoverProvider
+                                                :documentHighlightProvider)
+            eglot-autoshutdown t)
+    (add-hook 'eglot-managed-mode-hook
+              (lambda ()
+                "Make sure Eldoc will show us all of the feedback at point."
+                (setq-local eldoc-documentation-strategy
+                            #'eldoc-documentation-compose))))
+  )
 
+(use-package dape
+  ;; Currently only on github
+  :init
+  (unless (package-installed-p 'dape)
+    (package-vc-install "https://github.com/svaante/dape"))
+  ;; By default dape uses gdb keybinding prefix
+  ;; (setq dape-key-prefix "C-xD")
+  :config
+  ;; Add inline variable hints, this feature is highly experimental
+  (setq dape-inline-variables t)
+  (push
+   '(debugpy-attach-port-remote
+     modes (python-mode python-ts-mode)
+     port (lambda () (read-number "Port: "))
+     :request "attach"
+     :type "python"
+     :pathMappings (lambda ()
+                     (let* ((default (list (if-let ((project (project-current)))
+                                               (project-root project)
+                                             default-directory)))
+                            (local (completing-read "Local <Path/To/Project>: " default))
+                            (remote (completing-read "Remote <Path/To/Project>: "
+                                                     ;; Path just we often use at work
+                                                     '("/app"))))
+                       (vector (list :localRoot local :remoteRoot remote))))
+     :justMyCode nil
+     :showReturnValue t)
+   dape-configs))
+
+(use-package devil
+  :ensure t)
