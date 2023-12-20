@@ -3,9 +3,6 @@
     (setq org-directory "~/storage/shared/Dropbox/Documents/org")
   (setq org-directory "~/.local/Dropbox/Documents/org"))
 
-;; Help resolve conflicting timestamps
-(concat user-emacs-directory
-        "lisp/org-conflict.el")
 ;; (add-hook 'org-ctrl-c-ctrl-c-hook 'org-conflict-check-timestamp-or-range)
 ;;; ORG
 (use-package org
@@ -57,7 +54,7 @@
           org-export-with-toc nil
           org-highlight-latex-and-related '(native)
           org-goto-auto-isearch nil
-          ;; make C-c a s work like googls
+          ;; make C-c a s work like Google
           org-agenda-search-view-always-boolean t
           org-agenda-timegrid-use-ampm t
           org-agenda-time-grid
@@ -123,6 +120,9 @@
   (org-appear-autosubmarkers t)
   :config
   (add-hook 'org-mode-hook 'org-appear-mode))
+
+(use-package ox-gfm :ensure t :after ox)
+
 (use-package ob-config :ensure nil :no-require t
   :after org-contrib
   :config
@@ -253,6 +253,7 @@
       (push template org-structure-template-alist))))
 
 (use-package org-noter
+  :ensure t
   :after (pdf-tools)
   :init
   (setq org-noter-notes-search-path '("~/Documents/org/")))

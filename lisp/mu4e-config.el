@@ -10,12 +10,12 @@
   ;; :commands (mu4e mu4e-user-agent mu4e-compose-new org-mime-org-subtree-htmlize)
   :init
   ;; Show full email address
-  (setq mu4e-view-show-addresses 't
-        mu4e-maildir "~/.local/share/mail"
-        ;; where to put attachemnts
-        mu4e-attachment-dir  "~/Downloads"
-        ;; use mu4e for e-mail in emacs
-        mail-user-agent 'mu4e-user-agent)
+  (setopt mu4e-view-show-addresses 't
+          mu4e-maildir "~/.local/share/mail"
+          ;; where to put attachemnts
+          mu4e-attachment-dir  "~/Downloads"
+          ;; use mu4e for e-mail in emacs
+          mail-user-agent 'mu4e-user-agent)
   :config
   (defun my/jump-to-maildir ()
     (interactive)

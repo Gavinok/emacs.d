@@ -45,8 +45,10 @@ This is needed to make sure that text is properly aligned.")
 (add-hook 'window-selection-change-functions #'cogent-line-set-selected-window)
 
 (setq my/mode-line-right-side '(:eval (when (mode-line-window-selected-p)
-                                        (list '(vc-mode vc-mode) " "
-                                              mode-line-misc-info))))
+                                        (list
+                                         (propertize (abbreviate-file-name (project-root (project-current))) 'face 'shadow )
+                                         '(vc-mode vc-mode) " "
+                                         mode-line-misc-info))))
 (setq my/mode-line-left-side '(" "
                                ;; indicate if the buffer has been modified
                                (:eval (propertize
@@ -66,16 +68,14 @@ This is needed to make sure that text is properly aligned.")
                                                  "「 %m 」")
                                          'face (if (cogent-line-selected-window-active-p)
                                                    'shadow
-                                                 'mode-line-inactive))))
-                               (:eval (car-safe codeium-mode-line))
-                               ))
+                                                 'mode-line-inactive))))))
 
 (setq my/mode-line-padding
       '(:eval
         (propertize " " 'display
-	            `((space :align-to
-			     (- (+ right right-fringe right-margin)
-			        ,(string-width
+	                  `((space :align-to
+			                       (- (+ right right-fringe right-margin)
+			                          ,(string-width
                                   (format-mode-line my/mode-line-right-side))))))))
 
 (setq-default mode-line-format

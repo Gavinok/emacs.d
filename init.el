@@ -4,20 +4,16 @@
 
 ;; useful for quickly debugging emacs
 ;; (setq debug-on-error t)
-(setq running-in-wsl (executable-find "wslpath"))
-
+;; Get clipboard to work when using wsl
+(defvar running-in-wsl (executable-find "wslpath"))
 (when running-in-wsl
-  (executable-find "wslpath")
-
-  (setq wls-copy-process nil)
-
   (defun wls-copy (text)
-    (setq wls-copy-process (make-process :name "clip.exe"
-					 :buffer nil
-					 :command '("clip.exe")
-					 :connection-type 'pipe))
-    (process-send-string wls-copy-process text)
-    (process-send-eof wls-copy-process))
+    (let ((wls-copy-process (make-process :name "clip.exe"
+					  :buffer nil
+					  :command '("clip.exe")
+					  :connection-type 'pipe)))
+      (process-send-string wls-copy-process text)
+      (process-send-eof wls-copy-process)))
 
   (setq interprogram-cut-function 'wls-copy))
 
@@ -35,7 +31,7 @@
              (setq gc-cons-percentage 0.1))
           t)
 ;;; Backups
-(setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
+(setq backup-directory-alist `(("." . ,(locate-user-emacs-file "backups")))
       vc-make-backup-files t
       version-control t
       kept-old-versions 0
@@ -55,8 +51,7 @@
 
 (eval-when-compile (require 'use-package))
 (setq use-package-verbose t
-      comp-async-report-warnings-errors nil
-      comp-deferred-compilation t)
+      native-comp-async-report-warnings-errors nil)
 
 ;; Install and load `quelpa-use-package'.
 (setq quelpa-update-melpa-p nil)
@@ -179,7 +174,6 @@ If no binding is captured section of regex is found for a BINDING an error is si
     (let* ((win-pixel-edges (window-pixel-edges (selected-window)))
            (delta  (- (/ (+ (nth 1 win-pixel-edges) (nth 3 win-pixel-edges)) 2)
 	              (cdr (window-absolute-pixel-position (point))))))
-      (message "%s %s" delta max-height)
       (pixel-scroll-precision-interpolate delta nil 1)))
 
   (defun my/scroll-down (arg)
@@ -241,13 +235,13 @@ replaces it with the Latex equivalent."
                            (insert-file-contents-literally file-name)
                            (buffer-substring-no-properties (point-min) (point-max))
                            "\n"))))
-      (completing-read
-       "All History: "
-       (append shell-command-history
-               compile-history
-               (when (boundp 'eshell-history-file-name)
-                 (file->lines eshell-history-file-name))
-               (file->lines "~/.bash_history")))))
+          (completing-read
+           "All History: "
+           (append shell-command-history
+                   compile-history
+                   (when (boundp 'eshell-history-file-name)
+                     (file->lines eshell-history-file-name))
+                   (file->lines "~/.bash_history")))))
 
   (defun gist-from-region (BEG END fname desc &optional private)
     "Collect the current region creating a github gist with the
@@ -328,7 +322,7 @@ Depends on the `gh' commandline tool"
          ("C-x M-t" . transpose-regions)
          ("C-;"     . negative-argument)
          ("C-M-;"   . negative-argument)
-         ("C-g"   . my/keyboard-quit-only-if-no-macro)
+         ;; ("C-g"   . my/keyboard-quit-only-if-no-macro)
          ("M-1" . delete-other-windows)
          ("M-2" . split-window-below)
          ("M-3" . split-window-right))
@@ -348,9 +342,11 @@ Depends on the `gh' commandline tool"
   (setq-default frame-title-format '("%b - Emacs"))
 
   ;; How I like my margins
-  (unless my/is-terminal
-    (setq-default left-margin-width 2)
-    (setq-default right-margin-width 2))
+  ;; (unless my/is-terminal
+  ;;   ;; Changed to avoid breaking outline minor mode
+  ;;   (setq-default left-margin-width 1)
+  ;;   (setq-default right-margin-width 1)
+  ;;   )
 
   ;; No delay when deleting pairs
   (setq-default delete-pair-blink-delay 0)
@@ -383,7 +379,7 @@ Depends on the `gh' commandline tool"
      #b10000000
      #b10000000])
   (unless my/is-termux
-    (fringe-mode))
+    (fringe-mode 10))
 
 ;;;; Defaults
   ;; Handle long lines
@@ -403,6 +399,7 @@ Depends on the `gh' commandline tool"
   (prefer-coding-system 'utf-8)
 ;;;; Remove Extra Ui
   (fset 'yes-or-no-p 'y-or-n-p)    ; don't ask to spell out "yes"
+  (setq show-paren-context-when-offscreen 'overlay) ; Emacs 29
   (show-paren-mode 1)              ; Highlight parenthesis
   (if running-in-wsl
       (setq-default x-select-enable-primary t) ; use primary as clipboard in emacs
@@ -454,8 +451,8 @@ Depends on the `gh' commandline tool"
              :default-family "PragmataPro Mono Liga")))
     (fontaine-set-preset 'regular))
   ;; Load pragmatapro-lig.el
-  (load (concat user-emacs-directory
-                "lisp/pragmatapro-prettify-symbols-v0.829.el"))
+  (load (locate-user-emacs-file
+         "lisp/pragmatapro-prettify-symbols-v0.829.el"))
   (add-hook 'prog-mode-hook 'prettify-hook)
   ;; (require 'pragmatapro-lig)
   ;; Enable pragmatapro-lig-mode for specific modes
@@ -470,6 +467,52 @@ Depends on the `gh' commandline tool"
   :config
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
+(setq treesit-language-source-alist
+      '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+        (cmake "https://github.com/uyha/tree-sitter-cmake")
+        (css "https://github.com/tree-sitter/tree-sitter-css")
+        (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+        (go "https://github.com/tree-sitter/tree-sitter-go")
+        (gomod "https://github.com/camdencheek/tree-sitter-go-mod")
+        (html "https://github.com/tree-sitter/tree-sitter-html")
+        (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+        (dockerfile "https://github.com/camdencheek/tree-sitter-dockerfile")
+        (json "https://github.com/tree-sitter/tree-sitter-json")
+        (make "https://github.com/alemuller/tree-sitter-make")
+        (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+        (python "https://github.com/tree-sitter/tree-sitter-python")
+        (toml "https://github.com/tree-sitter/tree-sitter-toml")
+        (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+        (vue "https://github.com/ikatyang/tree-sitter-vue")
+        (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+        (yaml "https://github.com/ikatyang/tree-sitter-yaml")
+        (haskell "https://github.com/tree-sitter/tree-sitter-haskell")
+        (typst "https://github.com/uben0/tree-sitter-typst")
+        (java "https://github.com/tree-sitter/tree-sitter-java")
+        (ruby "https://github.com/tree-sitter/tree-sitter-ruby")
+        (rust "https://github.com/tree-sitter/tree-sitter-rust")))
+
+(use-package vue-ts-mode
+  :mode "\\.vue\\'"
+  :hook ((vue-ts-mode . sgml-electric-tag-pair-mode))
+  :bind (:map vue-ts-mode-map
+              ("C-c C-t" . vue-ts-mode-element-transpose)
+              ("C-c C-w" . vue-ts-mode-attributes-toggle-wrap)
+              ("C-c C-o" . vue-ts-mode-element-match)
+              ("C-c C-f" . sgml-skip-tag-forward)
+              ("C-c C-n" . sgml-skip-tag-forward)
+              ("C-c C-b" . sgml-skip-tag-backward)
+              ("C-c C-p" . sgml-skip-tag-backward)
+              :repeat-map sgml-skip-tag
+              ("f" .  sgml-skip-tag-forward)
+              ("C-f" .  sgml-skip-tag-forward)
+              ("b" .  sgml-skip-tag-backward)
+              ("C-b" .  sgml-skip-tag-backward))
+  :init
+  (unless (package-installed-p 'vue-ts-mode)
+    (package-vc-install "https://github.com/theschmocker/vue-ts-mode"))
+  :config
+  (setopt vue-ts-mode-indent-offset 2))
 
 (use-package unified-marks :ensure nil :no-require t
   :custom
@@ -535,8 +578,8 @@ Depends on the `gh' commandline tool"
     :ensure t
     :commands (orderless)
     :custom (completion-styles '(orderless flex)))
-  (load (concat user-emacs-directory
-                "lisp/affe-config.el"))
+  ;; (load (locate-user-emacs-file
+  ;;               "lisp/affe-config.el"))
   (use-package marginalia
     :ensure t
     :custom
@@ -590,15 +633,21 @@ Depends on the `gh' commandline tool"
          ("C-x C-j" . consult-dir)))
 (use-package consult-recoll
   :ensure t
-  :bind (("M-s r" . consult-recoll)
-         ("C-c I" . recoll-index))
+  :bind (("M-s r" . consult-recoll))
   :init
   (setq consult-recoll-inline-snippets t)
   :config
-  (defun recoll-index (&optional arg) (interactive)
-         (start-process-shell-command "recollindex"
-                                      "*recoll-index-process*"
-                                      "recollindex")))
+  (defun recoll-index (&optional args)
+    "Start indexing deamon if there is not one running already.
+This way our searches are kept up to date"
+    (interactive)
+    (let ((recollindex-buffer "*RECOLLINDEX*"))
+      (unless (process-live-p (get-buffer-process (get-buffer recollindex-buffer)))
+        (make-process :name "recollindex"
+                      :buffer recollindex-buffer
+                      :command '("recollindex" "-m" "-D")))))
+  (eval-after-load 'consult-recoll
+    (recoll-index)))
 
 (use-package embark
   :ensure t
@@ -630,7 +679,18 @@ Depends on the `gh' commandline tool"
   (defun search-in-source-graph (text))
   (defun dragon-drop (file)
     (start-process-shell-command "dragon-drop" nil
-                                 (concat "dragon-drop " file))))
+                                 (concat "dragon-drop " file)))
+
+  ;; Preview any command with M-.
+  (define-key minibuffer-local-map (kbd "M-.") #'my-embark-preview)
+  (defun my-embark-preview ()
+    "Previews candidate in vertico buffer, unless it's a consult command"
+    (interactive)
+    (unless (bound-and-true-p consult--preview-function)
+      (save-selected-window
+        (let ((embark-quit-after-action nil))
+          (embark-dwim)))))
+  )
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
   :ensure t
@@ -664,7 +724,6 @@ Depends on the `gh' commandline tool"
   (corfu-preview-current 'insert) ; insert previewed candidate
   (corfu-preselect 'prompt)
   (corfu-on-exact-match nil)      ; Don't auto expand tempel snippets
-
   ;; Optionally use TAB for cycling, default is `corfu-complete'.
   :bind (:map corfu-map
               ("M-SPC"      . corfu-insert-separator)
@@ -692,8 +751,8 @@ Depends on the `gh' commandline tool"
   :bind ("C-c f" . cape-file)
   :init
   ;; Add `completion-at-point-functions', used by `completion-at-point'.
-  (defalias 'dabbrev-after-2 (cape-capf-prefix-length #'cape-dabbrev 2))
-  (add-to-list 'completion-at-point-functions 'dabbrev-after-2 t)
+  ;; (defalias 'dabbrev-after-2 (cape-capf-prefix-length #'cape-dabbrev 2))
+  ;; (add-to-list 'completion-at-point-functions 'dabbrev-after-2 t)
   (cl-pushnew #'cape-file completion-at-point-functions)
   :config
   ;; Silence then pcomplete capf, no errors or messages!
@@ -709,22 +768,22 @@ Depends on the `gh' commandline tool"
   (yas-global-mode))
 (use-package yasnippet-snippets
   :ensure t :after yasnippet)
-(use-package yasnippet-capf
-  :ensure nil
-  :quelpa (yasnippet-capf :fetcher github :repo "elken/yasnippet-capf")
-  :after yasnippet
-  :hook ((prog-mode . yas-setup-capf)
-         (text-mode . yas-setup-capf)
-         (lsp-mode  . yas-setup-capf)
-         (sly-mode  . yas-setup-capf))
-  :bind (("C-c y" . yasnippet-capf)
-         ("M-+"   . yas-insert-snippet))
-  :config
-  (defun yas-setup-capf ()
-    (setq-local completion-at-point-functions
-                (cons 'yasnippet-capf
-                      completion-at-point-functions)))
-  (push 'yasnippet-capf completion-at-point-functions))
+;; (use-package yasnippet-capf
+;;   :ensure nil
+;;   :quelpa (yasnippet-capf :fetcher github :repo "elken/yasnippet-capf")
+;;   :after yasnippet
+;;   :hook ((prog-mode . yas-setup-capf)
+;;          (text-mode . yas-setup-capf)
+;;          (lsp-mode  . yas-setup-capf)
+;;          (sly-mode  . yas-setup-capf))
+;;   :bind (("C-c y" . yasnippet-capf)
+;;          ("M-+"   . yas-insert-snippet))
+;;   :config
+;;   (defun yas-setup-capf ()
+;;     (setq-local completion-at-point-functions
+;;                 (cons 'yasnippet-capf
+;;                       completion-at-point-functions)))
+;;   (push 'yasnippet-capf completion-at-point-functions))
 
 ;;; THEMEING
 (use-package spaceway-theme
@@ -782,12 +841,12 @@ Depends on the `gh' commandline tool"
   (setopt flyspell-use-meta-tab nil))
 
 ;;; ORG
-(load (concat user-emacs-directory
-              "lisp/org-config.el"))
+(load (locate-user-emacs-file
+       "lisp/org-config.el"))
 
 ;;; Email
-(load (concat user-emacs-directory
-              "lisp/mu4e-config.el"))
+(load (locate-user-emacs-file
+       "lisp/mu4e-config.el"))
 
 ;;; ChatGPT
 ;; (use-package chatgpt
@@ -847,8 +906,8 @@ Depends on the `gh' commandline tool"
 ;;   :bind (([remap async-shell-command] . with-editor-async-shell-command)
 ;;          ([remap shell-command] . with-editor-shell-command)))
 
-(use-package eshell
-  :bind ("C-x E" . eshell))
+;; (use-package eshell
+;;   :bind ("C-x E" . eshell))
 
 (use-package em-alias
   :ensure nil
@@ -933,27 +992,11 @@ Depends on the `gh' commandline tool"
                                                             (project-current)))))))
             project-root)))
 
-  (defvar project-root-markers
-    '("pyproject.toml" "requirements.txt" "spago.dhall" "CMakeList.txt"
-      "package.clj" "package.json" "Project.toml" ".project" "Cargo.toml"
-      "mix.exs" "qlfile" ".git"))
-
-  (defun my/project-find-root (path)
-    (let* ((this-dir (file-name-as-directory (file-truename path)))
-           (parent-dir (expand-file-name (concat this-dir "../")))
-           (system-root-dir (expand-file-name "/")))
-      (cond
-       ((my/project-root-p this-dir) (cons 'transient this-dir))
-       ((equal system-root-dir this-dir) nil)
-       (t (my/project-find-root parent-dir)))))
-
-  (defun my/project-root-p (path)
-    (let ((results (mapcar (lambda (marker)
-                             (file-exists-p (concat path marker)))
-                           project-root-markers)))
-      (eval `(or ,@ results))))
-
-  (add-to-list 'project-find-functions #'my/project-find-root))
+  ;; Added in emacs 29
+  (setopt project-vc-extra-root-markers
+          '("pyproject.toml" "requirements.txt" "spago.dhall" "CMakeList.txt"
+            "package.clj" "package.json" "Project.toml" ".project" "Cargo.toml"
+            "mix.exs" "qlfile" ".git")))
 
 ;;; COMPILATION
 (use-package compile
@@ -980,7 +1023,8 @@ Depends on the `gh' commandline tool"
                    nroff-mode java-mode))
   (setq custom-compiler-modes
         `((purescript-mode . "spago run")
-          (bash-ts-mode    . ,(run-on-file "sh"))))
+          (bash-ts-mode    . ,(run-on-file "sh"))
+	  (vue-ts-mode    . "npx eslint --fix . && npx vue-tsc --noEmit")))
 
   (defun get-compiler ()
     (let* ((default-compile-command "make -k ")
@@ -1225,52 +1269,53 @@ Depends on the `gh' commandline tool"
           try-expand-line)))
 
 ;;; FOLDING
-(use-package hideshow
-  :hook (prog-mode . hs-minor-mode)
-  :bind (:map hs-minor-mode-map
-              ("C-<tab>"   . hs-cycle)
-              ("<backtab>" . hs-global-cycle))
-  :init
-  (define-advice hs-toggle-hiding (:before (&rest _) move-point-to-mouse)
-    "Move point to the location of the mouse pointer."
-    (mouse-set-point last-input-event))
-  (defun hs-cycle (&optional level)
-    (interactive "p")
-    (let (message-log-max (inhibit-message t))
-      (if (= level 1)
-          (pcase last-command
-            ('hs-cycle
-             (hs-hide-level 1)
-             (setq this-command 'hs-cycle-children))
-            ('hs-cycle-children
-             ;; TODO: Fix this case. `hs-show-block' needs to be
-             ;; called twice to open all folds of the parent
-             ;; block.
-             (save-excursion (hs-show-block))
-             (hs-show-block)
-             (setq this-command 'hs-cycle-subtree))
-            ('hs-cycle-subtree
-             (hs-hide-block))
-            (_
-             (if (not (hs-already-hidden-p))
-                 (hs-hide-block)
-               (hs-hide-level 1)
-               (setq this-command 'hs-cycle-children))))
-        (hs-hide-level level)
-        (setq this-command 'hs-hide-level))))
+;; (use-package hideshow
+;;   :disable t
+;;   :hook (prog-mode . hs-minor-mode)
+;;   :bind (:map hs-minor-mode-map
+;;               ("C-<tab>"   . hs-cycle)
+;;               ("<backtab>" . hs-global-cycle))
+;;   :init
+;;   (define-advice hs-toggle-hiding (:before (&rest _) move-point-to-mouse)
+;;     "Move point to the location of the mouse pointer."
+;;     (mouse-set-point last-input-event))
+;;   (defun hs-cycle (&optional level)
+;;     (interactive "p")
+;;     (let (message-log-max (inhibit-message t))
+;;       (if (= level 1)
+;;           (pcase last-command
+;;             ('hs-cycle
+;;              (hs-hide-level 1)
+;;              (setq this-command 'hs-cycle-children))
+;;             ('hs-cycle-children
+;;              ;; TODO: Fix this case. `hs-show-block' needs to be
+;;              ;; called twice to open all folds of the parent
+;;              ;; block.
+;;              (save-excursion (hs-show-block))
+;;              (hs-show-block)
+;;              (setq this-command 'hs-cycle-subtree))
+;;             ('hs-cycle-subtree
+;;              (hs-hide-block))
+;;             (_
+;;              (if (not (hs-already-hidden-p))
+;;                  (hs-hide-block)
+;;                (hs-hide-level 1)
+;;                (setq this-command 'hs-cycle-children))))
+;;         (hs-hide-level level)
+;;         (setq this-command 'hs-hide-level))))
 
-  (defun hs-global-cycle ()
-    (interactive)
-    (pcase last-command
-      ('hs-global-cycle (save-excursion (hs-show-all))
-                        (setq this-command 'hs-global-show))
-      (_ (hs-hide-all))))
-  (set-display-table-slot
-   standard-display-table
-   'selective-display
-   (let ((face-offset (* (face-id 'font-lock-comment-face)
-                         (lsh 1 22))))
-     (vconcat (mapcar (lambda (c) (+ face-offset c)) " ▾")))))
+;;   (defun hs-global-cycle ()
+;;     (interactive)
+;;     (pcase last-command
+;;       ('hs-global-cycle (save-excursion (hs-show-all))
+;;                         (setq this-command 'hs-global-show))
+;;       (_ (hs-hide-all))))
+;;   (set-display-table-slot
+;;    standard-display-table
+;;    'selective-display
+;;    (let ((face-offset (* (face-id 'font-lock-comment-face)
+;;                          (lsh 1 22))))
+;;      (vconcat (mapcar (lambda (c) (+ face-offset c)) " ▾")))))
 
 (use-package outline
   ;; :hook (prog-mode . outline-minor-mode)
@@ -1286,7 +1331,10 @@ Depends on the `gh' commandline tool"
               ("S-TAB" . outline-cycle-buffer)
               ([backtab] . outline-cycle-buffer)
               ("C-a" . outline-show-all))
-  :custom (outline-minor-mode-use-buttons 'in-margins))
+  :custom
+  (outline-minor-mode-use-buttons 'in-margins)
+  (outline-minor-mode-highlight 'append)
+  (outline-minor-mode-cycle t))
 
 ;; Automatic code formatting
 (use-package apheleia
@@ -1321,7 +1369,8 @@ Depends on the `gh' commandline tool"
                                   "--clang-tidy"
                                   "--enable-config"))
   ;; Small speedups
-  (setq lsp-log-max nil)
+  (setq lsp-log-max 1000)
+  (setopt lsp-log-io t)
   ;; General lsp-mode settings
   (setq lsp-completion-provider :none
         lsp-enable-snippet t
@@ -1360,7 +1409,7 @@ Depends on the `gh' commandline tool"
   :hook ((c-mode          . lsp-deferred)
          (c++-mode        . lsp-deferred)
          (typescript-mode . lsp-deferred)
-         (purescript-mode . lsp-deferred)
+         ;; (purescript-mode . lsp-deferred)
          ;; (python-mode     . lsp-deferred)
          ;; (python-ts-mode     . lsp-deferred)
          (js-mode         . lsp-deferred)
@@ -1389,21 +1438,34 @@ Depends on the `gh' commandline tool"
   (use-package lsp-haskell :ensure t
     :hook (haskell-mode    . lsp-deferred))
 
-  (use-package lsp-java :ensure t
-    :hook (java-mode       . lsp-deferred)
-    :init
-    (require 'lsp-java-boot)
-    (add-hook 'java-mode-hook #'lsp-java-boot-lens-mode))
+  ;; (use-package lsp-java :ensure t
+  ;;   :hook (java-mode       . lsp-deferred)
+  ;;   :init
+  ;;   (require 'lsp-java-boot)
+  ;;   (add-hook 'java-mode-hook #'lsp-java-boot-lens-mode))
   (defun set-java-version ()
     (interactive)
     (let ((version-dir (completing-read "Select Java Version: "
                                         (seq-filter (lambda (dir)
                                                       (string-search "java" dir))
-                                                    (directory-files "/usr/lib/jvm" t)))))
+                                                    (directory-files "/usr/lib/jvm" t))
+                                        #'file-exists-p
+                                        t)))
       (setenv "PATH" (concat version-dir
                              "/bin/:"
-                             (getenv "PATH") ))
-      (setenv "JAVA_HOME" version-dir)))
+                             (getenv "PATH")))
+      (setenv "JAVA_HOME" version-dir)
+      (setq exec-path (append (list (concat version-dir "/bin/"))
+                              exec-path)
+            process-environment (append
+	                         (list (concat
+		                        "PATH="
+		                        (cl-reduce (lambda (a b) (concat a ":" b)) (exec-path))))
+	                         process-environment))
+
+      (message "JAVA_HOME is now %s and PATH is now %s"
+               (getenv "JAVA_HOME")
+               (getenv "PATH"))))
 
   (use-package lsp-pyright :ensure t
     :hook ((python-mode . (lambda ()
@@ -1413,28 +1475,14 @@ Depends on the `gh' commandline tool"
                                (require 'lsp-pyright)
                                (lsp-deferred))))
     :init
-    (push 'pyright compilation-error-regexp-alist)
-    (push '(pyright "^\\ \\ \\([a-zA-Z0-9/\\._-]+\\):\\([0-9]+\\):\\([0-9]+\\).*$" 1 2 3) compilation-error-regexp-alist-alist)
+    (with-eval-after-load 'compile
+      (push 'pyright compilation-error-regexp-alist)
+      (push '(pyright "^\\ \\ \\([a-zA-Z0-9/\\._-]+\\):\\([0-9]+\\):\\([0-9]+\\).*$" 1 2 3) compilation-error-regexp-alist-alist))
     (setq python-shell-enable-font-lock nil)
     (use-package pyvenv
       :commands (pyvenv-activate)
       :config
       (pyvenv-mode t))))
-
-;;; Debugging
-;; (use-package dap-mode
-;;   :ensure t
-;;   :defer t
-;;   :bind (:map dap-mode-map
-;;               ("C-x D D" . dap-debug)
-;;               ("C-x D d" . dap-debug-last))
-;;   :init
-;;   ;; (defun my/dap-cpp-setup ()
-;;   ;;   (require 'dap-gdb-lldb)
-;;   ;;   (dap-gdb-lldb-setup))
-;;   :config
-;;   ;; (my/dap-cpp-setup)
-;;   (setq dap-auto-configure-features '(sessions locals controls tooltip)))
 
 ;;; Languages
 (use-package nvm
@@ -1445,8 +1493,14 @@ Depends on the `gh' commandline tool"
   :config
   (setq nvm-dir "/home/gavinok/.config/nvm")
   (defun my/nvm-use () (interactive)
+         (setenv "NVM_DIR" "~/.config/nvm")
          (nvm-use
-          (completing-read "Enter Node Version" '("18.16.0" "16.17.1")))))
+          (completing-read "Enter Node Version"
+                           (directory-files
+                            (concat (or (getenv "NVM_DIR")
+                                        "~/.nvm")
+                                    "/versions/node")
+                            nil "v[0-9.]+")))))
 
 (use-package extra-languages
   :ensure nil :no-require t
@@ -1477,22 +1531,25 @@ Depends on the `gh' commandline tool"
       :hook (purescript-mode . inferior-psci-mode)))
 
 ;;;; WEB
+  (defun disable-tabs ()
+    (indent-tabs-mode -1))
+
+  (add-hook 'web-mode-hook 'disable-tabs)
+  (add-hook 'js-ts-mode-hook 'disable-tabs)
+  (add-hook 'vue-ts-mode-hook 'disable-tabs)
+  (add-hook 'tsx-ts-mode-hook 'disable-tabs)
+  (add-hook 'typescript-ts-mode 'disable-tabs)
+
   (use-package lsp-tailwindcss
     :ensure t
     :init
     (setq lsp-tailwindcss-add-on-mode t))
   (use-package web-mode
-    :mode (;; ("\\.ts\\'"  . web-mode)
-           ;; ("\\.tsx\\'"  . web-mode)
-           ("\\.html\\'" . web-mode)
-           ("\\.vue\\'"  . web-mode))
+    :ensure t
+    :mode (("\\.html\\'" . HTML-mode))
     :hook ((web-mode            . lsp-deferred))
     :bind (
            :map web-mode-map
-           ("C-c C-M-f". sgml-skip-tag-forward)
-           ("C-c C-M-b". sgml-skip-tag-backward)
-           ("C-c C-f". sgml-skip-tag-forward)
-           ("C-c C-b". sgml-skip-tag-backward)
            ("C-M-i" . completion-at-point)
            ("C-M-u" . web-mode-element-parent)
            ("C-M-d" . web-mode-element-child))
@@ -1509,7 +1566,9 @@ Depends on the `gh' commandline tool"
     (css-indent-offset 2)
     (js-indent-level 2)
     :init
-    (define-derived-mode typescript-mode web-mode "TypeScript")
+    (define-derived-mode HTML-mode web-mode "HTML")
+
+    ;; workaround to get vscode-html-language-server to provide proper diagnostics
     (setq web-mode-markup-indent-offset 2
           web-mode-css-indent-offset 2
           web-mode-code-indent-offset 2
@@ -1605,12 +1664,13 @@ Depends on the `gh' commandline tool"
 
 ;;; Lisp
 (use-package sly
+  :ensure t
   :commands (sly sly-connect)
   :init
   (setq sly-symbol-completion-mode nil
         sly-default-lisp 'roswell
-        ros-config (concat user-emacs-directory
-                           "ros-conf.lisp")
+        ros-config (locate-user-emacs-file
+                    "ros-conf.lisp")
         sly-lisp-implementations
         `((sbcl ("sbcl") :coding-system utf-8-unix)
           (abcl ("abcl") :coding-system utf-8-unix)
@@ -1696,6 +1756,24 @@ Depends on the `gh' commandline tool"
   (unless my/is-termux
     (bind-key (kbd "M-[") #'puni-splice 'puni-mode-map)
     (bind-key (kbd "M-]") #'puni-split 'puni-mode-map)))
+
+;; Getting added in emacs 30 https://debbugs.gnu.org/cgi/bugreport.cgi?bug=67687
+(load (locate-user-emacs-file
+       "lisp/etags-regen.el"))
+(use-package etags-regen
+  :custom (etags-regen-tags-file "/tmp/TAGS")
+  :bind (:map etags-regen-mode-map
+              ("C-c t" . complete-tag)
+              ("C-c M-." . my/goto-etags))
+  :init
+  (defun my/goto-etags ()
+    (interactive)
+    (let ((xref-backend-functions '(etags--xref-backend t)))
+      (call-interactively 'xref-find-definitions)))
+  (defvar etags-regen-mode-map (make-sparse-keymap))
+  (add-to-list 'minor-mode-map-alist (cons 'etags-regen-mode etags-regen-mode-map))
+  :config
+  (etags-regen-mode t))
 
 (use-package flymake
   :defer 10
@@ -1842,8 +1920,8 @@ Used to see multiline flymake errors"
   )
 
 ;;; MODELINE
-(load (concat user-emacs-directory
-              "lisp/modeline.el"))
+(load (locate-user-emacs-file
+       "lisp/modeline.el"))
 
 ;;; Server Setup
 (use-package server
@@ -1858,7 +1936,7 @@ Used to see multiline flymake errors"
 ;; annotate pdfs with c-c c-a
 ;; hl with c-c c-a h
 ;; for help M-x pdf-tools-help RET
-;; (load (concat user-emacs-directory
+;; (load (locate-user-emacs-file
 ;;               "lisp/exwm-config.el"))
 (use-package pdf-tools
   :ensure t :defer t
@@ -1993,15 +2071,47 @@ Used to see multiline flymake errors"
 
 (let ((f "lisp/termux.el"))
   (when (file-exists-p f)
-    (load (concat user-emacs-directory f))))
+    (load (locate-user-emacs-file f))))
 (put 'set-goal-column 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
 (put 'dired-find-alternate-file 'disabled nil)
 
 (setenv "PATH" (concat (getenv "PATH") ":/home/gavinok/.cargo/bin"))
 
+(load (locate-user-emacs-file
+       "lisp/eglot-lsp-installer.el"))
 (with-eval-after-load 'eglot
-  (push `(python-ts-mode . ("multi-lsp-proxy" "--config" "/home/gavinok/multi-lsp-proxy.toml")) eglot-server-programs)
+  ;; from https://github.com/joaotavora/eglot/discussions/1184
+  (defun vue-eglot-init-options ()
+    ;; installed with (my/eglot-server--npm-dependancy-install "typescript")
+    (let ((tsdk-path (expand-file-name
+                      "lib"
+                      (string-trim-right
+                       (shell-command-to-string (concat "npm list  --prefix "
+                                                        (my/eglot-server--npm-package-path "typescript")
+                                                        " --global --parseable typescript | head -n1"))))))
+      `(:typescript (:tsdk ,tsdk-path
+                           :languageFeatures (:completion
+                                              (:defaultTagNameCase "both"
+                                                                   :defaultAttrNameCase "kebabCase"
+                                                                   :getDocumentNameCasesRequest nil
+                                                                   :getDocumentSelectionRequest nil)
+                                              :diagnostics
+                                              (:getDocumentVersionRequest nil))
+                           :documentFeatures (:documentFormatting
+                                              (:defaultPrintWidth 100
+                                                                  :getDocumentPrintWidthRequest nil)
+                                              :documentSymbol t
+                                              :documentColor t)))))
+
+  (push `((HTML-mode :language-id "html") . ,(eglot-alternatives `(("vscode-html-language-server" "--stdio") ("html-languageserver" "--stdio"))))
+        eglot-server-programs)
+  (push `(vue-ts-mode . ("vue-language-server" "--stdio"
+                         :initializationOptions ,(vue-eglot-init-options)))
+        eglot-server-programs)
+  ;; (push `(vue-ts-mode . (,(file-name-concat (my/eglot-server--npm-package-path "@vue/language-server") "bin/vue-language-server") "--stdio"
+  ;;                        :initializationOptions ,(vue-eglot-init-options)))
+  ;;       eglot-server-programs)
   (push `(java-mode . ("/home/gavinok/java-language-server/dist/lang_server_linux.sh")) eglot-server-programs)
   (push `(sgml-mode . ("emmet-language-server" "--stdio")) eglot-server-programs)
   (push `((typst-mode typst-ts-mode) . ("typst-lsp")) eglot-server-programs)
@@ -2050,3 +2160,27 @@ Used to see multiline flymake errors"
 
 (use-package devil
   :ensure t)
+
+(use-package macrursors
+  :bind (("C-c SPC" . macrursors-select)
+         ("C-M-." . macrursors-mark-next-line-or-instance-of)
+         ("C-M-," . macrursors-mark-prev-line-or-instance-of))
+  :init
+  (unless (package-installed-p 'macrursors)
+    (package-vc-install "https://github.com/corytertel/macrursors"))
+  :config
+  (defun macrursors-mark-prev-line-or-instance-of ()
+    (interactive)
+    (if (and transient-mark-mode mark-active (not (eq (mark) (point))))
+        (macrursors-mark-previous-instance-of)
+      (macrursors-mark-previous-line 1)))
+
+  (defun macrursors-mark-next-line-or-instance-of ()
+    (interactive)
+    (if (and transient-mark-mode mark-active (not (eq (mark) (point))))
+        (macrursors-mark-next-instance-of)
+      (macrursors-mark-next-line 1)))
+  (dolist (mode '(corfu-mode))
+    (add-hook 'macrursors-pre-finish-hook mode)
+    (add-hook 'macrursors-post-finish-hook mode)))
+
