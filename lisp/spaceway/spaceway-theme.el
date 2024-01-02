@@ -12,7 +12,7 @@
 (let ((class '((class color) (min-colors 89)))
       (spaceway-fg "#CDCDCD")
       (spaceway-bg (if (display-graphic-p) ;; "#161A1F"
-                     "#000000"
+                       "#000000"
                      nil))
       (spaceway-blue-0 "#7D8FA3")
       (spaceway-region "#8fafd7")
@@ -202,10 +202,21 @@
    `(term-color-magenta ((,class (:foreground ,spaceway-red-2 :background ,spaceway-red-2))))
    `(term-color-cyan ((,class (:foreground ,spaceway-purple-0 :background ,spaceway-purple-0))))
    `(term-color-white ((,class (:foreground ,spaceway-fg :background ,spaceway-fg))))
+   ;;; ansi colors
+   `(ansi-color-black ((,class (:foreground ,spaceway-grey-3 :background ,spaceway-grey-3))))
+   `(ansi-color-bright-black ((,class (:foreground ,spaceway-grey-2 :background ,spaceway-grey-2))))
+   `(ansi-color-red ((,class (:foreground ,spaceway-red-1 :background ,spaceway-red-1))))
+   `(ansi-color-bright-red ((,class (:foreground ,spaceway-red-2 :background ,spaceway-red-2))))
+   `(ansi-color-green ((,class (:foreground ,spaceway-green-2 :background ,spaceway-green-2))))
+   `(ansi-color-bright-green ((,class (:foreground ,spaceway-green-3 :background ,spaceway-green-3))))
+   `(ansi-color-yellow ((,class (:foreground ,spaceway-orange-0 :background ,spaceway-orange-0))))
+   `(ansi-color-bright-yellow ((,class (:foreground ,spaceway-yellow-1 :background ,spaceway-yellow-1))))
+   `(ansi-color-blue ((,class (:foreground ,spaceway-blue-0 :background ,spaceway-blue-0))))
+   `(ansi-color-bright-blue ((,class (:foreground ,spaceway-region :background ,spaceway-region))))
+   `(ansi-color-magenta ((,class (:foreground ,spaceway-red-2 :background ,spaceway-red-2))))
+   `(ansi-color-cyan ((,class (:foreground ,spaceway-purple-0 :background ,spaceway-purple-0))))
+   `(ansi-color-white ((,class (:foreground ,spaceway-fg :background ,spaceway-fg))))
    ;; `(term-color-black ((,class (:foreground ,spaceway-black-2 :background ,spaceway-black-2))))
-   ;; `(term-color-black ((,class (:foreground ,spaceway-black-2 :background ,spaceway-black-2))))
-   ;; `(term-color-black ((,class (:foreground ,spaceway-black-2 :background ,spaceway-black-2))))
-       
    `(match ((,class (:background ,spaceway-red-1))))
    `(minibuffer-prompt ((,class (:foreground ,spaceway-fg))))
    `(mmm-default-submode-face ((,class (:background ,spaceway-bg))))
