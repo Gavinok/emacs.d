@@ -854,6 +854,7 @@ This way our searches are kept up to date"
   (setq writeroom-width 90))
 
 (use-package jinx
+  :unless (eq system-type 'android)
   :demand t
   :ensure t
   :bind ("C-c DEL" . jinx-correct)
@@ -935,7 +936,6 @@ This way our searches are kept up to date"
   :ensure nil
   :after eshell
   :config
-  
   (add-hook 'eshell-mode-hook
             (lambda ()
               (eshell/alias "e" "find-file $1")
@@ -1253,6 +1253,7 @@ This way our searches are kept up to date"
   :init
   (context-menu-mode 1))
 (use-package strokes-mode
+  :unless (eq system-type 'android)
   :ensure nil
   :bind (("S-<down-mouse-1>" . strokes-do-stroke)
          ("S-<down-mouse-3>" . mouse-appearance-menu))
