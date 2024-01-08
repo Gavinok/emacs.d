@@ -1515,6 +1515,7 @@ This way our searches are kept up to date"
 ;;; Languages
 (use-package nvm
   :ensure nil
+  :when (executable-find "nvm")
   :commands (my/nvm-use)
   :quelpa (nvm :fetcher github :repo "rejeep/nvm.el")
   :commands (nvm-use nvm-use-for-buffer)
