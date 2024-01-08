@@ -1492,6 +1492,7 @@ This way our searches are kept up to date"
                (getenv "PATH"))))
 
   (use-package lsp-pyright
+    :unless (eq system-type 'android)
     :ensure t
     :hook ((python-mode . (lambda ()
                             (require 'lsp-pyright)
@@ -1866,7 +1867,7 @@ Used to see multiline flymake errors"
          . paren-face-mode))
 
 ;;; EXTRA UI
-(use-package hl-todo :ensure t :hook prog-mode)
+;; (use-package hl-todo :ensure t :hook prog-mode)
 
 (use-package pulse
   ;; Highlight cursor postion after movement
