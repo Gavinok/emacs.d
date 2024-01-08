@@ -125,7 +125,7 @@ If no binding is captured section of regex is found for a BINDING an error is si
     (not window-system)
     "Truthy value indicating if Emacs is currently running in a terminal.")
   (defvar my/my-system
-    t
+    (equal "gavinok" (getenv "USER"))
     "Non-nil value if this is my system."))
 (use-package custom-functions
   :ensure nil :no-require t
