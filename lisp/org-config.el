@@ -1,6 +1,6 @@
 ;;; ORG  -*- lexical-binding: t; -*-
-(if my/is-termux
-    (setq org-directory "~/storage/shared/Dropbox/Documents/org")
+(if (eq system-type 'android)
+    (setq org-directory "/storage/emulated/0/Dropbox/Documents/org")
   (setq org-directory "~/.local/Dropbox/Documents/org"))
 
 (use-package appt
