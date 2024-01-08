@@ -99,8 +99,8 @@
           (setq org-agenda-files
                 (append org-agenda-files
                         (directory-files-recursively school-notes "\\.org$"))))))
-  (load (locate-user-emacs-file
-         "lisp/org-conflict.el"))
+  ;; (load (locate-user-emacs-file
+  ;;        "lisp/org-conflict.el"))
   (defun my/conflict-checker ()
     (interactive)
     (save-excursion
