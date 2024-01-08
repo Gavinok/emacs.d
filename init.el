@@ -5,19 +5,27 @@
 ;; useful for quickly debugging emacs
 ;; (setq debug-on-error t)
 ;; Get clipboard to work when using wsl
+(setenv "LSP_USE_PLISTS" "true")
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (message "*** Emacs loaded in %s seconds with %d garbage collections."
+                     (emacs-init-time "%.2f")
+                     gcs-done)))
 (defvar running-in-wsl (executable-find "wslpath"))
 (when running-in-wsl
   (defun wls-copy (text)
     (let ((wls-copy-process (make-process :name "clip.exe"
-					  :buffer nil
-					  :command '("clip.exe")
-					  :connection-type 'pipe)))
+                                          :buffer nil
+                                          :command '("clip.exe")
+                                          :connection-type 'pipe)))
       (process-send-string wls-copy-process text)
       (process-send-eof wls-copy-process)))
 
   (setq interprogram-cut-function 'wls-copy))
 
-(setq initial-scratch-message nil)
+(setq initial-scratch-message nil
+      initial-major-mode 'emacs-lisp-mode
+      inhibit-startup-screen t)
 
 (defvar file-name-handler-alist-old file-name-handler-alist)
 
@@ -105,7 +113,7 @@ If no binding is captured section of regex is found for a BINDING an error is si
                                   '( ,@bindings))))))
          (let ,(mapcar (lambda (binding)
                          `(,binding (or (pop ,holder)
-				        (error "Failed to find binding for %s"
+                                        (error "Failed to find binding for %s"
                                                ',binding))))
                        bindings)
            ,@body))))
@@ -132,7 +140,7 @@ If no binding is captured section of regex is found for a BINDING an error is si
          :repeat-map my/next-fn-map
          ("d" . my/next-fn)
          :map image-mode-map
-         ("&"       . my/shell-command-on-file)
+         ("&" . my/shell-command-on-file)
          :repeat-map change-number-repeat-map
          ("a" . my/increment-number-at-point)
          ("x" . my/decrement-number-at-point))
@@ -173,7 +181,7 @@ If no binding is captured section of regex is found for a BINDING an error is si
     (interactive "P")
     (let* ((win-pixel-edges (window-pixel-edges (selected-window)))
            (delta  (- (/ (+ (nth 1 win-pixel-edges) (nth 3 win-pixel-edges)) 2)
-	              (cdr (window-absolute-pixel-position (point))))))
+                      (cdr (window-absolute-pixel-position (point))))))
       (pixel-scroll-precision-interpolate delta nil 1)))
 
   (defun my/scroll-down (arg)
@@ -201,13 +209,13 @@ If no binding is captured section of regex is found for a BINDING an error is si
     "Takes a eqn expression as a string string EQN-EXPRESSION and
 returns the equivalent latex version."
     (calc-eval `(,eqn-expression
-	         calc-simplify-mode none
-	         calc-language eqn)
-	       'push)
+                 calc-simplify-mode none
+                 calc-language eqn)
+               'push)
     (calc-eval '(1
-	         calc-simplify-mode none
-	         calc-language latex)
-	       'top))
+                 calc-simplify-mode none
+                 calc-language latex)
+               'top))
 
   (defun echo-eqn-to-tex (eqn-expr &optional arg)
     "Takes an eqn expression eqn-expr and prints a message with the
@@ -229,19 +237,18 @@ replaces it with the Latex equivalent."
 
      No more \"Where did I call that again?\" going off in your head"
     (interactive)
-    (flet ((file->lines (file-name)
-                        (split-string
-                         (with-temp-buffer
-                           (insert-file-contents-literally file-name)
-                           (buffer-substring-no-properties (point-min) (point-max))
-                           "\n"))))
-          (completing-read
-           "All History: "
-           (append shell-command-history
-                   compile-history
-                   (when (boundp 'eshell-history-file-name)
-                     (file->lines eshell-history-file-name))
-                   (file->lines "~/.bash_history")))))
+    (cl-flet ((file->lines (file-name)
+                (split-string (with-temp-buffer
+                                (insert-file-contents-literally file-name)
+                                (buffer-substring-no-properties (point-min) (point-max)))
+                              "\n")))
+      (completing-read
+       "All History: "
+       (append shell-command-history
+               compile-history
+               (when (boundp 'eshell-history-file-name)
+                 (file->lines eshell-history-file-name))
+               (file->lines (getenv "HISTFILE"))))))
 
   (defun gist-from-region (BEG END fname desc &optional private)
     "Collect the current region creating a github gist with the
@@ -328,6 +335,10 @@ Depends on the `gh' commandline tool"
          ("M-3" . split-window-right))
 
   :config
+  (defun my/fix-indentation ()
+    (interactive)
+    (let ((whitespace-style '(face tabs tab-mark indentation space-before-tab trailing space-after-tab)))
+      (whitespace-cleanup)))
   (defun my/keyboard-quit-only-if-no-macro ()
     "A workaround to let me accidently hit C-g while recording a macro"
     (interactive)
@@ -392,7 +403,6 @@ Depends on the `gh' commandline tool"
                 delete-by-moving-to-trash t
                 create-lockfiles nil
                 auto-save-default nil
-                inhibit-startup-screen t
                 ring-bell-function 'ignore)
 
 ;;;; UTF-8
@@ -401,10 +411,12 @@ Depends on the `gh' commandline tool"
   (fset 'yes-or-no-p 'y-or-n-p)    ; don't ask to spell out "yes"
   (setq show-paren-context-when-offscreen 'overlay) ; Emacs 29
   (show-paren-mode 1)              ; Highlight parenthesis
-  (if running-in-wsl
-      (setq-default x-select-enable-primary t) ; use primary as clipboard in emacs
-    (setq x-select-enable-primary nil) ; use primary as clipboard in emacs
-    )
+
+  ;; (if running-in-wsl
+  ;;     (setq-default select-enable-primary t) ; use primary as clipboard in emacs
+  ;;   (setq select-enable-primary nil))
+
+  (setq-default select-enable-primary t)
   ;; avoid leaving a gap between the frame and the screen
   (setq-default frame-resize-pixelwise t)
 
@@ -719,7 +731,7 @@ This way our searches are kept up to date"
   (corfu-cycle t)                 ; Allows cycling through candidates
   (corfu-auto t)                  ; Enable auto completion
   (corfu-auto-prefix 2)
-  (corfu-auto-delay 0.3)
+  (corfu-auto-delay 0.8)
   (corfu-popupinfo-delay '(0.5 . 0.2))
   (corfu-preview-current 'insert) ; insert previewed candidate
   (corfu-preselect 'prompt)
@@ -763,9 +775,19 @@ This way our searches are kept up to date"
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
 (use-package yasnippet
   :ensure t
+  :bind ("M-+" . yas-insert-snippet)
+  :config
+  (setopt yas-snippet-dirs (append yas-snippet-dirs
+                                   '("~/.emacs.d/snippets")))
+  (yas-global-mode +1)
+  (add-to-list 'hippie-expand-try-functions-list #'yas-hippie-try-expand))
+
+(use-package yankpad
+  :bind ("M-+" . yankpad-insert)
   :init
-  (setq yas-nippet-dir "~/.emacs.d/snippets")
-  (yas-global-mode))
+  (unless (package-installed-p 'yankpad)
+    (package-vc-install "https://github.com/Kungsgeten/yankpad")))
+
 (use-package yasnippet-snippets
   :ensure t :after yasnippet)
 ;; (use-package yasnippet-capf
@@ -1011,8 +1033,8 @@ This way our searches are kept up to date"
   ;; Custom compilers
   (defun generic-compiler ()
     (concat "compiler "
-	    (if buffer-file-name
-		(shell-quote-argument buffer-file-name))))
+            (if buffer-file-name
+                (shell-quote-argument buffer-file-name))))
   (defun run-on-file (cmd)
     `(lambda () (concat ,cmd " "
                         (shell-quote-argument buffer-file-name))))
@@ -1024,7 +1046,7 @@ This way our searches are kept up to date"
   (setq custom-compiler-modes
         `((purescript-mode . "spago run")
           (bash-ts-mode    . ,(run-on-file "sh"))
-	  (vue-ts-mode    . "npx eslint --fix . && npx vue-tsc --noEmit")))
+          (vue-ts-mode    . "npx eslint --fix . && npx vue-tsc --noEmit")))
 
   (defun get-compiler ()
     (let* ((default-compile-command "make -k ")
@@ -1035,7 +1057,7 @@ This way our searches are kept up to date"
                                      custom-compiler-modes)
                                     'eql default-compile-command)))
       (cond ((or (file-exists-p "makefile")
-	         (file-exists-p "Makefile"))
+                 (file-exists-p "Makefile"))
              default-compile-command)
             ((functionp compiler) (funcall compiler))
             ((stringp compiler) compiler)
@@ -1048,10 +1070,10 @@ This way our searches are kept up to date"
   (defun generic-compiler ()
     (unless (has-makefile-p)
       (setq-local compile-command
-		  (concat "compiler "
-			  (if buffer-file-name
-			      (shell-quote-argument
-			       (buffer-file-name buffer-file-name)))))))
+                  (concat "compiler "
+                          (if buffer-file-name
+                              (shell-quote-argument
+                               (buffer-file-name buffer-file-name)))))))
 
   ;; Auto focus compilation buffer
   (add-hook 'compilation-finish-functions 'finish-focus-comp)
@@ -1352,6 +1374,7 @@ This way our searches are kept up to date"
 ;; Should boost performance with lsp
 ;; https://emacs-lsp.github.io/lsp-mode/page/performance/
 (use-package lsp-mode
+  :ensure t
   :defer t
   :bind (("C-h ," . help-at-pt-buffer)
          (:map lsp-mode-map
@@ -1369,8 +1392,8 @@ This way our searches are kept up to date"
                                   "--clang-tidy"
                                   "--enable-config"))
   ;; Small speedups
-  (setq lsp-log-max 1000)
-  (setopt lsp-log-io t)
+  (setopt lsp-log-max 0)
+  (setopt lsp-log-io nil)
   ;; General lsp-mode settings
   (setq lsp-completion-provider :none
         lsp-enable-snippet t
@@ -1458,16 +1481,17 @@ This way our searches are kept up to date"
       (setq exec-path (append (list (concat version-dir "/bin/"))
                               exec-path)
             process-environment (append
-	                         (list (concat
-		                        "PATH="
-		                        (cl-reduce (lambda (a b) (concat a ":" b)) (exec-path))))
-	                         process-environment))
+                                 (list (concat
+                                        "PATH="
+                                        (cl-reduce (lambda (a b) (concat a ":" b)) (exec-path))))
+                                 process-environment))
 
       (message "JAVA_HOME is now %s and PATH is now %s"
                (getenv "JAVA_HOME")
                (getenv "PATH"))))
 
-  (use-package lsp-pyright :ensure t
+  (use-package lsp-pyright
+    :ensure t
     :hook ((python-mode . (lambda ()
                             (require 'lsp-pyright)
                             (lsp-deferred)))
@@ -1475,6 +1499,8 @@ This way our searches are kept up to date"
                                (require 'lsp-pyright)
                                (lsp-deferred))))
     :init
+    ;; For some reason python3 is not working with readline native completion
+    (setopt python-shell-completion-native-enable nil)
     (with-eval-after-load 'compile
       (push 'pyright compilation-error-regexp-alist)
       (push '(pyright "^\\ \\ \\([a-zA-Z0-9/\\._-]+\\):\\([0-9]+\\):\\([0-9]+\\).*$" 1 2 3) compilation-error-regexp-alist-alist))
@@ -1541,9 +1567,15 @@ This way our searches are kept up to date"
   (add-hook 'typescript-ts-mode 'disable-tabs)
 
   (use-package lsp-tailwindcss
+    :after web-mode
     :ensure t
     :init
     (setq lsp-tailwindcss-add-on-mode t))
+  (use-package impatient-mode :ensure t
+    :after web-mode
+    :custom (imp-default-user-filters '((html-mode . nil)
+                                        (web-mode  . nil)
+                                        (HTML-mode . nil))))
   (use-package web-mode
     :ensure t
     :mode (("\\.html\\'" . HTML-mode))
@@ -1603,7 +1635,9 @@ This way our searches are kept up to date"
   :ensure nil
   :hook ((prog-mode       . infer-indentation-style)
          (prog-mode       . (lambda () (setq-local show-trailing-whitespace t)))
-         (emacs-lisp-mode . (lambda () (add-hook 'local-write-file-hooks 'check-parens)))
+         (emacs-lisp-mode . (lambda ()
+                              (indent-tabs-mode -1)
+                              (add-hook 'local-write-file-hooks 'check-parens)))
          (lisp-mode       . (lambda () (indent-tabs-mode -1)))
          ;; Make all scripts executable. Ya this might be sketch but I don't
          (after-save      . executable-make-buffer-file-executable-if-script-p))
@@ -1896,9 +1930,11 @@ Used to see multiline flymake errors"
 
 ;;; PASS
 (use-package password-store
+  :ensure t
   :commands (password-store-copy
              password-store-insert
-             password-store-generate))
+             password-store-generate
+             password-store-get))
 
 ;; Authenticte with auth-source-pass
 (use-package auth-source-pass
@@ -1907,6 +1943,7 @@ Used to see multiline flymake errors"
   (auth-source-pass-enable))
 
 (use-package tab-bar
+  :commands tab-bar-mode
   :config
   (defun tab-bar-tab-name-format-comfortable (tab i)
     "Add spacing to tab bar mode"
@@ -1981,15 +2018,70 @@ Used to see multiline flymake errors"
   :quelpa (plz :fetcher github :repo "alphapapa/plz.el")
   :after ement)
 
-;; Quick and hacky templates
-(use-package placeholder
-  :ensure nil
-  :quelpa (placeholder :fetcher github :repo "oantolin/placeholder")
-  :bind (("C-c n" . placeholder-forward)
-         ("C-c p" . placeholder-backward)
-         ("C-c x" . placeholder-insert)))
+;; Org Present
+(use-package org-present
+  :bind (:map org-mode-map
+              ("C-c p" . org-present))
+  :hook
+  (org-present-mode . my/org-present-setup)
+  (org-present-mode-quit . my/org-present-teardown)
+  :config
+  (require 'fontaine)
+  (defun my/org-set-levels (levels)
+    (dolist (face levels)
+      (set-face-attribute (car face) nil
+                          :font (plist-get (fontaine--get-preset-properties fontaine-current-preset) :default-family)
+                          :weight 'medium :height (cdr face))))
+  (defun my/org-present-setup ()
+    ;; Font Stuff
+    (setq-local org-present-last-fontaine-preset fontaine-current-preset)
+    (fontaine-set-preset 'large)
+    (my/org-set-levels '((org-level-1 . 1.2)
+                         (org-level-2 . 1.1)
+                         (org-level-3 . 1.05)
+                         (org-level-4 . 1.0)
+                         (org-level-5 . 1.1)
+                         (org-level-6 . 1.1)
+                         (org-level-7 . 1.1)
+                         (org-level-8 . 1.1)))
 
-;; Install Ement.
+    (setq header-line-format " ")
+    (org-display-inline-images)
+    (olivetti-mode +1)
+    ;; TODO restore this afterwards
+    (when writegood-mode
+      (writegood-mode -1)))
+
+  (defun my/org-present-teardown ()
+    ;; Font Stuff
+    (fontaine-set-preset org-present-last-fontaine-preset)
+    (my/org-set-levels  '((org-level-1 . 1.0)
+                          (org-level-2 . 1.0)
+                          (org-level-3 . 1.0)
+                          (org-level-4 . 1.0)
+                          (org-level-5 . 1.0)
+                          (org-level-6 . 1.0)
+                          (org-level-7 . 1.0)
+                          (org-level-8 . 1.0)))
+
+    (setq header-line-format nil)
+    (org-display-inline-images)
+    (olivetti-mode -1))
+
+  (defun my/org-present-prepare-slide (buffer-name heading)
+    ;; Show only top-level headlines
+    (org-overview)
+
+    ;; Unfold the current entry
+    (org-show-entry)
+
+    ;; Show only direct subheadings of the slide but don't expand them
+    (org-show-children))
+
+  (cl-pushnew 'my/org-present-prepare-slide
+              org-present-after-navigate-functions))
+
+;; install Ement.
 (use-package ement
   :ensure t
   :when my/my-system
@@ -2048,14 +2140,6 @@ Used to see multiline flymake errors"
 (use-package docker
   :ensure t
   :bind (("C-x d" . docker)))
-
-(use-package asdf
-  :ensure nil
-  :init
-  (unless (package-installed-p 'asdf)
-    (package-vc-install "https://github.com/tabfugnic/asdf.el"))
-  :config
-  (asdf-enable))
 
 ;; (use-package carp
 ;;   :load-path "~/.emacs.d/lisp/carp.el"
@@ -2131,6 +2215,7 @@ Used to see multiline flymake errors"
 
 (use-package dape
   ;; Currently only on github
+  :disabled t
   :init
   (unless (package-installed-p 'dape)
     (package-vc-install "https://github.com/svaante/dape"))
@@ -2158,29 +2243,85 @@ Used to see multiline flymake errors"
      :showReturnValue t)
    dape-configs))
 
-(use-package devil
-  :ensure t)
+;; (use-package devil
+;;   :ensure t)
 
-(use-package macrursors
-  :bind (("C-c SPC" . macrursors-select)
-         ("C-M-." . macrursors-mark-next-line-or-instance-of)
-         ("C-M-," . macrursors-mark-prev-line-or-instance-of))
-  :init
-  (unless (package-installed-p 'macrursors)
-    (package-vc-install "https://github.com/corytertel/macrursors"))
+;; (use-package macrursors
+;;   :bind (("C-c SPC" . macrursors-select)
+;;          ("C-M-." . macrursors-mark-next-line-or-instance-of)
+;;          ("C-M-," . macrursors-mark-prev-line-or-instance-of))
+;;   :init
+;;   (unless (package-installed-p 'macrursors)
+;;     (package-vc-install "https://github.com/corytertel/macrursors"))
+;;   :config
+;;   (defun macrursors-mark-prev-line-or-instance-of ()
+;;     (interactive)
+;;     (if (and transient-mark-mode mark-active (not (eq (mark) (point))))
+;;         (macrursors-mark-previous-instance-of)
+;;       (macrursors-mark-previous-line 1)))
+
+;;   (defun macrursors-mark-next-line-or-instance-of ()
+;;     (interactive)
+;;     (if (and transient-mark-mode mark-active (not (eq (mark) (point))))
+;;         (macrursors-mark-next-instance-of)
+;;       (macrursors-mark-next-line 1)))
+;;   (dolist (mode '(corfu-mode))
+;;     (add-hook 'macrursors-pre-finish-hook mode)
+;;     (add-hook 'macrursors-post-finish-hook mode)))
+
+(use-package emacs-lsp-booster :no-require t
+  :after lsp-mode
+  :when (executable-find "cargo")
   :config
-  (defun macrursors-mark-prev-line-or-instance-of ()
-    (interactive)
-    (if (and transient-mark-mode mark-active (not (eq (mark) (point))))
-        (macrursors-mark-previous-instance-of)
-      (macrursors-mark-previous-line 1)))
+  (let ((emacs-lsp-booster-repo "https://github.com/blahgeek/emacs-lsp-booster")
+        (emacs-lsp-booster-dir (file-name-concat
+                                (expand-file-name user-emacs-directory)
+                                "emacs-lsp-booster")))
+    (if (file-directory-p emacs-lsp-booster-dir)
+        (setq exec-path (append
+                         (list (file-name-concat emacs-lsp-booster-dir
+                                                 "target/release/"))
+                         exec-path))
+      (progn
+        (vc-clone emacs-lsp-booster-repo 'Git emacs-lsp-booster-dir)
+        (let ((default-directory emacs-lsp-booster-dir))
+          (message "Building emacs-lsp-booster")
+          (make-process :name "Building emacs-lsp-booster"
+                        :buffer "*EMACS-LSP-BOOSTER-BUILD*"
+                        :command (list "cargo" "build" "--release")
+                        :sentinel (lambda (process event)
+                                    ;; TODO switch to using `process-status' instead of `event'
+                                    (with-current-buffer (process-buffer process)
+                                      (ansi-color-apply-on-region (point-min) (point-max)))
+                                    (pcase event
+                                      ("finished\n"
+                                       (message "Installed emacs-lsp-booster")
+                                       (push (file-name-concat emacs-lsp-booster-dir "target/release/")
+                                             exec-path))
 
-  (defun macrursors-mark-next-line-or-instance-of ()
-    (interactive)
-    (if (and transient-mark-mode mark-active (not (eq (mark) (point))))
-        (macrursors-mark-next-instance-of)
-      (macrursors-mark-next-line 1)))
-  (dolist (mode '(corfu-mode))
-    (add-hook 'macrursors-pre-finish-hook mode)
-    (add-hook 'macrursors-post-finish-hook mode)))
+                                      ((or "open from host-name\n" "open\n" "run\n"))
+                                      (_ (error "Unhandled case %s for event from Building emacs-lsp-booster")))
+                                    ))
+          )))
 
+    (define-advice json-parse-buffer (:around (old-fn &rest args) lsp-booster-parse-bytecode)
+      "Try to parse bytecode instead of json."
+      (or
+       (when (equal (following-char) ?#)
+         (let ((bytecode (read (current-buffer))))
+           (when (byte-code-function-p bytecode)
+             (funcall bytecode))))
+       (apply old-fn args)))
+
+    (define-advice lsp-resolve-final-command (:around (old-fn cmd &optional test?) add-lsp-server-booster)
+      "Prepend emacs-lsp-booster command to lsp CMD."
+      (let ((orig-result (funcall old-fn cmd test?)))
+        (if (and (not test?)                             ;; for check lsp-server-present?
+                 (not (file-remote-p default-directory)) ;; see lsp-resolve-final-command, it would add extra shell wrapper
+                 lsp-use-plists
+                 (not (functionp 'json-rpc-connection))  ;; native json-rpc
+                 (executable-find "emacs-lsp-booster"))
+            (progn
+              (message "Using emacs-lsp-booster for %s!" orig-result)
+              (cons "emacs-lsp-booster" orig-result))
+          orig-result)))))

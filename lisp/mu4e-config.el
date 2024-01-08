@@ -1,7 +1,41 @@
 ;;; EMAIL
+(use-package org-msg
+  :ensure t
+  :after mu4e
+  :bind (:map org-msg-edit-mode-map
+              ("M-g M-g" . my/org-msg-goto-body))
+  :config
+  (defun my/org-msg-goto-body (&optional end)
+    "Go to either the beginning or the end of the body.
+END can be the symbol top, bottom, or nil to toggle."
+    (interactive)
+    (let ((initial-pos (point)))
+      (org-msg-goto-body)
+      (when (or (eq end 'top)
+                (and (or (eq initial-pos (point)) ; Already at bottom
+                         (<= initial-pos ; Above message body
+                             (save-excursion
+                               (message-goto-body)
+                               (point))))
+                     (not (eq end 'bottom))))
+        (message-goto-body)
+        (search-forward ",")
+        (backward-char))))
+  (setopt org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil author:nil email:nil \\n:t"
+	  org-msg-startup "hidestars indent inlineimages"
+	  org-msg-greeting-fmt "\nHello%s,\n\n"
+	  org-msg-greeting-name-limit 3
+	  org-msg-default-alternatives '((new		. (text html))
+				         (reply-to-html	. (text html))
+				         (reply-to-text	. (text)))
+	  org-msg-convert-citation t
+          org-msg-signature (concat "\n\n#+begin_signature\nSincerely,\n@@html:<b>@@" user-full-name "@@html:</b>@@\n#+end_signature"))
+  (org-msg-mode)
+  )
 (use-package mu4e
   :unless my/is-termux
   :ensure nil
+  :commands (mu4e-user-agent)
   :bind (("C-x M" . mu4e)
          ("C-x m" . mu4e-compose-new)
          ([remap mu4e-headers-jump-to-maildir] . my/jump-to-maildir)
@@ -10,12 +44,14 @@
   ;; :commands (mu4e mu4e-user-agent mu4e-compose-new org-mime-org-subtree-htmlize)
   :init
   ;; Show full email address
-  (setopt mu4e-view-show-addresses 't
+  (setopt mu4e-completing-read-function 'completing-read
+          ;; mu4e-view-show-addresses 't
           mu4e-maildir "~/.local/share/mail"
           ;; where to put attachemnts
           mu4e-attachment-dir  "~/Downloads"
           ;; use mu4e for e-mail in emacs
-          mail-user-agent 'mu4e-user-agent)
+          mail-user-agent #'mu4e-user-agent
+          message-mail-user-agent t)
   :config
   (defun my/jump-to-maildir ()
     (interactive)
@@ -107,11 +143,10 @@
                                 :query "mime:image/*" :key 112))) ; email client depends on mu command
 
 ;;;; Headers View
-  (setq-default mu4e-use-fancy-chars t)
-  (setq-default mu4e-header-sort-field :date)
-  (setq-default mu4e-headers-show-threads nil)
-  (setq-default mu4e-headers-fields '((:flags         .    6)
-                                      (:from-or-to    .   22)
-                                      (:subject       .   70)
-                                      (:human-date    .   nil)))
-  )
+  (setq mu4e-use-fancy-chars t)
+  (setq mu4e-header-sort-field :date)
+  (setq mu4e-search-threads t)
+  (setq mu4e-headers-fields '((:flags         .    6)
+                              (:from-or-to    .   22)
+                              (:subject       .   70)
+                              (:human-date    .   nil))))

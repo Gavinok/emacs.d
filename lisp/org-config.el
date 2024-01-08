@@ -1,16 +1,46 @@
-;;; ORG
+;;; ORG  -*- lexical-binding: t; -*-
 (if my/is-termux
     (setq org-directory "~/storage/shared/Dropbox/Documents/org")
   (setq org-directory "~/.local/Dropbox/Documents/org"))
 
-;; (add-hook 'org-ctrl-c-ctrl-c-hook 'org-conflict-check-timestamp-or-range)
+(use-package appt
+  :demand t
+  :custom
+  ((appt-announce-method 'appt-persistant-message-announce)
+   (appt-message-warning-time 15)
+   (appt-display-duration 360)
+   (appt-disp-window-function #'my/appt-display)
+   (appt-delete-window-function #'ignore)
+   )
+  :init
+  (defun my/appt-display (min-to-app new-time appt-msg)
+    (message "appt called")
+    (require 'notifications)
+    (notifications-notify :title (pcase min-to-app
+                                   ("0" "Appointment Is Starting")
+                                   ("1" "Appointment in 1 Minute")
+                                   (min (concat " Appointment in " min " Minutes"))
+                                   )
+                          :body appt-msg
+                          :urgency (pcase min-to-app
+                                     ((or "0" "15" "2" "3") 'critical)
+                                     (min 'normal))
+                          :actions '("Open" "Open this appointment")
+                          :on-action (lambda (id key) (org-agenda 'd))))
+  (appt-activate +1)
+  (org-agenda-to-appt)
+  (setq appt-update-org-timer
+        (run-with-timer 60 60 #'org-agenda-to-appt))
+  )
+
 ;;; ORG
 (use-package org
   :pin nongnu
-  :commands (org-capture org-agenda)
+  :hook ((org-mode . (lambda () (setq indent-tabs-mode nil)))
+         (org-mode . (lambda ()  (setq-local electric-pair-inhibit-predicate
+                                             `(lambda (c)
+                                                (if (char-equal c ?<) t (,electric-pair-inhibit-predicate c)))))))
   :bind (("C-c l" . org-store-link)
-         ("C-c c" . org-capture)
-         ("C-c a" . org-agenda)
          :map org-mode-map
          ("C-M-i" . completion-at-point)
          :repeat-map org-mode-repeatmap
@@ -23,18 +53,17 @@
          ("d"     . outline-down-heading)
          ("M-f"   . org-next-block))
   :config
-  (setq org-startup-indented t)
   (setq my/org-latex-scale 1.75)
   (setq org-format-latex-options
         (plist-put org-format-latex-options :scale my/org-latex-scale))
-  (add-hook 'org-mode-hook (lambda () (setq indent-tabs-mode nil)))
 ;;;; Archive Completed Tasks
   (defun my/org-archive-done-tasks ()
     (interactive)
     (org-map-entries 'org-archive-subtree "/DONE" 'file)
     (org-map-entries 'org-archive-subtree "/CANCELLED" 'file))
 ;;;; Better defaults
-  (setopt org-ellipsis " ▾"
+  (setopt org-startup-indented t
+          org-ellipsis " ▾"
           org-hide-emphasis-markers t
           org-pretty-entities t
           ;; C-e binding is pretty annoying to me
@@ -43,26 +72,16 @@
           org-src-fontify-natively t
           org-fontify-whole-heading-line t
           org-fontify-quote-and-verse-blocks t
-          org-src-tab-acts-natively t
           org-edit-src-content-indentation 2
           org-hide-block-startup nil
+          org-src-tab-acts-natively t
           org-src-preserve-indentation nil
           org-startup-folded t
           org-cycle-separator-lines 2
           org-hide-leading-stars t
-          org-export-backends '(md org ascii html icalendar latex odt rss)
-          org-export-with-toc nil
           org-highlight-latex-and-related '(native)
           org-goto-auto-isearch nil
-          ;; make C-c a s work like Google
-          org-agenda-search-view-always-boolean t
-          org-agenda-timegrid-use-ampm t
-          org-agenda-time-grid
-          '((daily today require-timed remove-match)
-            (800 830 1000 1030 1200 1230 1400 1430 1600 1630 1700 1730 1800 1830 2000 )
-            "......" "────────────────")
-          org-agenda-current-time-string
-          "← now ─────────────────")
+          )
   (setq org-log-done 'time)
   (setq org-log-into-drawer t)
   (setq org-todo-keywords
@@ -70,18 +89,7 @@
           (sequence "BACKLOG(b)" "ACTIVE(a)"
                     "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)"
                     "|" "DELEGATED(D)" "CANCELLED(c)")))
-;;;; Babel
-  (use-package ob-typescript :ensure t :demand t)
-  (setq org-babel-lisp-eval-fn #'sly-eval)
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((sqlite . t) (haskell . t) (emacs-lisp . t) (shell . t) (python . t)
-     (C . t) (lua . t) (dot . t) (java . t)
-     (lisp . t) (clojure . t) (scheme . t)
-     (forth . t)
-     (typescript . t)))
-  (setq org-confirm-babel-evaluate nil)
-  ;;;; School notes
+;;;; School notes
   (when my/my-system
     (let ((school-notes "~/.local/Dropbox/DropsyncFiles/vimwiki/School"))
       (setq org-agenda-files
@@ -91,87 +99,138 @@
           (setq org-agenda-files
                 (append org-agenda-files
                         (directory-files-recursively school-notes "\\.org$"))))))
+  (load (locate-user-emacs-file
+         "lisp/org-conflict.el"))
+  (defun my/conflict-checker ()
+    (interactive)
+    (save-excursion
+      (cl-loop for ts = (search-forward-regexp org-stamp-time-of-day-regexp nil t)
+               while ts
+               do (progn
+                    (backward-char)
+                    (call-interactively 'org-conflict-conflict-p)))))
+  (keymap-set org-mode-map "C-c C" 'org-conflict-conflict-p)
 ;;;; Clocking
   (setq org-clock-idle-time 15)
-  (setq org-clock-x11idle-program-name "xprintidle")
+  (when-let ((idle-checker (executable-find "xprintidle")))
+    (setq org-clock-x11idle-program-name idle-checker))
 ;;;; Refile targets
   (setq org-refile-targets '((org-agenda-files :maxlevel . 5)))
   (advice-add 'org-refile :after 'org-save-all-org-buffers))
-(use-package org-src-context
-  :after org
-  :init
-  (unless (package-installed-p 'org-src-context)
-    (package-vc-install "https://github.com/karthink/org-src-context"))
-  :config
-  (org-src-context-mode t))
-(use-package org-contrib :ensure t :after org)
-(use-package ox-pandoc
-  :when (executable-find "pandoc")
-  :ensure t
-  :after org)
-(use-package ox-rss :ensure t :after org)
-(use-package org-appear :after org
-  :ensure t
-  :custom
-  (org-hide-emphasis-markers t)
-  (org-appear-autolinks t)
-  (org-appear-inside-latex t)
-  (org-appear-autoentities t)
-  (org-appear-autosubmarkers t)
-  :config
-  (add-hook 'org-mode-hook 'org-appear-mode))
 
-(use-package ox-gfm :ensure t :after ox)
+(defun project-toggle-notes ()
+  (interactive)
+  ;; if org mode find the project associated with heading/file
+  ;;   if no project found prompt for one
+  ;; else look up alist for the current project
+  (setq associated-projects-notes
+        (list (cons  "~/.emacs.d/" (lambda ()
+                                     (org-ql-select (directory-files org-directory t ".*.org") '(tags "gifts"))
+                                     ))))
+  ( (project-root (project-current)))
+  (org-ql )
+  )
 
-(use-package ob-config :ensure nil :no-require t
-  :after org-contrib
+(use-package org-agenda
+  :bind (("C-c a" . org-agenda))
+  :commands org-agenda
+  :custom (;; make C-c a s work like Google
+           (org-agenda-search-view-always-boolean t)
+           (org-agenda-timegrid-use-ampm t)
+           (org-agenda-time-grid
+            '((daily today require-timed remove-match)
+              (800 830 1000 1030 1200 1230 1400 1430 1600 1630 1700 1730 1800 1830 2000 )
+              "......" "────────────────"))
+           (org-agenda-current-time-string
+            "← now ─────────────────")
+           ;; Show effort estimates in agenda
+           (org-agenda-columns-add-appointments-to-effort-sum t)
+           ;; Agenda Views
+           (org-agenda-custom-commands
+            '(("d" "Today's Tasks"
+               ((agenda "" ((org-agenda-span 1)
+                            (org-agenda-overriding-header "Today's Tasks")
+                            ))))
+              ("." "Todays Agenda"
+               ((agenda "" ((org-agenda-span 1)
+                            (org-agenda-skip-deadline-prewarning-if-scheduled t)))))
+              ("n" "Next Tasks"
+               ((todo "NEXT"
+                      ((org-agenda-overriding-header "Next Tasks")))))
+
+              ("W" "Work Tasks" tags-todo "+work")
+
+              ;; Low-effort next actions
+              ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&+Effort>0"
+               ((org-agenda-overriding-header "Low Effort Tasks")
+                (org-agenda-max-todos 20)
+                (org-agenda-files org-agenda-files)))))))
+
+(use-package ob
+  :custom ((org-confirm-babel-evaluate nil)
+           (org-babel-clojure-backend 'cider)
+           (org-babel-lisp-eval-fn #'sly-eval))
   :config
-  (setopt org-babel-clojure-backend 'cider)
+  ;;;; Babel
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((sqlite . t) (haskell . t) (emacs-lisp . t) (shell . t) (python . t)
+     (C . t) (lua . t) (dot . t) (java . t)
+     (lisp . t) (clojure . t) (scheme . t)
+     (forth . t)
+     (typescript . t))))
+(use-package ob-typescript :ensure t :after ob)
+
+(use-package ox
+  :custom ((org-export-backends '(md org ascii html icalendar latex odt rss))
+           (org-export-with-toc nil))
+  :config
   ;; For exporting to markdown
   (require 'ox-md)
   (require 'ox-org))
-
-(use-package org-agenda-config :ensure nil :no-require t
-  :after org
+(use-package ox-pandoc
+  :when (executable-find "pandoc")
+  :ensure t
+  :after ox)
+(use-package ox-rss :ensure t :after ox)
+(use-package ox-gfm :ensure t :after ox
   :config
-  ;; Show effort estimates in agenda
-  (setopt org-agenda-columns-add-appointments-to-effort-sum t)
-  ;; Agenda Views
-  (setopt org-agenda-custom-commands
-          '(("d" "Today's Tasks"
-             ((agenda "" ((org-agenda-span 1)
-                          (org-agenda-overriding-header "Today's Tasks")
-                          ))))
-            ("." "Todays Agenda"
-             ((agenda "" ((org-agenda-span 1)
-                          (org-agenda-skip-deadline-prewarning-if-scheduled t)))))
-            ("n" "Next Tasks"
-             ((todo "NEXT"
-                    ((org-agenda-overriding-header "Next Tasks")))))
+  (push 'gfm org-export-backends))
 
-            ("W" "Work Tasks" tags-todo "+work")
-
-            ;; Low-effort next actions
-            ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&+Effort>0"
-             ((org-agenda-overriding-header "Low Effort Tasks")
-              (org-agenda-max-todos 20)
-              (org-agenda-files org-agenda-files))))))
-
-(use-package org-capture-config :ensure nil :no-require t
+(use-package org-capture
   :when my/my-system
+  :bind ("C-c c" . org-capture)
   :after org
   :init
   (setq org-default-notes-file (concat org-directory "/refile.org"))
   (setq org-capture-templates
         '(("t" "Todo" entry (file (lambda () (concat org-directory "/refile.org")))
            "* TODO %?\nDEADLINE: %T\n %i\n %a")
-          ("M" "movie" entry
+          ("m" "movie")
+          ("mt" "movie" entry
            (file+headline (lambda () (concat org-directory "/mylife.org")) "Movies to Watch")
+           "mw" "movie" entry
+           (file+headline (lambda () (concat org-directory "/mylife.org")) "Movies Watched")
            "* %?\n")
           ("v" "Video Idea" entry
            (file+olp (lambda () (concat org-directory "/youtube.org"))
                      "YouTube" "Video Ideas")
            "* %?\n%? %a\n")
+
+          ("g" "Gift")
+          ("gs" "Gift For Seren" checkitem
+           (file+headline (lambda () (concat org-directory "/archive.org")) "Gifts for Seren")
+           nil
+           :jump-to-captured t)
+          ("gw" "Wish List" checkitem
+           (file+headline (lambda () (concat org-directory "/archive.org")) "Wish list")
+           nil
+           :jump-to-captured t)
+
+          ("u" "Update Current Clocked Heading" text
+           (clock)
+           "hello world %?"
+           :unnarrowed t)
 
           ("k" "Knowledge")
           ("kc" "Cool Thing" entry
@@ -179,7 +238,7 @@
            "* %?\nEntered on %U\n  %i\n  %a")
           ("kk" "Thing I Learned" entry
            (file+olp (lambda () (concat org-directory "/archive.org")) "Knowledge")
-           "* %?\nEntered on %U\n  %i\n  %a")
+           "* %? %^g\nEntered on %U\n  %i\n  %a")
           ("ki" "Ideas" entry
            (file+olp (lambda () (concat org-directory "/archive.org")) "Ideas")
            "* %?\nEntered on %U\n  %i\n  %a")
@@ -192,7 +251,7 @@
            "* TODO %? :errand\nDEADLINE: %T\n  %a")
           ("sm" "Meeting" entry
            (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
-           "* Meeting with  %? :MEETING:\nSCHEDULED: %T\n:PROPERTIES:\n:LOCATION: %^{location|Anywhere|Home|Work|School|FGPC}\n:END:")
+           "* Meeting with %? :MEETING:\nSCHEDULED: %T\n:PROPERTIES:\n:LOCATION: %^{location|Anywhere|Home|Work|School|FGPC}\n:END:")
           ("sE" "Event" entry
            (file+headline (lambda () (concat org-directory "/Work.org"))
                           "Events")
@@ -203,26 +262,49 @@
            "* Work On %?\nSCHEDULED: %T\n")
 
           ;; Email Stuff
-          ("m" "Email Workflow")
-          ("mf" "Follow Up" entry
+          ("e" "Email Workflow")
+          ("ef" "Follow Up" entry
            (file+olp (lambda () (concat org-directory "/Work.org")) "Follow Up")
            "* TODO Follow up with %:fromname on %a\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%i")
-          ("mr" "Read Later" entry
+          ("er" "Read Later" entry
            (file+olp (lambda () (concat org-directory "/Work.org")) "Read Later")
            "* TODO Read %:subject\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%a\n%i")))
-  (setq org-capture-templates-contexts
-        '(("m" ((in-mode . "mu4e-view-mode")
-                (in-mode . "mu4e-compose-mode"))))))
+  (setopt org-capture-templates-contexts
+          ;; I repeat "m" since org mode only supports this format
+          '(("m" "m" ((in-mode . "mu4e-view-mode")
+                      (in-mode . "mu4e-compose-mode"))))))
 
-(use-package org-timeline
-  :commands org-agenda
+;;; 3rd party functionality
+(use-package org-src-context
+  :after org
   :init
-  (add-hook 'org-agenda-finalize-hook 'org-timeline-insert-timeline :append))
+  (unless (package-installed-p 'org-src-context)
+    (package-vc-install "https://github.com/karthink/org-src-context"))
+  :config
+  (org-src-context-mode t))
+(use-package org-contrib :ensure t :after org)
+(use-package org-appear :after org
+  :ensure t
+  :custom
+  (org-hide-emphasis-markers t)
+  (org-appear-autolinks t)
+  (org-appear-inside-latex t)
+  (org-appear-autoentities t)
+  (org-appear-autosubmarkers t)
+  :config
+  (add-hook 'org-mode-hook 'org-appear-mode))
+
+;; (use-package org-timeline
+;;   :ensure t
+;;   :after org-agenda
+;;   :config
+;;   (add-hook 'org-agenda-finalize-hook 'org-timeline-insert-timeline :append))
 
 ;;;; Drag And Drop
 (use-package org-download
   :ensure t
-  :bind ("C-c i" . org-download-screenshot)
+  :bind (:map org-mode-map
+              ("C-c i" . org-download-screenshot))
   :hook ((org-mode dired-mode) . org-download-enable)
   :init
   (setq-default org-download-screenshot-method "gnome-screenshot -a -f %s")
@@ -254,6 +336,7 @@
 
 (use-package org-noter
   :ensure t
+  :commands (org-noter)
   :after (pdf-tools)
   :init
   (setq org-noter-notes-search-path '("~/Documents/org/")))
@@ -280,24 +363,59 @@
 (use-package my/backlinks :ensure nil :no-require t
   :bind (
          :map org-mode-map
-         ("M-," . org-mark-ring-goto))
+         ("M-," . org-mark-ring-goto)
+         ("C-c SPC" . consult-org-mark)
+         ("C-c C-SPC" . peek-org-mark-ring))
   :custom
   (org-mark-ring-length 250)
   :init
-  (defun peek-mark-ring ()
+  (defun consult-org-mark (&optional markers)
+    (interactive)
+    (consult--read (consult--global-mark-candidates (cl-loop for m in org-mark-ring
+						             for i from 0 to 3
+						             collect m))
+		   :prompt "Go to global mark: "
+		   ;; Despite `consult-global-mark' formatting the candidates in grep-like
+		   ;; style, we are not using the `consult-grep' category, since the candidates
+		   ;; have location markers attached.
+		   :category 'consult-location
+		   :sort nil
+		   :require-match t
+		   :lookup #'consult--lookup-location
+		   :history '(:input consult--line-history)
+		   :add-history (thing-at-point 'symbol)
+		   :state (consult--jump-state)))
+  (defun peek-org-mark-ring ()
     (interactive)
     (with-current-buffer (get-buffer-create "*Org Mark Ring*")
-      (unless (eql major-mode #'org-mode)
-        (org-mode))
+      (unless (eql major-mode #'fundamental-mode)
+        (fundamental-mode))
+      (read-only-mode -1)
       (erase-buffer)
-      (mapcar (lambda (b)
-                (insert b "\n"))
-              (cl-loop
-               with seen = nil
-               for m in org-mark-ring
-               while (not (find m seen))
-               do (push m seen)
-               collect (buffer-name (marker-buffer m)))))
+      (dolist (b (cl-loop with seen = nil
+                          for m in org-mark-ring
+                          while (not (find m seen))
+                          do (push m seen)
+                          collect  m))
+        (when-let* ((buf (marker-buffer b))
+                    (name (buffer-name buf))
+                    (pos  (marker-position b)))
+          (insert-button (buffer-name (marker-buffer b)) 'face 'button
+                         'keymap (let ((map (make-sparse-keymap))
+                                       (jump (lambda ()
+                                               (interactive)
+                                               (with-current-buffer buf
+                                                 (goto-char pos))
+                                               (switch-to-buffer buf)
+                                               (message "clicked"))))
+                                   (define-key map (kbd "<mouse-1>") jump)
+                                   (define-key map (kbd "RET") jump)
+                                   map)
+                         'mouse-face 'highlight
+                         'help-echo "bad key, click to repalce")
+          (insert "\n")))
+      (read-only-mode +1)
+      )
     (switch-to-buffer-other-window "*Org Mark Ring*")))
 
 ;; For creating svg art in org files

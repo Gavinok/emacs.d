@@ -46,9 +46,9 @@ This is needed to make sure that text is properly aligned.")
 
 (setq my/mode-line-right-side '(:eval (when (mode-line-window-selected-p)
                                         (list
-                                         (propertize (abbreviate-file-name (project-root (project-current))) 'face 'shadow )
                                          '(vc-mode vc-mode) " "
-                                         mode-line-misc-info))))
+                                         mode-line-misc-info)
+                                        )))
 (setq my/mode-line-left-side '(" "
                                ;; indicate if the buffer has been modified
                                (:eval (propertize
@@ -73,9 +73,9 @@ This is needed to make sure that text is properly aligned.")
 (setq my/mode-line-padding
       '(:eval
         (propertize " " 'display
-	                  `((space :align-to
-			                       (- (+ right right-fringe right-margin)
-			                          ,(string-width
+	            `((space :align-to
+			     (- (+ right right-fringe right-margin)
+			        ,(string-width
                                   (format-mode-line my/mode-line-right-side))))))))
 
 (setq-default mode-line-format
