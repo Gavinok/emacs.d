@@ -2013,13 +2013,6 @@ Used to see multiline flymake errors"
   :config
   :init (winner-mode 1)) ; Window Managment Undo
 
-;; Install `plz' HTTP library (not on MELPA yet).
-(use-package plz
-  :ensure nil
-  :when my/my-system
-  :quelpa (plz :fetcher github :repo "alphapapa/plz.el")
-  :after ement)
-
 ;; Org Present
 (use-package org-present
   :bind (:map org-mode-map
@@ -2096,34 +2089,34 @@ Used to see multiline flymake errors"
                    :password (password-store-get "riot.im/gavinok")))
   )
 
-(use-package hammy
-  :ensure nil
-  :quelpa (hammy :fetcher github :repo "alphapapa/hammy.el")
-  :commands (happy-start hammy-start-org-clock-in)
-  :config
-  (hammy-define (propertize "🍅" 'face '(:foreground "tomato"))
-    :documentation "The classic pomodoro timer."
-    :intervals
-    (list
-     (interval :name "Work"
-               :duration "25 minutes"
-               :before (do (announce "Starting work time.")
-                           (notify "Starting work time."))
-               :advance (do (announce "Break time!")
-                            (notify "Break time!")))
-     (interval :name "Break"
-               :duration (do (if (and (not (zerop cycles))
-                                      (zerop (mod cycles 3)))
-                                 ;; If a multiple of three cycles have
-                                 ;; elapsed, the fourth work period was
-                                 ;; just completed, so take a longer break.
-                                 "30 minutes"
-                               "5 minutes"))
-               :before (do (announce "Starting break time.")
-                           (notify "Starting break time."))
-               :advance (do (announce "Break time is over!")
-                            (notify "Break time is over!")))))
-  )
+;; (use-package hammy
+;;   :ensure nil
+;;   :quelpa (hammy :fetcher github :repo "alphapapa/hammy.el")
+;;   :commands (happy-start hammy-start-org-clock-in)
+;;   :config
+;;   (hammy-define (propertize "🍅" 'face '(:foreground "tomato"))
+;;     :documentation "The classic pomodoro timer."
+;;     :intervals
+;;     (list
+;;      (interval :name "Work"
+;;                :duration "25 minutes"
+;;                :before (do (announce "Starting work time.")
+;;                            (notify "Starting work time."))
+;;                :advance (do (announce "Break time!")
+;;                             (notify "Break time!")))
+;;      (interval :name "Break"
+;;                :duration (do (if (and (not (zerop cycles))
+;;                                       (zerop (mod cycles 3)))
+;;                                  ;; If a multiple of three cycles have
+;;                                  ;; elapsed, the fourth work period was
+;;                                  ;; just completed, so take a longer break.
+;;                                  "30 minutes"
+;;                                "5 minutes"))
+;;                :before (do (announce "Starting break time.")
+;;                            (notify "Starting break time."))
+;;                :advance (do (announce "Break time is over!")
+;;                             (notify "Break time is over!")))))
+;;   )
 
 (setq pixel-scroll-precision-interpolate-page t)
 (pixel-scroll-precision-mode t)
