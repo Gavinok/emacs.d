@@ -1718,6 +1718,7 @@ This way our searches are kept up to date"
 (use-package puni
   :ensure t
   :hook (((calc-mode term-mode vterm-mode) . puni-disable-puni-mode)
+         (prog-mode . puni-mode)
          (puni-mode  . electric-pair-local-mode))
   :bind (("C-c s" . puni-mode)
          :map puni-mode-map
@@ -1743,9 +1744,8 @@ This way our searches are kept up to date"
          ("C-M-z"         . puni-squeeze)
          ("M-<backspace>" . backward-kill-word)
          ("C-w"           . kill-region))
-  :init
-  (puni-global-mode t)
   :config
+  (puni-global-mode t)
   (defun puni-kill-thing-at-point (&optional arg)
     "Kill the next puni based thing at point"
     (interactive)
@@ -2244,8 +2244,9 @@ Used to see multiline flymake errors"
      :showReturnValue t)
    dape-configs))
 
-;; (use-package devil
-;;   :ensure t)
+(use-package devil
+  :when (eq system-type 'android)
+  :ensure t)
 
 ;; (use-package macrursors
 ;;   :bind (("C-c SPC" . macrursors-select)
