@@ -1133,13 +1133,14 @@ This way our searches are kept up to date"
   :bind (("C-s"     . isearch-forward)
          ("M-R"     . isearch-query-replace)
          ("C-r"     . isearch-backward)
+         ("M-s c"   . toggle-case-fold-search)
          (:map isearch-mode-map
                ("M-w" . isearch-save-and-exit)
                ("M-R" . isearch-query-replace)
                ("M-/" . isearch-complete))
-         ;; (:repeat-map isearch-repeat-map
-         ;; ("s" . isearch-repeat-forward))
-         )
+         (:repeat-map isearch-repeat-map
+                      ("s" . isearch-repeat-forward)
+                      ("r" . isearch-repeat-backward)))
   :custom ((isearch-lazy-count t)
            (lazy-count-prefix-format nil)
            (lazy-count-suffix-format " [%s of %s]")
@@ -1430,6 +1431,7 @@ This way our searches are kept up to date"
 
 (use-package lsp-languages
   :no-require t :ensure nil
+  :unless (eq system-type 'android)
   :hook ((c-mode          . lsp-deferred)
          (c++-mode        . lsp-deferred)
          (typescript-mode . lsp-deferred)
@@ -1569,11 +1571,6 @@ This way our searches are kept up to date"
   (add-hook 'tsx-ts-mode-hook 'disable-tabs)
   (add-hook 'typescript-ts-mode 'disable-tabs)
 
-  (use-package lsp-tailwindcss
-    :after web-mode
-    :ensure t
-    :init
-    (setq lsp-tailwindcss-add-on-mode t))
   (use-package impatient-mode :ensure t
     :after web-mode
     :custom (imp-default-user-filters '((html-mode . nil)
@@ -1798,6 +1795,7 @@ This way our searches are kept up to date"
 (load (locate-user-emacs-file
        "lisp/etags-regen.el"))
 (use-package etags-regen
+  :when (executable-find "etags")
   :custom (etags-regen-tags-file "/tmp/TAGS")
   :bind (:map etags-regen-mode-map
               ("C-c t" . complete-tag)
@@ -2241,7 +2239,12 @@ Used to see multiline flymake errors"
 
 (use-package devil
   :when (eq system-type 'android)
-  :ensure t)
+  :demand t
+  :ensure t
+  :bind ("<XF86Back>" . keyboard-escape-quit)
+  :config
+  (global-devil-mode 1)
+  (setq overriding-text-conservation-style nil))
 
 ;; (use-package macrursors
 ;;   :bind (("C-c SPC" . macrursors-select)

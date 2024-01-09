@@ -1,7 +1,9 @@
 ;;; ORG  -*- lexical-binding: t; -*-
-(if (eq system-type 'android)
-    (setq org-directory "/storage/emulated/0/Dropbox/Documents/org")
-  (setq org-directory "~/.local/Dropbox/Documents/org"))
+(setq org-directory
+      (cond
+       ((eq system-type 'android) "/storage/emulated/0/Dropbox/Documents/org")
+       (my/my-system "~/.local/Dropbox/Documents/org")
+       (t (default-value 'org-directory))))
 
 (use-package appt
   :demand t
@@ -13,25 +15,28 @@
    (appt-delete-window-function #'ignore)
    )
   :init
-  (defun my/appt-display (min-to-app new-time appt-msg)
+  (defun my/appt-display (min-to-app _new-time appt-msg)
     (message "appt called")
     (require 'notifications)
-    (notifications-notify :title (pcase min-to-app
-                                   ("0" "Appointment Is Starting")
-                                   ("1" "Appointment in 1 Minute")
-                                   (min (concat " Appointment in " min " Minutes"))
-                                   )
-                          :body appt-msg
-                          :urgency (pcase min-to-app
-                                     ((or "0" "15" "2" "3") 'critical)
-                                     (min 'normal))
-                          :actions '("Open" "Open this appointment")
-                          :on-action (lambda (id key) (org-agenda 'd))))
+    (funcall (if  (eq system-type 'android)
+                 'android-notifications-notify
+               'notifications-notify)
+             :title (pcase min-to-app
+                      ("0" "Appointment Is Starting")
+                      ("1" "Appointment in 1 Minute")
+                      (min (concat " Appointment in " min " Minutes"))
+                      )
+             :body appt-msg
+             :urgency (if (< (string-to-number min-to-app) 3)
+                          'critical
+                        'normal)
+             :actions '("Open" "Open this appointment")
+             :on-action (lambda (id key) (org-agenda 'd))
+             :replace-id (md5 appt-msg)))
   (appt-activate +1)
   (org-agenda-to-appt)
   (setq appt-update-org-timer
-        (run-with-timer 60 60 #'org-agenda-to-appt))
-  )
+        (run-with-timer 60 60 #'org-agenda-to-appt)))
 
 ;;; ORG
 (use-package org
@@ -89,27 +94,29 @@
           (sequence "BACKLOG(b)" "ACTIVE(a)"
                     "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)"
                     "|" "DELEGATED(D)" "CANCELLED(c)")))
+;;;; Agenda Files
+  (when (file-directory-p org-directory)
+    (setq org-agenda-files
+          (seq-filter (lambda (x) (not (string-match "\\(completed.org\\|gcal.org\\)" x)))
+                      (directory-files-recursively org-directory "\\.org$"))))
 ;;;; School notes
-  (when my/my-system
-    (let ((school-notes "~/.local/Dropbox/DropsyncFiles/vimwiki/School"))
+  (let ((school-notes "~/.local/Dropbox/DropsyncFiles/vimwiki/School"))
+    (when (file-directory-p school-notes)
       (setq org-agenda-files
-            (seq-filter (lambda (x) (not (string-match "\\(completed.org\\|gcal.org\\)" x)))
-                        (directory-files-recursively org-directory "\\.org$")))
-      (if (file-directory-p school-notes)
-          (setq org-agenda-files
-                (append org-agenda-files
-                        (directory-files-recursively school-notes "\\.org$"))))))
+            (append org-agenda-files
+                    (directory-files-recursively school-notes "\\.org$")))))
+
   ;; (load (locate-user-emacs-file
   ;;        "lisp/org-conflict.el"))
-  (defun my/conflict-checker ()
-    (interactive)
-    (save-excursion
-      (cl-loop for ts = (search-forward-regexp org-stamp-time-of-day-regexp nil t)
-               while ts
-               do (progn
-                    (backward-char)
-                    (call-interactively 'org-conflict-conflict-p)))))
-  (keymap-set org-mode-map "C-c C" 'org-conflict-conflict-p)
+  ;; (defun my/conflict-checker ()
+  ;;   (interactive)
+  ;;   (save-excursion
+  ;;     (cl-loop for ts = (search-forward-regexp org-stamp-time-of-day-regexp nil t)
+  ;;              while ts
+  ;;              do (progn
+  ;;                   (backward-char)
+  ;;                   (call-interactively 'org-conflict-conflict-p)))))
+  ;; (keymap-set org-mode-map "C-c C" 'org-conflict-conflict-p)
 ;;;; Clocking
   (setq org-clock-idle-time 15)
   (when-let ((idle-checker (executable-find "xprintidle")))
@@ -198,77 +205,77 @@
   (push 'gfm org-export-backends))
 
 (use-package org-capture
-  :when my/my-system
   :bind ("C-c c" . org-capture)
   :after org
   :init
-  (setq org-default-notes-file (concat org-directory "/refile.org"))
-  (setq org-capture-templates
-        '(("t" "Todo" entry (file (lambda () (concat org-directory "/refile.org")))
-           "* TODO %?\nDEADLINE: %T\n %i\n %a")
-          ("m" "movie")
-          ("mt" "movie" entry
-           (file+headline (lambda () (concat org-directory "/mylife.org")) "Movies to Watch")
-           "mw" "movie" entry
-           (file+headline (lambda () (concat org-directory "/mylife.org")) "Movies Watched")
-           "* %?\n")
-          ("v" "Video Idea" entry
-           (file+olp (lambda () (concat org-directory "/youtube.org"))
-                     "YouTube" "Video Ideas")
-           "* %?\n%? %a\n")
+  (when (file-directory-p org-directory)
+    (setq org-default-notes-file (concat org-directory "/refile.org"))
+    (setq org-capture-templates
+          '(("t" "Todo" entry (file (lambda () (concat org-directory "/refile.org")))
+             "* TODO %?\nDEADLINE: %T\n %i\n %a")
+            ("m" "movie")
+            ("mt" "movie" entry
+             (file+headline (lambda () (concat org-directory "/mylife.org")) "Movies to Watch")
+             "mw" "movie" entry
+             (file+headline (lambda () (concat org-directory "/mylife.org")) "Movies Watched")
+             "* %?\n")
+            ("v" "Video Idea" entry
+             (file+olp (lambda () (concat org-directory "/youtube.org"))
+                       "YouTube" "Video Ideas")
+             "* %?\n%? %a\n")
 
-          ("g" "Gift")
-          ("gs" "Gift For Seren" checkitem
-           (file+headline (lambda () (concat org-directory "/archive.org")) "Gifts for Seren")
-           nil
-           :jump-to-captured t)
-          ("gw" "Wish List" checkitem
-           (file+headline (lambda () (concat org-directory "/archive.org")) "Wish list")
-           nil
-           :jump-to-captured t)
+            ("g" "Gift")
+            ("gs" "Gift For Seren" checkitem
+             (file+headline (lambda () (concat org-directory "/archive.org")) "Gifts for Seren")
+             nil
+             :jump-to-captured t)
+            ("gw" "Wish List" checkitem
+             (file+headline (lambda () (concat org-directory "/archive.org")) "Wish list")
+             nil
+             :jump-to-captured t)
 
-          ("u" "Update Current Clocked Heading" text
-           (clock)
-           "hello world %?"
-           :unnarrowed t)
+            ("u" "Update Current Clocked Heading" text
+             (clock)
+             "hello world %?"
+             :unnarrowed t)
 
-          ("k" "Knowledge")
-          ("kc" "Cool Thing" entry
-           (file+olp (lambda () (concat org-directory "/archive.org")) "Cool Projects")
-           "* %?\nEntered on %U\n  %i\n  %a")
-          ("kk" "Thing I Learned" entry
-           (file+olp (lambda () (concat org-directory "/archive.org")) "Knowledge")
-           "* %? %^g\nEntered on %U\n  %i\n  %a")
-          ("ki" "Ideas" entry
-           (file+olp (lambda () (concat org-directory "/archive.org")) "Ideas")
-           "* %?\nEntered on %U\n  %i\n  %a")
-          ("kT" "Thoughts" entry
-           (file+olp (lambda () (concat org-directory "/archive.org")) "Thoughts")
-           "* %?\nEntered on %U\n  %i\n  %a")
+            ("k" "Knowledge")
+            ("kc" "Cool Thing" entry
+             (file+olp (lambda () (concat org-directory "/archive.org")) "Cool Projects")
+             "* %?\nEntered on %U\n  %i\n  %a")
+            ("kk" "Thing I Learned" entry
+             (file+olp (lambda () (concat org-directory "/archive.org")) "Knowledge")
+             "* %? %^g\nEntered on %U\n  %i\n  %a")
+            ("ki" "Ideas" entry
+             (file+olp (lambda () (concat org-directory "/archive.org")) "Ideas")
+             "* %?\nEntered on %U\n  %i\n  %a")
+            ("kT" "Thoughts" entry
+             (file+olp (lambda () (concat org-directory "/archive.org")) "Thoughts")
+             "* %?\nEntered on %U\n  %i\n  %a")
 
-          ("s" "Scheduled Event")
-          ("se" "Errand" entry (file (lambda () (concat org-directory "/refile.org")))
-           "* TODO %? :errand\nDEADLINE: %T\n  %a")
-          ("sm" "Meeting" entry
-           (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
-           "* Meeting with %? :MEETING:\nSCHEDULED: %T\n:PROPERTIES:\n:LOCATION: %^{location|Anywhere|Home|Work|School|FGPC}\n:END:")
-          ("sE" "Event" entry
-           (file+headline (lambda () (concat org-directory "/Work.org"))
-                          "Events")
-           "* Go to the %?\nSCHEDULED: %T\n\n:PROPERTIES:\n:LOCATION: %^{location|Anywhere|Home|Work|School}\n:END:")
-          ("st" "Time Block" entry
-           (file+headline (lambda () (concat org-directory "/Work.org"))
-                          "Time Blocks")
-           "* Work On %?\nSCHEDULED: %T\n")
+            ("s" "Scheduled Event")
+            ("se" "Errand" entry (file (lambda () (concat org-directory "/refile.org")))
+             "* TODO %? :errand\nDEADLINE: %T\n  %a")
+            ("sm" "Meeting" entry
+             (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
+             "* Meeting with %? :MEETING:\nSCHEDULED: %T\n:PROPERTIES:\n:LOCATION: %^{location|Anywhere|Home|Work|School|FGPC}\n:END:")
+            ("sE" "Event" entry
+             (file+headline (lambda () (concat org-directory "/Work.org"))
+                            "Events")
+             "* Go to the %?\nSCHEDULED: %T\n\n:PROPERTIES:\n:LOCATION: %^{location|Anywhere|Home|Work|School}\n:END:")
+            ("st" "Time Block" entry
+             (file+headline (lambda () (concat org-directory "/Work.org"))
+                            "Time Blocks")
+             "* Work On %?\nSCHEDULED: %T\n")
 
-          ;; Email Stuff
-          ("e" "Email Workflow")
-          ("ef" "Follow Up" entry
-           (file+olp (lambda () (concat org-directory "/Work.org")) "Follow Up")
-           "* TODO Follow up with %:fromname on %a\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%i")
-          ("er" "Read Later" entry
-           (file+olp (lambda () (concat org-directory "/Work.org")) "Read Later")
-           "* TODO Read %:subject\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%a\n%i")))
+            ;; Email Stuff
+            ("e" "Email Workflow")
+            ("ef" "Follow Up" entry
+             (file+olp (lambda () (concat org-directory "/Work.org")) "Follow Up")
+             "* TODO Follow up with %:fromname on %a\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%i")
+            ("er" "Read Later" entry
+             (file+olp (lambda () (concat org-directory "/Work.org")) "Read Later")
+             "* TODO Read %:subject\n SCHEDULED:%t\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))\n\n%a\n%i"))))
   (setopt org-capture-templates-contexts
           ;; I repeat "m" since org mode only supports this format
           '(("m" "m" ((in-mode . "mu4e-view-mode")
