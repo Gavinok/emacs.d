@@ -2244,7 +2244,7 @@ Used to see multiline flymake errors"
   :bind ("<XF86Back>" . keyboard-escape-quit)
   :config
   (global-devil-mode 1)
-  (setq overriding-text-conservation-style nil))
+  (setq overriding-text-conversion-style nil))
 
 ;; (use-package macrursors
 ;;   :bind (("C-c SPC" . macrursors-select)
