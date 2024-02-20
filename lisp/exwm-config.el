@@ -2,7 +2,7 @@
   :unless my/is-termux
   :ensure t
   :init
-  (setq exwm-workspace-number 2)
+  (setq exwm-workspace-number 1)
   :config
   (setq exwm-manage-force-tiling t)
  ;;;; Hooks
@@ -77,7 +77,8 @@ back to switching frames."
   (cl-defmacro exwm-bind (&rest pairs)
     (cl-loop for (key . func) in pairs
              collect `(cons (kbd ,key) . (quote ,func))))
-
+  (keymap-global-set "s-j" 'other-window)
+  (keymap-global-set "s-k" 'other-other-window)
   (setq exwm-input-global-keys
         ;; Window Managment
         `((,(kbd "s-SPC") . ,(my/exwm-run "cabl -c"))
@@ -122,8 +123,8 @@ back to switching frames."
           ([?\s-p] . ,(my/exwm-run "clipmenu"))
           ;; Workspaces
           ([?\s-g] . exwm-workspace-switch)))
-  (keymap-set exwm-mode-map "C-q" 'exwm-input-send-next-key)
-  (keymap-set exwm-mode-map "<s-escape>" 'exwm-input-release-keyboard)
+  (keymap-set exwm-mode-map "C-x C-x" 'exwm-input-send-next-key)
+  ;; (keymap-set exwm-mode-map "<s-escape>" 'exwm-input-release-keyboard)
 
   (require 'exwm)
 ;;;; Start EXWM
@@ -159,7 +160,20 @@ back to switching frames."
 ;; Also will need this emacs package
 ;;   https://github.com/sachac/obs-websocket-el
 
+(tab-bar-mode 1)
 
+(keymap-set global-map "<XF86Tools>" exwm-prefix-map)
+(defvar-keymap exwm-prefix-map
+  :doc "My prefix for use with EXWM"
+  "k" #'kill-current-buffer
+  "c" #'vterm-other-window
+  "o" #'other-window)
+
+(use-package tab-bar
+  :commands tab-bar-mode
+  :bind (("s-l" . tab-bar-switch-to-next-tab)
+         ("s-h" . tab-bar-switch-to-prev-tab)
+         ("s-r" . tab-bar-rename-tab)))
 ;;; Override Pinentry For Pass To Avoid Locking Up Emacs
 (use-package pinentry
   :ensure t

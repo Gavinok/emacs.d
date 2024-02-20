@@ -221,23 +221,32 @@
    `(minibuffer-prompt ((,class (:foreground ,spaceway-fg))))
    `(mmm-default-submode-face ((,class (:background ,spaceway-bg))))
    `(header-line ((,class (:foreground ,spaceway-fg :background nil))))
-   `(tab-bar ((,class (:foreground ;; "#EEDC82"
-                       ,spaceway-fg
-                       :background "#333" ;; nil
-                       ))))
-   `(tab-bar-tab-inactive ((,class (:foreground ;; "#EEDC82"
-                                    ,spaceway-grey-1
-                                    :background "#333" ;; nil
-                                    ))))
+   `(tab-bar ((,class (:inherit mode-line
+                                :box (:line-width 2 :color "#333")))))
+   ;; Tab bar settings
+   `(tab-bar-tab ((t (:inherit mode-line :background ,spaceway-bg :foreground ,spaceway-fg
+                               :weight bold
+                               :box (:line-width 2 :color ,spaceway-bg)
+                               ))))
+   `(tab-bar-tab-inactive ((t (:background "#444"
+                                           :box (:line-width 2 :color "#444")
+                                           :foreground ,spaceway-fg
+                                           ;; :overline "#333"
+                                           ))))
    `(mode-line ((,class (:foreground ;; "#EEDC82"
                          ,spaceway-fg
+                         ;; :box (:line-width 2 :color ,spaceway-bg)
                          :background "#333" ;; nil
+                         ;; :box (:line-width 2 :color "#333")
                          (:line-width 1 :style released-button) 1
                          ))))
    `(mode-line-inactive ((,class (:foreground ,"#555" ;; spaceway-grey-4
                                               :background "#222" ;; nil
                                               (:line-width 1 :style released-button) 1
                                               ))))
+   `(window-divider ((,class (:foreground "#222" :background "#222"))))
+   `(window-divider-last-pixel ((,class (:foreground "#222" :background "#222"))))
+   `(window-divider-first-pixel ((,class (:foreground "#222" :background "#222"))))
    `(org-timeline-block ((,class (:foreground ,spaceway-bg :background ,spaceway-red-0))))
    `(org-timeline-elapsed ((,class (:foreground ,spaceway-fg :background ,spaceway-grey-2))))
    `(org-ellipsis ((,class (:foreground ,spaceway-grey-1 :background nil :underline nil))))

@@ -80,7 +80,10 @@
 
 (use-package savehist
   :defer 2
-  :init (savehist-mode t))
+  :init
+  (savehist-mode t)
+  ;; So I can always jump back to wear I left of yesterday
+  (add-to-list 'savehist-additional-variables 'global-mark-ring))
 
 (use-package repeat
   :defer 10
@@ -606,7 +609,8 @@ Depends on the `gh' commandline tool"
         '(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
   ;; Enable recursive minibuffers
-  (setq enable-recursive-minibuffers t))
+  (setq enable-recursive-minibuffers t)
+  (minibuffer-depth-indicate-mode 1))
 ;;;; Extra Completion Functions
 (use-package consult
   :ensure t
@@ -756,7 +760,6 @@ This way our searches are kept up to date"
                                    corfu-quit-no-match t
                                    corfu-auto nil)
               (corfu-mode))))
-
 (use-package cape
   :ensure t
   :defer 10
@@ -765,7 +768,10 @@ This way our searches are kept up to date"
   ;; Add `completion-at-point-functions', used by `completion-at-point'.
   ;; (defalias 'dabbrev-after-2 (cape-capf-prefix-length #'cape-dabbrev 2))
   ;; (add-to-list 'completion-at-point-functions 'dabbrev-after-2 t)
-  (cl-pushnew #'cape-file completion-at-point-functions)
+  (add-hook 'shell-mode-hook
+            (lambda ()
+              (cl-pushnew #'cape-history completion-at-point-functions)
+              (cl-pushnew #'pcomplete-completions-at-point completion-at-point-functions)))
   :config
   ;; Silence then pcomplete capf, no errors or messages!
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
@@ -781,12 +787,6 @@ This way our searches are kept up to date"
                                    '("~/.emacs.d/snippets")))
   (yas-global-mode +1)
   (add-to-list 'hippie-expand-try-functions-list #'yas-hippie-try-expand))
-
-(use-package yankpad
-  :bind ("M-+" . yankpad-insert)
-  :init
-  (unless (package-installed-p 'yankpad)
-    (package-vc-install "https://github.com/Kungsgeten/yankpad")))
 
 (use-package yasnippet-snippets
   :ensure t :after yasnippet)
@@ -1115,12 +1115,12 @@ This way our searches are kept up to date"
 
              ("Web Dev" (or (mode . html-mode)
                             (mode . css-mode)))
-             ("Magit" (name . "\*magit"))
-             ("Help" (or (name . "\*Help\*")
-                         (name . "\*Apropos\*")
-                         (name . "\*info\*")))
+             ("Magit" (name . "*magit"))
+             ("Help" (or (name . "*Help*")
+                         (name . "*Apropos*")
+                         (name . "*info*")))
              ("Browser" (mode . eaf-mode))
-             ("Ement" (name . "\*Ement *"))
+             ("Ement" (name . "*Ement *"))
              ("Org" (or (mode . org-mode)
                         (filename . "OrgMode"))))))
   (add-hook 'ibuffer-mode-hook
@@ -1171,18 +1171,6 @@ This way our searches are kept up to date"
   :init
   ;; Save my spot when I jump to another file
   (advice-add 'ffap :before #'push-mark))
-
-;;; Workspace Like Workflow
-(use-package perspective
-  :ensure t
-  :bind-keymap
-  ("C-c p" . perspective-map)
-  :bind (:map perspective-map
-              ("s" . persp-switch)
-              ("C-l" . persp-state-load)
-              ("B" . persp-switch-to-scratch-buffer))
-  :config
-  (persp-mode t))
 
 ;;; popup window managment
 (use-package popper
@@ -1269,10 +1257,6 @@ This way our searches are kept up to date"
   :ensure nil
   :defer 1
   :init (global-auto-revert-mode t))
-
-(use-package savehist
-  :defer 2
-  :init (savehist-mode t)) ; Save command history
 
 (use-package hippie-exp
   :bind ([remap dabbrev-expand] . hippie-expand)
@@ -1496,6 +1480,7 @@ This way our searches are kept up to date"
   (use-package lsp-pyright
     :unless (eq system-type 'android)
     :ensure t
+    :after (python-mode python-ts-mode)
     :hook ((python-mode . (lambda ()
                             (require 'lsp-pyright)
                             (lsp-deferred)))
@@ -1797,9 +1782,8 @@ This way our searches are kept up to date"
 (use-package etags-regen
   :when (executable-find "etags")
   :custom (etags-regen-tags-file "/tmp/TAGS")
-  :bind (:map etags-regen-mode-map
-              ("C-c t" . complete-tag)
-              ("C-c M-." . my/goto-etags))
+  :bind (("C-c t" . complete-tag)
+         ("C-c M-." . my/goto-etags))
   :init
   (defun my/goto-etags ()
     (interactive)
@@ -1945,14 +1929,37 @@ Used to see multiline flymake errors"
 
 (use-package tab-bar
   :commands tab-bar-mode
+  :bind (("C-x x T" . tab-bar-mode)
+         ("C-x x R" . tab-bar-rename-tab)
+         ("C-x x C" . tab-bar-new-tab)
+         ("C-x x N" . tab-bar-switch-to-next-tab)
+         ("C-x x K" . tab-bar-close-tab-by-name)
+         ("C-x x B" . tab-bar-select-tab-by-name)
+         :repeat-map tab-bar-repeatmap
+         ("t" . tab-bar-mode)
+         ("T" . tab-bar-mode)
+         ("r" . tab-bar-rename-tab)
+         ("c" . tab-bar-new-tab)
+         ("n" . tab-bar-switch-to-next-tab)
+         ("p" . tab-bar-switch-to-prev-tab)
+         ("k" . tab-bar-close-tab-by-name)
+         ("b" . tab-bar-select-tab-by-name)
+         (">" . tab-bar-switch-to-last-tab)
+         ("5" . tab-bar-detach-tab))
   :config
+  (setopt tab-bar-auto-width-min '(15 2))
   (defun tab-bar-tab-name-format-comfortable (tab i)
     "Add spacing to tab bar mode"
     (propertize (concat " " (tab-bar-tab-name-format-default tab i) " ")
                 'face (funcall tab-bar-tab-face-function tab)))
-  (setq tab-bar-tab-name-format-function #'tab-bar-tab-name-format-comfortable)
+
+  (setopt tab-bar-close-button-show nil
+          tab-bar-new-button-show nil
+          tab-bar-format '(tab-bar-separator tab-bar-format-menu-bar tab-bar-format-tabs tab-bar-separator)
+          tab-bar-tab-name-format-function #'tab-bar-tab-name-format-comfortable)
 
   (add-to-list 'tab-bar-format #'tab-bar-format-menu-bar)
+
   ;; TODO Determin a better way to add some of my modeline to the tab bar
   ;; (customize-set-variable 'tab-bar-format (cons #'tab-bar-format-global tab-bar-format))
   )
