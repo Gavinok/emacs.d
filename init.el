@@ -11,7 +11,43 @@
             (message "*** Emacs loaded in %s seconds with %d garbage collections."
                      (emacs-init-time "%.2f")
                      gcs-done)))
-(defvar running-in-wsl (executable-find "wslpath"))
+(defun my-snip-replace-marker ()
+  (delete-region (search-backward "<<+>>")
+                 (search-forward "<<+>>")))
+(defun my-snip-use-package ()
+  (insert  "(use-package <<+>>)")
+  (my-snip-replace-marker))
+
+(require 'expand)
+(add-hook 'expand-expand-hook 'indent-according-to-mode)
+(add-hook 'expand-jump-hook 'indent-according-to-mode)
+(defvar expandable-placeholder "<<+>>")
+(cl-defmacro define-epandable (mode-abbrev-table abbreviation snippet)
+  (let ((slots-snip (with-temp-buffer
+                      (insert snippet)
+                      (goto-char (point-min))
+                      (search-forward expandable-placeholder nil t)
+                      (search-backward expandable-placeholder nil t)
+                      (cons (cl-loop
+                             for x = (when-let ((end-of-placeholder (search-forward expandable-placeholder nil t))
+                                                (start-of-placeholder (search-backward expandable-placeholder nil t)))
+                                       (delete-region start-of-placeholder
+                                                      end-of-placeholder)
+                                       start-of-placeholder)
+                             while x
+                             collect x)
+                            (buffer-string)))))
+    `(expand-add-abbrev ,mode-abbrev-table ,abbreviation ,(cdr slots-snip) ',(car slots-snip)))
+  )
+(define-epandable emacs-lisp-mode-abbrev-table "cond"
+                  "(cond\n(<<+>>)\n(t <<+>>))")
+;; (define-epandable python-ts-mode-abbrev-table "if"
+;;                   "if <<+>>:\n<<+>>")
+(define-epandable text-mode-abbrev-table "idk"
+                  "I do not know ")
+(define-epandable text-mode-abbrev-table "iirc"
+                  "if I recall ")
+(defconst running-in-wsl (executable-find "wslpath"))
 (when running-in-wsl
   (defun wls-copy (text)
     (let ((wls-copy-process (make-process :name "clip.exe"
