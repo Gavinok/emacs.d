@@ -2,9 +2,11 @@
   :unless my/is-termux
   :ensure t
   :init
-  (setq exwm-workspace-number 1)
+  (setopt exwm-manage-force-tiling t)
+  (setopt exwm-workspace-number 2
+          mouse-autoselect-window t
+          focus-follows-mouse t)
   :config
-  (setq exwm-manage-force-tiling t)
  ;;;; Hooks
   (defun my/exwm-titles ()
     (pcase exwm-class-name
@@ -24,32 +26,14 @@
   (add-hook 'exwm-floating-setup-hook
             (lambda ()
               (exwm-layout-hide-mode-line)))
-;;;; Functions
-;;;; Global Key Bindings
+  ;; Functions
+  ;; Global Key Bindings
   (add-hook 'exwm-manage-finish-hook
             (lambda ()
               (when (and exwm-class-name
                          (or (string= exwm-class-name "Google-chrome")
                              (string= exwm-class-name "discord")))
-                (exwm-input-set-local-simulation-keys `(([?\C-b] . [left])
-							([?\C-f] . [right])
-                                                        ([?\M-b] . ,(kbd "C-<left>"))
-                                                        ([?\M-f] . ,(kbd "C-<right>"))
-                                                        ([?\M-d] . ,(kbd "C-<delete>"))
-                                                        ([?\C-p] . [up])
-                                                        ([?\C-n] . [down])
-                                                        ([?\C-a] . [home])
-                                                        ([?\C-j] . [?\C-k])
-                                                        ([?\C-s] . [?\C-f])
-                                                        ([?\C-e] . [end])
-                                                        (,(kbd "C-S-E") . [?\C-e])
-                                                        ([?\M-v] . [prior])
-                                                        ([?\C-v] . [next])
-							([?\C-d] . [delete])
-                                                        ([?\C-k] . [S-end delete])
-                                                        (,(kbd "C-y") . ,(kbd "C-v"))
-                                                        (,(kbd "C-x C-x") . ,(kbd "C-x"))
-                                                        (,(kbd "C-c C-c") . ,(kbd "C-c")))))))
+                (exwm-input-set-local-simulation-keys `((,(kbd "C-S-E") . [?\C-e]))))))
 
   (defmacro my/window-switch (direction)
     "Creates a function for changing the focused window but falls
@@ -79,56 +63,58 @@ back to switching frames."
              collect `(cons (kbd ,key) . (quote ,func))))
   (keymap-global-set "s-j" 'other-window)
   (keymap-global-set "s-k" 'other-other-window)
+  (defun exwm-dmenu (command)
+    (interactive (list (read-shell-command "λ ")))
+    (start-process-shell-command command nil command))
   (setq exwm-input-global-keys
         ;; Window Managment
-        `((,(kbd "s-SPC") . ,(my/exwm-run "cabl -c"))
-          ([?\s-h] . ,(my/window-switch left))
-          ([?\s-l] . ,(my/window-switch right))
-          ([?\s-j] . windmove-down)
-          ([?\s-k] . windmove-up)
-          (,(kbd "s-H") . windmove-swap-states-left)
-          (,(kbd "s-L") . ,(my/window-swap right))
-          (,(kbd "s-J") . ,(my/window-swap down))
-          (,(kbd "s-K") . ,(my/window-swap up))
+        `((,(kbd "s-SPC")   . ,(my/exwm-run "cabl -c"))
+          ([?\s-h]          . ,(my/window-switch left))
+          ([?\s-l]          . ,(my/window-switch right))
+          ([?\s-j]          . windmove-down)
+          ([?\s-k]          . windmove-up)
+          (,(kbd "s-H")     . windmove-swap-states-left)
+          (,(kbd "s-L")     . ,(my/window-swap right))
+          (,(kbd "s-J")     . ,(my/window-swap down))
+          (,(kbd "s-K")     . ,(my/window-swap up))
           (,(kbd "<s-tab>") . other-window)
-          ([?\s-v] . crux-swap-windows)
-          ([?\s-o] . other-frame)
-          ([?\s-f] . exwm-layout-set-fullscreen)
-          ([?\s-c] . inferior-octave)
-          ([?\s-C] . kill-this-buffer)
+          ([?\s-v]          . crux-swap-windows)
+          ([?\s-o]          . other-frame)
+          ([?\s-f]          . exwm-layout-toggle-fullscreen)
+          ([?\s-c]          . inferior-octave)
+          ([?\s-C]          . kill-this-buffer)
           ;; tile exwm
           ([?\s-t] . exwm-reset)
 
           ;; open a terminal
           (,(kbd "<s-return>") . vterm)
           ;; launch any program
-          ([?\s-d] . (lambda (command)
-                       (interactive (list (read-shell-command "λ ")))
-                       (start-process-shell-command command nil command)))
+          ([?\s-d] . exwm-dmenu)
           ;; Screen And Audio Controls
           (,(kbd "C-s-f")   . ,(my/exwm-run "cm up 5"))
           (,(kbd "C-s-a")   . ,(my/exwm-run "cm down 5"))
           (,(kbd "C-s-d")   . ,(my/exwm-run "xbacklight -inc 10"))
           (,(kbd "C-s-S-d") . ,(my/exwm-run "xbacklight -inc 5"))
-          (,(kbd "C-s-s")   . ,(my/exwm-run  "xbacklight -dec 10"))
-          (,(kbd "C-s-S-s") . ,(my/exwm-run  "xbacklight -dec 5"))
+          (,(kbd "C-s-s")   . ,(my/exwm-run "xbacklight -dec 10"))
+          (,(kbd "C-s-S-s") . ,(my/exwm-run "xbacklight -dec 5"))
           ;; Web Browser
           ([?\s-w] . ,(my/exwm-run "ducksearch"))
           ;;Power Manager
           ([?\s-x] . ,(my/exwm-run  "power_menu.sh"))
-          ([?\s-m] . (defun remind-timer (reminder)
-                       (interactive "reminder?")
-                       (egg-timer-do-schedule 3 reminder)))
           ([?\s-=] . ,(my/exwm-run "menu_connection_manager.sh"))
-          ([?\s-p] . ,(my/exwm-run "clipmenu"))
+          (,(kbd "s-P") . ,(my/exwm-run "clipmenu"))
           ;; Workspaces
           ([?\s-g] . exwm-workspace-switch)))
-  (keymap-set exwm-mode-map "C-x C-x" 'exwm-input-send-next-key)
-  ;; (keymap-set exwm-mode-map "<s-escape>" 'exwm-input-release-keyboard)
+  (keymap-set exwm-mode-map "C-q" 'exwm-input-send-next-key)
 
   (require 'exwm)
-;;;; Start EXWM
-;;;; Start Programs For EXWM
+  ;; Ensure that we can pass C-c and C-x through to programs
+  (exwm-input--set-simulation-keys `((,(kbd "C-x C-x") . ,(kbd "C-x"))
+                                     (,(kbd "C-c C-c") . ,(kbd "C-c"))))
+
+  
+  ;; Start EXWM
+  ;; Start Programs For EXWM
   (exwm-enable))
 
 ;; Broken on current version of emacs
@@ -144,14 +130,22 @@ back to switching frames."
 
 (use-package exwm-randr
   :ensure nil
-  ;; :after exwm
   :demand t
   :config
-  (setq exwm-randr-workspace-output-plist '(1 "DP2"))
-  (add-hook 'exwm-randr-screen-change-hook
-            (lambda ()
-              (start-process-shell-command
-               "xrandr" nil "xrandr --output eDP1 --primary --auto --right-of DP2 --auto")))
+  (setq exwm-randr-workspace-output-plist '(1 "DVI-I-1-1"))
+  (defun exwm-randr-setup ()
+    (lambda ()
+      (start-process-shell-command
+       "xrandr" nil "xrandr --output eDP1 --primary --auto --right-of DP2 --auto")))
+  
+
+  (setq exwm-randr-workspace-output-plist '(1 "DP2-1" 3 "DP2-3"))
+  (defun exwm-randr-setup ()
+    (lambda ()
+      (start-process-shell-command
+       "xrandr" nil "xrandr --output eDP1 --primary --mode 1920x1080 --pos 1920x0 --rotate normal --output DP1 --off --output DP2 --off --output DP2-1 --mode 1920x1080 --pos 0x0 --rotate normal --output DP2-2 --off --output DP2-3 --mode 1920x1080 --pos 3840x0 --rotate normal --output HDMI1 --off --output HDMI2 --off --output VIRTUAL1 --off --output DVI-I-1-1 --off
+")))
+  (add-hook 'exwm-randr-screen-change-hook 'exwm-randr-setup)
   (exwm-randr-enable))
 
 ;;; Streaming
@@ -160,20 +154,21 @@ back to switching frames."
 ;; Also will need this emacs package
 ;;   https://github.com/sachac/obs-websocket-el
 
-(tab-bar-mode 1)
-
-(keymap-set global-map "<XF86Tools>" exwm-prefix-map)
 (defvar-keymap exwm-prefix-map
   :doc "My prefix for use with EXWM"
   "k" #'kill-current-buffer
   "c" #'vterm-other-window
-  "o" #'other-window)
+  "o" #'other-window
+  "SPC" (my/exwm-run "cabl -c"))
+(keymap-global-set "<XF86Tools>" exwm-prefix-map)
+(keymap-set exwm-mode-map "<XF86Tools>" exwm-prefix-map)
 
-(use-package tab-bar
-  :commands tab-bar-mode
-  :bind (("s-l" . tab-bar-switch-to-next-tab)
-         ("s-h" . tab-bar-switch-to-prev-tab)
-         ("s-r" . tab-bar-rename-tab)))
+(defun other-other-frame ()
+  (interactive)
+  (other-frame -1))
+(keymap-global-set "s-l" 'other-frame)
+(keymap-global-set "s-h" 'other-other-frame)
+
 ;;; Override Pinentry For Pass To Avoid Locking Up Emacs
 (use-package pinentry
   :ensure t
@@ -187,8 +182,15 @@ back to switching frames."
   (require 'epa-file)
   (epa-file-enable)
   (setq epa-pinentry-mode 'loopback)
-  (setq epg-pinentry-mode 'loopback)
   (pinentry-start)
 
   (require 'org-crypt)
+  ;; Add the following to ~/.gnupg/gpg-agent.conf
+  ;; allow-emacs-pinentry
+  ;; allow-loopback-pinentry
   (org-crypt-use-before-save-magic))
+(use-package frame
+  :config
+  (setopt window-divider-default-right-width 3)
+  (setopt window-divider-default-places t)
+  (window-divider-mode 1))

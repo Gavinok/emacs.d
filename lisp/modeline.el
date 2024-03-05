@@ -49,26 +49,37 @@ This is needed to make sure that text is properly aligned.")
                                          '(vc-mode vc-mode) " "
                                          mode-line-misc-info)
                                         )))
+(defun tab-bar-tab-name-format-comfortable (tab i)
+  "Add spacing to tab bar mode"
+  (propertize (concat " " (truncate-string-to-width
+                           (tab-bar-tab-name-format-default tab i)
+                           tab-bar-tab-name-truncated-max
+                           nil nil t)
+                      " ")
+              'face (funcall tab-bar-tab-face-function tab)))
 (setq my/mode-line-left-side '(" "
                                ;; indicate if the buffer has been modified
-                               (:eval (propertize
-                                       (if (and (not buffer-read-only) (buffer-modified-p))
-                                           "● " "  " )
-                                       'face 'error))
+                               (:eval (if (and (not buffer-read-only) (buffer-modified-p))
+                                          "● " "  " )
+                                      'face 'error)
 
                                ;; Buffer name (no longer than 1/3 of the screen)
                                ;; mode-line-remote
-                               mode-line-buffer-identification
-                               " "
+                               (:eval (truncate-string-to-width
+                                       (buffer-name)
+                                       50
+                                       nil nil t))
+                               ;; " "
                                (:eval (when (mode-line-window-selected-p)" %l:%c"))
-                               (:eval (when (mode-line-window-selected-p)
-                                        (propertize
-                                         (concat " %p%"
-                                                 "  "
-                                                 "「 %m 」")
-                                         'face (if (cogent-line-selected-window-active-p)
-                                                   'shadow
-                                                 'mode-line-inactive))))))
+                               ;; (:eval (when (mode-line-window-selected-p)
+                               ;;          (propertize
+                               ;;           (concat " %p%"
+                               ;;                   "  "
+                               ;;                   "「 %m 」")
+                               ;;           'face (if (cogent-line-selected-window-active-p)
+                               ;;                     'shadow
+                               ;;                   'mode-line-inactive))))
+                               ))
 
 (setq my/mode-line-padding
       '(:eval
@@ -91,8 +102,8 @@ This is needed to make sure that text is properly aligned.")
 ;;     (substring vc-mode (+ (if (eq backend 'hg) 2 3) 2))))
 ;; (vc-branch)
 
-(set-face-attribute 'mode-line-inactive nil :foreground "#555" :background "#222"
-                    :box '(:line-width 2 :color "#222"))
+;; (set-face-attribute 'mode-line-inactive nil :foreground "#555" :background "#222"
+;;                     :box '(:line-width 2 :color "#222"))
 (use-package time
   :defer 10
   :config
@@ -107,8 +118,10 @@ This is needed to make sure that text is properly aligned.")
         '((propertize (concat " " 12-hours ":" minutes " " am-pm " ")
                       'face 'my/display-time)))
   (set-face-attribute 'my/display-time nil :foreground "#fff" :background "#333"
-                      :box '(:line-width 1 :color "#323"))
+                      ;; :box '(:line-width 1 :color "#323")
+                      )
   (display-time-mode t))
 (set-face-attribute  'org-mode-line-clock nil :foreground "#fff" :background "#333"
-                     :box '(:line-width 1 :color "#323") :inherit 'bold)
+                     ;; :box '(:line-width 1 :color "#323")
+                     :inherit 'bold)
 

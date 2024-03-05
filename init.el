@@ -11,29 +11,26 @@
             (message "*** Emacs loaded in %s seconds with %d garbage collections."
                      (emacs-init-time "%.2f")
                      gcs-done)))
-(defun my-snip-replace-marker ()
-  (delete-region (search-backward "<<+>>")
-                 (search-forward "<<+>>")))
-(defun my-snip-use-package ()
-  (insert  "(use-package <<+>>)")
-  (my-snip-replace-marker))
 
 (require 'expand)
 (add-hook 'expand-expand-hook 'indent-according-to-mode)
 (add-hook 'expand-jump-hook 'indent-according-to-mode)
 (defvar expandable-placeholder "<<+>>")
-(cl-defmacro define-epandable (mode-abbrev-table abbreviation snippet)
+(defmacro define-epandable (mode-abbrev-table abbreviation snippet)
   (let ((slots-snip (with-temp-buffer
                       (insert snippet)
                       (goto-char (point-min))
                       (search-forward expandable-placeholder nil t)
                       (search-backward expandable-placeholder nil t)
                       (cons (cl-loop
-                             for x = (when-let ((end-of-placeholder (search-forward expandable-placeholder nil t))
-                                                (start-of-placeholder (search-backward expandable-placeholder nil t)))
-                                       (delete-region start-of-placeholder
-                                                      end-of-placeholder)
-                                       start-of-placeholder)
+                             for x =
+                             (when-let ((end-of-placeholder
+                                         (search-forward expandable-placeholder nil t))
+                                        (start-of-placeholder
+                                         (search-backward expandable-placeholder nil t)))
+                               (delete-region start-of-placeholder
+                                              end-of-placeholder)
+                               start-of-placeholder)
                              while x
                              collect x)
                             (buffer-string)))))
@@ -88,6 +85,7 @@
 (setq package-archives
       '(("melpa" . "https://melpa.org/packages/")
         ("elpa" . "https://elpa.gnu.org/packages/")
+        ;; ("gnu-devel" . "https://elpa.gnu.org/devel/")
         ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
 
 ;;; BOOTSTRAP USE-PACKAGE
@@ -110,7 +108,7 @@
 ;; asynchronous bytecode compilation and various other actions makes
 (use-package async
   :ensure t
-  :defer t
+  :after dired
   :init
   (dired-async-mode 1))
 
@@ -128,7 +126,7 @@
 
 ;;; MY STUFF
 (use-package custom-variables
-  :ensure nil :no-require t   :demand t
+  :ensure nil :no-require t :demand t
   :init
   (cl-defmacro let-regex ((bindings (string regex)) &body body)
     "Macro for creating BINDINGS to captured blocks of REGEX found in a STRING.
@@ -166,6 +164,19 @@ If no binding is captured section of regex is found for a BINDING an error is si
   (defvar my/my-system
     (equal "gavinok" (getenv "USER"))
     "Non-nil value if this is my system."))
+
+(use-package image-mode
+  :bind (:map image-mode-map
+              ("&" . my/shell-command-on-file)
+              ("<down-mouse-1>" . (lambda ()
+                                    (interactive)
+                                    (dnd-begin-file-drag (buffer-file-name)))))
+  :config
+  (defun my/dnd-this-file ()
+    "Begin dragging the current file using drag and drop"
+    (interactive)
+    (dnd-begin-file-drag (buffer-file-name))))
+
 (use-package custom-functions
   :ensure nil :no-require t
   :bind (([remap scroll-up-command] . my/scroll-down)
@@ -178,8 +189,6 @@ If no binding is captured section of regex is found for a BINDING an error is si
          ("C-c d"   . my/next-fn)
          :repeat-map my/next-fn-map
          ("d" . my/next-fn)
-         :map image-mode-map
-         ("&" . my/shell-command-on-file)
          :repeat-map change-number-repeat-map
          ("a" . my/increment-number-at-point)
          ("x" . my/decrement-number-at-point))
@@ -337,14 +346,6 @@ Depends on the `gh' commandline tool"
     (forward-char -1)))
 
 ;;; Defaults
-;; (use-package undo-fu
-;;   :ensure t
-;;   :bind (("C-x u"   . undo-fu-only-undo)
-;;          ("C-/"     . undo-fu-only-undo)
-;;          ("C-z"     . undo-fu-only-undo)
-;;          ("C-S-z"   . undo-fu-only-redo)
-;;          ("C-x C-u" . undo-fu-only-redo)
-;;          ("C-?"     . undo-fu-only-redo)))
 (use-package undo-fu-session ; Persistant undo history
   :ensure t
   :demand t
@@ -394,12 +395,12 @@ Depends on the `gh' commandline tool"
   ;; How I like my margins
   ;; (unless my/is-terminal
   ;;   ;; Changed to avoid breaking outline minor mode
-  ;;   (setq-default left-margin-width 1)
+  ;;   (setopt left-margin-width 0)
   ;;   (setq-default right-margin-width 1)
   ;;   )
 
   ;; No delay when deleting pairs
-  (setq-default delete-pair-blink-delay 0)
+  (setopt delete-pair-blink-delay 0)
   (blink-cursor-mode -1)
   ;; change truncation indicators
   (define-fringe-bitmap 'right-curly-arrow
@@ -433,22 +434,22 @@ Depends on the `gh' commandline tool"
 
 ;;;; Defaults
   ;; Handle long lines
-  (setq-default bidi-paragraph-direction 'left-to-right)
-  (setq-default bidi-inhibit-bpa t)
+  (setopt bidi-paragraph-direction 'left-to-right)
+  (setopt bidi-inhibit-bpa t)
   (global-so-long-mode 1)
 
-  (setq-default history-length 1000
-                use-dialog-box nil
-                delete-by-moving-to-trash t
-                create-lockfiles nil
-                auto-save-default nil
-                ring-bell-function 'ignore)
+  (setopt history-length 1000
+          use-dialog-box nil
+          delete-by-moving-to-trash t
+          create-lockfiles nil
+          auto-save-default nil
+          ring-bell-function 'ignore)
 
 ;;;; UTF-8
   (prefer-coding-system 'utf-8)
 ;;;; Remove Extra Ui
-  (fset 'yes-or-no-p 'y-or-n-p)    ; don't ask to spell out "yes"
-  (setq show-paren-context-when-offscreen 'overlay) ; Emacs 29
+  (setopt use-short-answers t) ; don't ask to spell out "yes"
+  (setopt show-paren-context-when-offscreen 'overlay) ; Emacs 29
   (show-paren-mode 1)              ; Highlight parenthesis
 
   ;; (if running-in-wsl
@@ -473,6 +474,16 @@ Depends on the `gh' commandline tool"
   ;; recentf
   (customize-set-value 'recentf-make-menu-items 150)
   (customize-set-value 'recentf-make-saved-items 150))
+
+(use-package time
+  :init
+  (setopt zoneinfo-style-world-list
+          '(("America/Edmonton" "Calgary")
+            ("America/Vancouver" "Vancouver")
+            ("America/New_York" "New York")
+            ("America/Whitehorse" "Whitehorse")
+            ("Europe/London" "London")
+            ("Asia/Tokyo" "Tokyo"))))
 
 (use-package font-setup :ensure nil :no-require t
   :demand t
@@ -511,13 +522,13 @@ Depends on the `gh' commandline tool"
                     "PragmataPro Mono:pixelsize=19:antialias=true:autohint=true"
                     nil 'append))
 
-(use-package treesit-auto
-  :ensure t
-  :custom
-  (treesit-auto-install 'prompt)
-  :config
-  (treesit-auto-add-to-auto-mode-alist 'all)
-  (global-treesit-auto-mode))
+;; (use-package treesit-auto
+;;   :ensure t
+;;   :custom
+;;   (treesit-auto-install 'prompt)
+;;   :config
+;;   (treesit-auto-add-to-auto-mode-alist 'all)
+;;   (global-treesit-auto-mode))
 (setq treesit-language-source-alist
       '((bash "https://github.com/tree-sitter/tree-sitter-bash")
         (cmake "https://github.com/uyha/tree-sitter-cmake")
@@ -534,7 +545,6 @@ Depends on the `gh' commandline tool"
         (python "https://github.com/tree-sitter/tree-sitter-python")
         (toml "https://github.com/tree-sitter/tree-sitter-toml")
         (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
-        (vue "https://github.com/ikatyang/tree-sitter-vue")
         (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
         (yaml "https://github.com/ikatyang/tree-sitter-yaml")
         (haskell "https://github.com/tree-sitter/tree-sitter-haskell")
@@ -543,27 +553,58 @@ Depends on the `gh' commandline tool"
         (ruby "https://github.com/tree-sitter/tree-sitter-ruby")
         (rust "https://github.com/tree-sitter/tree-sitter-rust")))
 
-(use-package vue-ts-mode
-  :mode "\\.vue\\'"
-  :hook ((vue-ts-mode . sgml-electric-tag-pair-mode))
-  :bind (:map vue-ts-mode-map
-              ("C-c C-t" . vue-ts-mode-element-transpose)
-              ("C-c C-w" . vue-ts-mode-attributes-toggle-wrap)
-              ("C-c C-o" . vue-ts-mode-element-match)
-              ("C-c C-f" . sgml-skip-tag-forward)
-              ("C-c C-n" . sgml-skip-tag-forward)
-              ("C-c C-b" . sgml-skip-tag-backward)
-              ("C-c C-p" . sgml-skip-tag-backward)
-              :repeat-map sgml-skip-tag
-              ("f" .  sgml-skip-tag-forward)
-              ("C-f" .  sgml-skip-tag-forward)
-              ("b" .  sgml-skip-tag-backward)
-              ("C-b" .  sgml-skip-tag-backward))
-  :init
-  (unless (package-installed-p 'vue-ts-mode)
-    (package-vc-install "https://github.com/theschmocker/vue-ts-mode"))
-  :config
-  (setopt vue-ts-mode-indent-offset 2))
+;; (use-package vue-ts-mode
+;;   :mode "\\.vue\\'"
+;;   :hook ((vue-ts-mode . sgml-electric-tag-pair-mode)
+;;          (vue-ts-mode . my/eglot-server-setup-paths)
+;;          (vue-ts-mode . eglot-ensure))
+;;   :bind (:map vue-ts-mode-map
+;;               ("C-c C-t" . vue-ts-mode-element-transpose)
+;;               ("C-c C-w" . vue-ts-mode-attributes-toggle-wrap)
+;;               ("C-c C-o" . vue-ts-mode-element-match)
+;;               ("C-c C-f" . sgml-skip-tag-forward)
+;;               ("C-c C-n" . sgml-skip-tag-forward)
+;;               ("C-c C-b" . sgml-skip-tag-backward)
+;;               ("C-c C-p" . sgml-skip-tag-backward)
+;;               :repeat-map sgml-skip-tag
+;;               ("f"   .  sgml-skip-tag-forward)
+;;               ("C-f" .  sgml-skip-tag-forward)
+;;               ("b"   .  sgml-skip-tag-backward)
+;;               ("C-b" .  sgml-skip-tag-backward))
+;;   :init
+;;   (unless (package-installed-p 'vue-ts-mode)
+;;     (package-vc-install "https://github.com/theschmocker/vue-ts-mode"))
+;;   (with-eval-after-load 'treesit
+;;     (push '(vue "https://github.com/ikatyang/tree-sitter-vue")
+;;           treesit-language-source-alist))
+;;   :config
+;;   (setopt vue-ts-mode-indent-offset 2)
+;;   ;; from https://github.com/joaotavora/eglot/discussions/1184
+;;   (with-eval-after-load 'eglot
+;;     (defun vue-eglot-init-options ()
+;;       ;; installed with (my/eglot-server--npm-dependancy-install "typescript")
+;;       (let ((tsdk-path (expand-file-name
+;;                         "lib"
+;;                         (string-trim-right
+;;                          (shell-command-to-string (concat "npm list  --prefix "
+;;                                                           (my/eglot-server--npm-package-path "typescript")
+;;                                                           " --global --parseable typescript | head -n1"))))))
+;;         `(:typescript (:tsdk ,tsdk-path
+;;                              :languageFeatures (:completion
+;;                                                 (:defaultTagNameCase "both"
+;;                                                                      :defaultAttrNameCase "kebabCase"
+;;                                                                      :getDocumentNameCasesRequest nil
+;;                                                                      :getDocumentSelectionRequest nil)
+;;                                                 :diagnostics
+;;                                                 (:getDocumentVersionRequest nil))
+;;                              :documentFeatures (:documentFormatting
+;;                                                 (:defaultPrintWidth 100
+;;                                                                     :getDocumentPrintWidthRequest nil)
+;;                                                 :documentSymbol t
+;;                                                 :documentColor t)))))
+;;     (push `(vue-ts-mode . ("vue-language-server" "--stdio"
+;;                            :initializationOptions ,(vue-eglot-init-options)))
+;;           eglot-server-programs)))
 
 (use-package unified-marks :ensure nil :no-require t
   :custom
@@ -709,7 +750,7 @@ This way our searches are kept up to date"
    ("C-<escape>"              . embark-act)
    ([remap describe-bindings] . embark-bindings)
    :map embark-file-map
-   ("C-d"                     . dragon-drop)
+   ("C-d" . dragon-drop)
    :map embark-defun-map
    ("M-t" . chatgpt-gen-tests-for-region)
    :map embark-general-map
@@ -741,8 +782,8 @@ This way our searches are kept up to date"
     (unless (bound-and-true-p consult--preview-function)
       (save-selected-window
         (let ((embark-quit-after-action nil))
-          (embark-dwim)))))
-  )
+          (embark-dwim))))))
+
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
   :ensure t
@@ -763,8 +804,20 @@ This way our searches are kept up to date"
          ("U"    . 0x0-dwim))
   :commands (0x0-dwim 0x0-upload-file))
 
+(use-package completion-preview
+  :demand t
+  :bind (:map completion-preview-active-mode-map
+              ("C-i" . completion-preview-insert)
+              ("M-n" . completion-preview-next-candidate)
+              ("M-p" . completion-preview-prev-candidate))
+  :init
+  (load "~/.emacs.d/lisp/completion-preview.el")
+  :config
+  (completion-preview-mode 1))
+
 ;;;; Code Completion
 (use-package corfu
+  :disabled t
   :ensure t
   ;; Optional customizations
   :custom
@@ -826,22 +879,22 @@ This way our searches are kept up to date"
 
 (use-package yasnippet-snippets
   :ensure t :after yasnippet)
-;; (use-package yasnippet-capf
-;;   :ensure nil
-;;   :quelpa (yasnippet-capf :fetcher github :repo "elken/yasnippet-capf")
-;;   :after yasnippet
-;;   :hook ((prog-mode . yas-setup-capf)
-;;          (text-mode . yas-setup-capf)
-;;          (lsp-mode  . yas-setup-capf)
-;;          (sly-mode  . yas-setup-capf))
-;;   :bind (("C-c y" . yasnippet-capf)
-;;          ("M-+"   . yas-insert-snippet))
-;;   :config
-;;   (defun yas-setup-capf ()
-;;     (setq-local completion-at-point-functions
-;;                 (cons 'yasnippet-capf
-;;                       completion-at-point-functions)))
-;;   (push 'yasnippet-capf completion-at-point-functions))
+(use-package yasnippet-capf
+  :ensure nil
+  :quelpa (yasnippet-capf :fetcher github :repo "elken/yasnippet-capf")
+  :after yasnippet
+  :hook ((prog-mode . yas-setup-capf)
+         (text-mode . yas-setup-capf)
+         (lsp-mode  . yas-setup-capf)
+         (sly-mode  . yas-setup-capf))
+  :bind (("C-c y" . yasnippet-capf)
+         ("M-+"   . yas-insert-snippet))
+  :config
+  (defun yas-setup-capf ()
+    (setq-local completion-at-point-functions
+                (cons 'yasnippet-capf
+                      completion-at-point-functions)))
+  (push 'yasnippet-capf completion-at-point-functions))
 
 ;;; THEMEING
 (use-package spaceway-theme
@@ -949,7 +1002,7 @@ This way our searches are kept up to date"
 
 ;;; VTERM AND ESHELL
 (use-package vterm
-  :bind (("C-x t" . vterm)
+  :bind (("C-x v t" . vterm)
          :map vterm-mode-map
          ("M-p" . vterm-send-up)
          ("M-n" . vterm-send-down))
@@ -1233,11 +1286,16 @@ This way our searches are kept up to date"
             "\\*GDB.*out\\*"
             help-mode
             compilation-mode))
-  (setopt popper-display-control 'user)
+  (setopt popper-display-control t)
   (popper-mode +1))
-(use-package replace
-  :demand t
-  :bind (("C-x R" . query-replace-regexp)))
+
+(use-package replace-from-region
+  :ensure t
+  :bind (("C-x R" . query-replace-from-region))
+  :init
+  (unless (package-installed-p 'replace-from-region)
+    (package-vc-install `(replace-from-region :url "https://github.com/rubikitch/replace-from-region.git"))))
+
 (use-package multiple-cursors
   :ensure t
   :bind (;; Call with a 0 arg to skip one
@@ -1250,6 +1308,7 @@ This way our searches are kept up to date"
         (corfu-mode -1)
       (corfu-mode 1)))
   (cl-pushnew 'toggle-corfu-auto-for-mc multiple-cursors-mode-hook))
+
 (use-package phi-search
   :after multiple-cursors
   :ensure t
@@ -1299,68 +1358,19 @@ This way our searches are kept up to date"
   :commands (hippie-expand)
   :custom
   (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'"))
+  (dabbrev-upcase-means-case-search t)
   :config
-  (setq hippie-expand-try-functions-list
-        '(try-expand-dabbrev
-          try-expand-dabbrev-all-buffers
-          try-expand-dabbrev-from-kill
-          try-complete-lisp-symbol-partially
-          try-complete-lisp-symbol
-          try-complete-file-name-partially
-          try-complete-file-name
-          try-expand-all-abbrevs
-          try-expand-list
-          try-expand-line)))
+  (setopt hippie-expand-try-functions-list
+          '(try-expand-all-abbrevs
+            try-expand-dabbrev
+            try-expand-dabbrev-all-buffers
+            try-expand-dabbrev-from-kill
+            try-complete-lisp-symbol-partially
+            try-complete-lisp-symbol
+            try-complete-file-name-partially
+            try-complete-file-name)))
 
 ;;; FOLDING
-;; (use-package hideshow
-;;   :disable t
-;;   :hook (prog-mode . hs-minor-mode)
-;;   :bind (:map hs-minor-mode-map
-;;               ("C-<tab>"   . hs-cycle)
-;;               ("<backtab>" . hs-global-cycle))
-;;   :init
-;;   (define-advice hs-toggle-hiding (:before (&rest _) move-point-to-mouse)
-;;     "Move point to the location of the mouse pointer."
-;;     (mouse-set-point last-input-event))
-;;   (defun hs-cycle (&optional level)
-;;     (interactive "p")
-;;     (let (message-log-max (inhibit-message t))
-;;       (if (= level 1)
-;;           (pcase last-command
-;;             ('hs-cycle
-;;              (hs-hide-level 1)
-;;              (setq this-command 'hs-cycle-children))
-;;             ('hs-cycle-children
-;;              ;; TODO: Fix this case. `hs-show-block' needs to be
-;;              ;; called twice to open all folds of the parent
-;;              ;; block.
-;;              (save-excursion (hs-show-block))
-;;              (hs-show-block)
-;;              (setq this-command 'hs-cycle-subtree))
-;;             ('hs-cycle-subtree
-;;              (hs-hide-block))
-;;             (_
-;;              (if (not (hs-already-hidden-p))
-;;                  (hs-hide-block)
-;;                (hs-hide-level 1)
-;;                (setq this-command 'hs-cycle-children))))
-;;         (hs-hide-level level)
-;;         (setq this-command 'hs-hide-level))))
-
-;;   (defun hs-global-cycle ()
-;;     (interactive)
-;;     (pcase last-command
-;;       ('hs-global-cycle (save-excursion (hs-show-all))
-;;                         (setq this-command 'hs-global-show))
-;;       (_ (hs-hide-all))))
-;;   (set-display-table-slot
-;;    standard-display-table
-;;    'selective-display
-;;    (let ((face-offset (* (face-id 'font-lock-comment-face)
-;;                          (lsh 1 22))))
-;;      (vconcat (mapcar (lambda (c) (+ face-offset c)) " ▾")))))
-
 (use-package outline
   ;; :hook (prog-mode . outline-minor-mode)
   :bind (:map outline-minor-mode-map
@@ -1462,16 +1472,16 @@ This way our searches are kept up to date"
          (javascript-mode . lsp-deferred)
          (typescript-ts-mode . lsp-deferred)
          (tsx-ts-mode . lsp-deferred)
-         (vue-ts-mode . lsp-deferred)
+         ;; (vue-ts-mode . lsp-deferred)
          (web-mode . lsp-deferred))
   :init
   (use-package lsp-javascript :ensure nil :no-require t
     :hook (javascript-mode . lsp-deferred)
     :config
-    (setq lsp-javascript-display-inlay-hints t
-          lsp-javascript-display-return-type-hints t
-          lsp-javascript-display-variable-type-hints t
-          lsp-javascript-display-parameter-type-hints t)
+    (setopt lsp-javascript-display-inlay-hints t
+            lsp-javascript-display-return-type-hints t
+            lsp-javascript-display-variable-type-hints t
+            lsp-javascript-display-parameter-type-hints t)
     (with-eval-after-load 'js
       (keymap-set js-mode-map "M-." 'xref-find-definitions)))
 
@@ -1541,7 +1551,7 @@ This way our searches are kept up to date"
   :when (executable-find "nvm")
   :commands (my/nvm-use)
   :quelpa (nvm :fetcher github :repo "rejeep/nvm.el")
-  :commands (nvm-use nvm-use-for-buffer)
+  :commands (nvm-use nvm-use-for-buffer my/nvm-use)
   :config
   (setq nvm-dir "/home/gavinok/.config/nvm")
   (defun my/nvm-use () (interactive)
@@ -1607,6 +1617,9 @@ This way our searches are kept up to date"
            ("C-M-u" . web-mode-element-parent)
            ("C-M-d" . web-mode-element-child))
     :custom
+    ;; TODO
+    ;; setup [[https://raw.githubusercontent.com/manateelazycat/lsp-bridge/master/core/tailwind_css_keyword.txt][https://raw.githubusercontent.com/manateelazycat/lsp-bridge/master/core/tailwind_css_keyword.txt]]
+    ;; as a dictionary completion source
     (web-mode-markup-indent-offset 2)
     (web-mode-css-indent-offset 2)
     (web-mode-code-indent-offset 2)
@@ -1630,7 +1643,7 @@ This way our searches are kept up to date"
           web-mode-enable-auto-quoting nil
           web-mode-enable-auto-pairing nil
           web-mode-enable-auto-opening nil))
-;;; Rust
+;;;; Rust
   (use-package rust-mode    :ensure t :mode "\\.rs\\'"
     :init
     ;; scratchpad for rust
@@ -1717,7 +1730,7 @@ This way our searches are kept up to date"
                              t)))
   (add-hook 'emmet-mode-hook 'emmet-setup-capf))
 
-;;; Lisp
+;;;; Lisp
 (use-package sly
   :ensure t
   :commands (sly sly-connect)
@@ -1834,11 +1847,11 @@ This way our searches are kept up to date"
   :defer 10
   :bind (("M-g d"   . flymake-show-buffer-diagnostics)
          ("M-g M-d" . flymake-show-project-diagnostics)
-         ("M-g M-n" . flymake-goto-next-error)
-         ("M-g M-p" . flymake-goto-prev-error)
+         ("M-g M-n" . scan-buf-next-region)
+         ("M-g M-p" . scan-buf-previous-region)
          :repeat-map flymake-repeatmap
-         ("p" . flymake-goto-prev-error)
-         ("n" . flymake-goto-next-error)
+         ("p" . scan-buf-previous-region)
+         ("n" . scan-buf-next-region)
          :map flymake-diagnostics-buffer-mode-map
          ("?" . flymake-show-diagnostic-here)
          :map flymake-project-diagnostics-mode-map
@@ -1940,7 +1953,7 @@ Used to see multiline flymake errors"
   (setq dired-bind-jump nil)
   :config
   (setq dired-listing-switches "-aghoA --group-directories-first")
-;;;;; Hide . and .. in dired
+  ;; Hide . and .. in dired
   (setq dired-omit-files
         (setq dired-omit-files "^\\.?#\\|^\\.$\\|^\\.\\.$\\|^\\..*$"))
 ;;;;; xdg-open integration
@@ -1963,47 +1976,52 @@ Used to see multiline flymake errors"
   :config
   (auth-source-pass-enable))
 
-(use-package tab-bar
-  :commands tab-bar-mode
-  :bind (("C-x x T" . tab-bar-mode)
-         ("C-x x R" . tab-bar-rename-tab)
-         ("C-x x C" . tab-bar-new-tab)
-         ("C-x x N" . tab-bar-switch-to-next-tab)
-         ("C-x x K" . tab-bar-close-tab-by-name)
-         ("C-x x B" . tab-bar-select-tab-by-name)
-         :repeat-map tab-bar-repeatmap
-         ("t" . tab-bar-mode)
-         ("T" . tab-bar-mode)
-         ("r" . tab-bar-rename-tab)
-         ("c" . tab-bar-new-tab)
-         ("n" . tab-bar-switch-to-next-tab)
-         ("p" . tab-bar-switch-to-prev-tab)
-         ("k" . tab-bar-close-tab-by-name)
-         ("b" . tab-bar-select-tab-by-name)
-         (">" . tab-bar-switch-to-last-tab)
-         ("5" . tab-bar-detach-tab))
-  :config
-  (setopt tab-bar-auto-width-min '(15 2))
-  (defun tab-bar-tab-name-format-comfortable (tab i)
-    "Add spacing to tab bar mode"
-    (propertize (concat " " (tab-bar-tab-name-format-default tab i) " ")
-                'face (funcall tab-bar-tab-face-function tab)))
-
-  (setopt tab-bar-close-button-show nil
-          tab-bar-new-button-show nil
-          tab-bar-format '(tab-bar-separator tab-bar-format-menu-bar tab-bar-format-tabs tab-bar-separator)
-          tab-bar-tab-name-format-function #'tab-bar-tab-name-format-comfortable)
-
-  (add-to-list 'tab-bar-format #'tab-bar-format-menu-bar)
-
-  ;; TODO Determin a better way to add some of my modeline to the tab bar
-  ;; (customize-set-variable 'tab-bar-format (cons #'tab-bar-format-global tab-bar-format))
-  )
-
 ;;; MODELINE
 (load (locate-user-emacs-file
        "lisp/modeline.el"))
 
+(use-package tab-bar
+  :commands tab-bar-mode
+  :config
+  (setopt tab-bar-show t)
+  ;; (setopt tab-bar-auto-width-min '(15 2))
+  (defun tab-bar-tab-name-format-comfortable (tab i)
+    "Add spacing to tab bar mode"
+    (propertize (concat " " (truncate-string-to-width
+                             (tab-bar-tab-name-format-default tab i)
+                             tab-bar-tab-name-truncated-max
+                             nil nil t)
+                        " ")
+                'face (funcall tab-bar-tab-face-function tab)))
+  (setq tab-bar-format `(tab-bar-separator
+                         tab-bar-format-menu-bar
+                         tab-bar-format-tabs
+                         tab-bar-separator
+                         tab-bar-format-align-right
+                         (lambda ()
+                           `((my-tab-modeline
+                              menu-item
+                              ,(format-mode-line
+                                `(,@my/mode-line-left-side
+                                  " "
+                                  ,(when (fboundp 'eglot)
+                                     (if (eglot-managed-p)
+                                         (propertize (or "E")
+                                                     'face 'success)
+                                       ""))
+                                  mode-line-process
+                                  (which-function-mode ("" which-func-format ""))
+                                  (vc-mode vc-mode)))
+                              ignore)))
+                         tab-bar-separator
+                         tab-bar-separator
+                         tab-bar-format-global))
+  ;; Make sure that the custom sections of the modeline are actually rendered
+  (setq-default mode-line-format nil)
+  (setopt tab-bar-close-button-show nil
+          tab-bar-tab-name-format-function #'tab-bar-tab-name-format-comfortable)
+
+  (tab-bar-mode 1))
 ;;; Server Setup
 (use-package server
   :ensure nil
@@ -2011,8 +2029,11 @@ Used to see multiline flymake errors"
   :config
   (unless (server-running-p)
     (server-start)))
-
-;;;; Better PDFs
+(use-package desktop
+  :custom
+  (desktop-restore-frames nil)
+  (desktop-modes-not-to-save '(tags-table-mode exwm-mode)))
+;;; Better PDFs
 ;;https://github.com/politza/pdf-tools
 ;; annotate pdfs with c-c c-a
 ;; hl with c-c c-a h
@@ -2032,20 +2053,9 @@ Used to see multiline flymake errors"
                '("\\.pdf\\'" . (lambda (file link)
                                  (org-pdftools-open link)))))
 
-;;; mu4e
-;; (add-to-list 'load-path "/usr/share/emacs/site-lisp/")
-;; (load "~/.emacs.d/mu4e-config.el")
-
 (use-package keycast
   :ensure t
   :commands (keycast-mode))
-
-;; use emacs as a clipboard manager
-(use-package clipmon
-  :ensure t :defer 5
-  :unless (or my/is-termux (not (executable-find "clipmon")))
-  :config
-  (clipmon-mode-start))
 
 ;;; Winner Mode
 (use-package winner
@@ -2055,7 +2065,7 @@ Used to see multiline flymake errors"
   :config
   :init (winner-mode 1)) ; Window Managment Undo
 
-;; Org Present
+;;; Org Present
 (use-package org-present
   :bind (:map org-mode-map
               ("C-c p" . org-present))
@@ -2128,37 +2138,7 @@ Used to see multiline flymake errors"
   (defun my/ement-connect ()
     (interactive)
     (ement-connect :user-id "@gavinok:matrix.org"
-                   :password (password-store-get "riot.im/gavinok")))
-  )
-
-;; (use-package hammy
-;;   :ensure nil
-;;   :quelpa (hammy :fetcher github :repo "alphapapa/hammy.el")
-;;   :commands (happy-start hammy-start-org-clock-in)
-;;   :config
-;;   (hammy-define (propertize "🍅" 'face '(:foreground "tomato"))
-;;     :documentation "The classic pomodoro timer."
-;;     :intervals
-;;     (list
-;;      (interval :name "Work"
-;;                :duration "25 minutes"
-;;                :before (do (announce "Starting work time.")
-;;                            (notify "Starting work time."))
-;;                :advance (do (announce "Break time!")
-;;                             (notify "Break time!")))
-;;      (interval :name "Break"
-;;                :duration (do (if (and (not (zerop cycles))
-;;                                       (zerop (mod cycles 3)))
-;;                                  ;; If a multiple of three cycles have
-;;                                  ;; elapsed, the fourth work period was
-;;                                  ;; just completed, so take a longer break.
-;;                                  "30 minutes"
-;;                                "5 minutes"))
-;;                :before (do (announce "Starting break time.")
-;;                            (notify "Starting break time."))
-;;                :advance (do (announce "Break time is over!")
-;;                             (notify "Break time is over!")))))
-;;   )
+                   :password (password-store-get "riot.im/gavinok"))))
 
 (setq pixel-scroll-precision-interpolate-page t)
 (pixel-scroll-precision-mode t)
@@ -2196,63 +2176,53 @@ Used to see multiline flymake errors"
 (put 'set-goal-column 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
 (put 'dired-find-alternate-file 'disabled nil)
+(put 'list-timers 'disabled nil)
 
 (setenv "PATH" (concat (getenv "PATH") ":/home/gavinok/.cargo/bin"))
 
-(load (locate-user-emacs-file
-       "lisp/eglot-lsp-installer.el"))
-(with-eval-after-load 'eglot
-  ;; from https://github.com/joaotavora/eglot/discussions/1184
-  (defun vue-eglot-init-options ()
-    ;; installed with (my/eglot-server--npm-dependancy-install "typescript")
-    (let ((tsdk-path (expand-file-name
-                      "lib"
-                      (string-trim-right
-                       (shell-command-to-string (concat "npm list  --prefix "
-                                                        (my/eglot-server--npm-package-path "typescript")
-                                                        " --global --parseable typescript | head -n1"))))))
-      `(:typescript (:tsdk ,tsdk-path
-                           :languageFeatures (:completion
-                                              (:defaultTagNameCase "both"
-                                                                   :defaultAttrNameCase "kebabCase"
-                                                                   :getDocumentNameCasesRequest nil
-                                                                   :getDocumentSelectionRequest nil)
-                                              :diagnostics
-                                              (:getDocumentVersionRequest nil))
-                           :documentFeatures (:documentFormatting
-                                              (:defaultPrintWidth 100
-                                                                  :getDocumentPrintWidthRequest nil)
-                                              :documentSymbol t
-                                              :documentColor t)))))
+(use-package eglot
+  :bind (:map eglot-diagnostics-map
+              ("M-RET" . eglot-code-actions))
+  :config
+  (load (locate-user-emacs-file
+         "lisp/eglot-lsp-installer.el"))
 
-  (push `((HTML-mode :language-id "html") . ,(eglot-alternatives `(("vscode-html-language-server" "--stdio") ("html-languageserver" "--stdio"))))
-        eglot-server-programs)
-  (push `(vue-ts-mode . ("vue-language-server" "--stdio"
-                         :initializationOptions ,(vue-eglot-init-options)))
-        eglot-server-programs)
-  ;; (push `(vue-ts-mode . (,(file-name-concat (my/eglot-server--npm-package-path "@vue/language-server") "bin/vue-language-server") "--stdio"
-  ;;                        :initializationOptions ,(vue-eglot-init-options)))
-  ;;       eglot-server-programs)
-  (push `(java-mode . ("/home/gavinok/java-language-server/dist/lang_server_linux.sh")) eglot-server-programs)
-  (push `(sgml-mode . ("emmet-language-server" "--stdio")) eglot-server-programs)
-  (push `((typst-mode typst-ts-mode) . ("typst-lsp")) eglot-server-programs)
-  (when nil
-    ;; tricks for improving performance
-    (fset #'jsonrpc--log-event #'ignore)
-    (setopt eglot-events-buffer-size 0
-            eglot-ignored-server-capabilities '(:hoverProvider
-                                                :documentHighlightProvider)
-            eglot-autoshutdown t)
-    (add-hook 'eglot-managed-mode-hook
-              (lambda ()
-                "Make sure Eldoc will show us all of the feedback at point."
-                (setq-local eldoc-documentation-strategy
-                            #'eldoc-documentation-compose))))
-  )
+  ;; Inlay add typehints for typescript
+  (add-to-list 'eglot-server-programs
+               `((js-mode js-ts-mode tsx-ts-mode typescript-ts-mode typescript-mode)
+                 .
+                 ("typescript-language-server" "--stdio"
+                  :initializationOptions
+                  (:preferences
+                   (:includeInlayParameterNameHints "all"
+                                                    :includeInlayParameterNameHintsWhenArgumentMatchesName t
+                                                    :includeInlayFunctionParameterTypeHints t
+                                                    :includeInlayVariableTypeHints t
+                                                    :includeInlayVariableTypeHintsWhenTypeMatchesName t
+                                                    :includeInlayPropertyDeclarationTypeHints t
+                                                    :includeInlayFunctionLikeReturnTypeHints t
+                                                    :includeInlayEnumMemberValueHints t)))))
+  (add-to-list eglot-server-programs
+               `((HTML-mode :language-id "html") . ,(eglot-alternatives `(("vscode-html-language-server" "--stdio") ("html-languageserver" "--stdio")))))
+  (add-to-list eglot-server-programs `(java-mode . ("/home/gavinok/java-language-server/dist/lang_server_linux.sh")))
+  (add-to-list eglot-server-programs `((typst-mode typst-ts-mode) . ("typst-lsp")))
+
+  ;; tricks for improving performance
+  (fset #'jsonrpc--log-event #'ignore)
+  (setopt eglot-events-buffer-size 0
+          eglot-autoshutdown t)
+
+  ;; Extra performance saving
+  ;; (setopt eglot-ignored-server-capabilities '(:documentHighlightProvider))
+
+  (add-hook 'eglot-managed-mode-hook
+            (lambda ()
+              "Make sure Eldoc will show us all of the feedback at point."
+              (setq-local eldoc-documentation-strategy
+                          #'eldoc-documentation-compose))))
 
 (use-package dape
   ;; Currently only on github
-  :disabled t
   :init
   (unless (package-installed-p 'dape)
     (package-vc-install "https://github.com/svaante/dape"))
@@ -2280,6 +2250,7 @@ Used to see multiline flymake errors"
      :showReturnValue t)
    dape-configs))
 
+;; Describe this code
 (use-package devil
   :when (eq system-type 'android)
   :demand t
@@ -2289,42 +2260,27 @@ Used to see multiline flymake errors"
   (global-devil-mode 1)
   (setq overriding-text-conversion-style nil))
 
-;; (use-package macrursors
-;;   :bind (("C-c SPC" . macrursors-select)
-;;          ("C-M-." . macrursors-mark-next-line-or-instance-of)
-;;          ("C-M-," . macrursors-mark-prev-line-or-instance-of))
-;;   :init
-;;   (unless (package-installed-p 'macrursors)
-;;     (package-vc-install "https://github.com/corytertel/macrursors"))
-;;   :config
-;;   (defun macrursors-mark-prev-line-or-instance-of ()
-;;     (interactive)
-;;     (if (and transient-mark-mode mark-active (not (eq (mark) (point))))
-;;         (macrursors-mark-previous-instance-of)
-;;       (macrursors-mark-previous-line 1)))
-
-;;   (defun macrursors-mark-next-line-or-instance-of ()
-;;     (interactive)
-;;     (if (and transient-mark-mode mark-active (not (eq (mark) (point))))
-;;         (macrursors-mark-next-instance-of)
-;;       (macrursors-mark-next-line 1)))
-;;   (dolist (mode '(corfu-mode))
-;;     (add-hook 'macrursors-pre-finish-hook mode)
-;;     (add-hook 'macrursors-post-finish-hook mode)))
-
-(use-package emacs-lsp-booster :no-require t
+(use-package eglot-booster
   :after lsp-mode
   :when (executable-find "cargo")
+  :init
+  (unless (package-installed-p 'eglot-booster)
+    (package-vc-install '(eglot-booster :url "https://github.com/jdtsmith/eglot-booster")))
   :config
+  ;; tricks for improving performance
+  (fset #'jsonrpc--log-event #'ignore)
+  (setopt eglot-events-buffer-size 0
+          eglot-autoshutdown t)
+
+  ;; install and setup lsp booster
   (let ((emacs-lsp-booster-repo "https://github.com/blahgeek/emacs-lsp-booster")
         (emacs-lsp-booster-dir (file-name-concat
                                 (expand-file-name user-emacs-directory)
                                 "emacs-lsp-booster")))
     (if (file-directory-p emacs-lsp-booster-dir)
-        (setq exec-path (append
-                         (list (file-name-concat emacs-lsp-booster-dir
-                                                 "target/release/"))
-                         exec-path))
+        (push (file-name-concat emacs-lsp-booster-dir
+                                "target/release/")
+              exec-path)
       (progn
         (vc-clone emacs-lsp-booster-repo 'Git emacs-lsp-booster-dir)
         (let ((default-directory emacs-lsp-booster-dir))
@@ -2344,27 +2300,57 @@ Used to see multiline flymake errors"
 
                                       ((or "open from host-name\n" "open\n" "run\n"))
                                       (_ (error "Unhandled case %s for event from Building emacs-lsp-booster")))
-                                    ))
-          )))
+                                    ))))))
+  (eglot-booster-mode))
 
-    (define-advice json-parse-buffer (:around (old-fn &rest args) lsp-booster-parse-bytecode)
-      "Try to parse bytecode instead of json."
-      (or
-       (when (equal (following-char) ?#)
-         (let ((bytecode (read (current-buffer))))
-           (when (byte-code-function-p bytecode)
-             (funcall bytecode))))
-       (apply old-fn args)))
+(load (locate-user-emacs-file
+       "lisp/exwm-config.el"))
 
-    (define-advice lsp-resolve-final-command (:around (old-fn cmd &optional test?) add-lsp-server-booster)
-      "Prepend emacs-lsp-booster command to lsp CMD."
-      (let ((orig-result (funcall old-fn cmd test?)))
-        (if (and (not test?)                             ;; for check lsp-server-present?
-                 (not (file-remote-p default-directory)) ;; see lsp-resolve-final-command, it would add extra shell wrapper
-                 lsp-use-plists
-                 (not (functionp 'json-rpc-connection))  ;; native json-rpc
-                 (executable-find "emacs-lsp-booster"))
-            (progn
-              (message "Using emacs-lsp-booster for %s!" orig-result)
-              (cons "emacs-lsp-booster" orig-result))
-          orig-result)))))
+(use-package llm
+  :config
+  (require 'llm-ollama)
+  (defvar chatgpt-buffer "*CHAT*")
+  (defvar llm-refactoring-provider (make-llm-ollama :chat-model "codellama"))
+
+  (defun my/display-llm-response ()
+    (when (not ;; visible
+           (get-buffer-window chatgpt-buffer))
+      (with-current-buffer (get-buffer-window chatgpt-buffer) (markdown-mode t))
+      (switch-to-buffer-other-window chatgpt-buffer)))
+
+  (defun my/llm-display (msg)
+    (lambda (response)
+      (with-current-buffer (get-buffer-create chatgpt-buffer)
+        (insert response))
+      (message msg)
+      (my/display-llm-response)))
+
+  (defun my/llm-prompt ()
+    (interactive)
+    (let ((prompt (buffer-substring-no-properties (region-beginning)
+                                                  (region-end)) ))
+      (message prompt)
+      (llm-chat-async llm-refactoring-provider
+                      (llm-make-simple-chat-prompt prompt)
+                      (my/llm-display "Done")
+                      (my/llm-display "error")))))
+
+(use-package elfeed
+  :ensure t
+  :config
+  ;; Somewhere in your .emacs file
+  (setopt elfeed-feeds
+          '("https://feed.podbean.com/hopwag/feed.xml"
+            "https://drewdevault.com/blog/index.xml"
+            "http://lukesmith.xyz/rss.xml"
+            "https://suckless.org/atom.xml"
+            "https://ramsdenj.com/feed.xml"
+            "https://jdhao.github.io/index.xml"
+            "http://blog.qutebrowser.org/feeds/all.rss.xml"
+            "https://www.edwinwenink.xyz/index.xml"
+            "https://icyphox.sh/blog/feed.xml"
+            "https://sivers.org/podcast.rss"
+            "http://www.codemadness.org/atom.xml"
+            "https://xkcd.com/atom.xml"
+            "https://planet.emacslife.com/atom.xml"
+            "https://www.reddit.com/r/emacs/.rss")))

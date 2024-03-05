@@ -100,11 +100,11 @@
           (seq-filter (lambda (x) (not (string-match "\\(completed.org\\|gcal.org\\)" x)))
                       (directory-files-recursively org-directory "\\.org$"))))
 ;;;; School notes
-  (let ((school-notes "~/.local/Dropbox/DropsyncFiles/vimwiki/School"))
-    (when (file-directory-p school-notes)
-      (setq org-agenda-files
-            (append org-agenda-files
-                    (directory-files-recursively school-notes "\\.org$")))))
+  ;; (let ((school-notes "~/.local/Dropbox/DropsyncFiles/vimwiki/School"))
+  ;;   (when (file-directory-p school-notes)
+  ;;     (setq org-agenda-files
+  ;;           (append org-agenda-files
+  ;;                   (directory-files-recursively school-notes "\\.org$")))))
 
   ;; (load (locate-user-emacs-file
   ;;        "lisp/org-conflict.el"))
@@ -230,7 +230,7 @@
              nil
              :jump-to-captured t)
             ("gw" "Wish List" checkitem
-             (file+headline (lambda () (concat org-directory "/archive.org")) "Wish list")
+             (file+headline (lambda () (concat org-directory "/site/wishlist.org")) "Wish list")
              nil
              :jump-to-captured t)
 
@@ -251,6 +251,9 @@
              "* %?\nEntered on %U\n  %i\n  %a")
             ("kT" "Thoughts" entry
              (file+olp (lambda () (concat org-directory "/archive.org")) "Thoughts")
+             "* %?\nEntered on %U\n  %i\n  %a")
+            ("kw" "Word I learnt" entry
+             (file+olp (lambda () (concat org-directory "/archive.org")) "Words")
              "* %?\nEntered on %U\n  %i\n  %a")
 
             ("s" "Scheduled Event")
@@ -355,17 +358,17 @@
 (use-package org-protocol :ensure nil :after org)
 
 ;; Org Agenda Notifications
-(use-package org-yaap
-  :ensure nil
-  :after org
-  :defer 5
-  :quelpa (org-yaap :fetcher gitlab :repo "tygrdev/org-yaap")
-  :custom
-  (org-yaap-altert-severity 'critical)
-  (org-yaap-altert-before 10)
-  :config
-  (org-yaap-mode 1)
-  (org-yaap-daemon-start))
+;; (use-package org-yaap
+;;   :ensure nil
+;;   :after org
+;;   :defer 5
+;;   :quelpa (org-yaap :fetcher gitlab :repo "tygrdev/org-yaap")
+;;   :custom
+;;   (org-yaap-altert-severity 'critical)
+;;   (org-yaap-altert-before 10)
+;;   :config
+;;   (org-yaap-mode 1)
+;;   (org-yaap-daemon-start))
 
 (use-package my/backlinks :ensure nil :no-require t
   :bind (
