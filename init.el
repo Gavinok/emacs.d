@@ -1461,10 +1461,6 @@ This way our searches are kept up to date"
       :commands (pyvenv-activate)
       :config
       (pyvenv-mode t))
-    (use-package flymake-ruff
-      :ensure t
-      :when (executable-find "ruff")
-      :hook ((python-ts-mode . flymake-ruff-load)))
     (with-eval-after-load 'dape
       (push
        '(debugpy-attach-port-remote
@@ -1819,6 +1815,8 @@ This way our searches are kept up to date"
          :repeat-map flymake-repeatmap
          ("p" . scan-buf-previous-region)
          ("n" . scan-buf-next-region)
+         ("M-p" . scan-buf-previous-region)
+         ("M-n" . scan-buf-next-region)
          :map flymake-diagnostics-buffer-mode-map
          ("?" . flymake-show-diagnostic-here)
          :map flymake-project-diagnostics-mode-map
@@ -1834,6 +1832,15 @@ Used to see multiline flymake errors"
            (text (flymake-diagnostic-text (plist-get id :diagnostic))))
       (message text)))
   (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
+
+;; Use flycheck backends with flymake
+(use-package flymake-flycheck
+  :ensure t
+  :after flymake
+  :init
+  (setopt flycheck-disabled-checkers '(python-mypy flymake-flycheck:python-mypy))
+  :config
+  (add-hook 'flymake-mode-hook 'flymake-flycheck-auto))
 
 (use-package imenu
   :ensure nil
