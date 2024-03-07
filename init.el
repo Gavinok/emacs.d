@@ -1038,30 +1038,20 @@ This way our searches are kept up to date"
     `(lambda () (concat ,cmd " "
                         (shell-quote-argument buffer-file-name))))
 
-  (setq generic-compiler-modes
-        '(c++-mode c-mode
-                   java-mode java-ts-mode haskell-mode
-                   javascript-mode go-mode go-ts-mode
-                   nroff-mode  rust-ts-mode))
-  (setq custom-compiler-modes
-        `((purescript-mode . "spago run")
-          (bash-ts-mode    . ,(run-on-file "sh"))
-          (vue-ts-mode    . "npx eslint --fix . && npx vue-tsc --noEmit")))
+  (defvar custom-compiler-modes
+    `((purescript-mode . "spago run")
+      (vue-ts-mode    . "npx eslint --fix . && npx vue-tsc --noEmit")))
 
   (defun get-compiler ()
-    (let* ((default-compile-command "make -k ")
-           (compiler (assoc-default major-mode
-                                    (append
-                                     (cl-loop for mode in generic-compiler-modes
-                                              collect (cons mode #'generic-compiler))
-                                     custom-compiler-modes)
-                                    'eql default-compile-command)))
+    (let* ((compiler (assoc-default major-mode
+                                    custom-compiler-modes
+                                    'eql nil)))
       (cond ((or (file-exists-p "makefile")
                  (file-exists-p "Makefile"))
-             default-compile-command)
+             "make -k ")
             ((functionp compiler) (funcall compiler))
             ((stringp compiler) compiler)
-            (t default-compile-command))))
+            (t (funcall #'generic-compiler)))))
 
   ;; A total hack I realized I could do thanks to M-x compile
   ;; executing `(let ((command (eval compile-command))) ...)'
