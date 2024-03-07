@@ -35,8 +35,9 @@
              :replace-id (md5 appt-msg)))
   (appt-activate +1)
   (org-agenda-to-appt)
-  (setq appt-update-org-timer
-        (run-with-timer 60 60 #'org-agenda-to-appt)))
+  (defvar appt-update-org-timer
+    (run-with-idle-timer 60 60 #'org-agenda-to-appt)
+    "Timer used to "))
 
 ;;; ORG
 (use-package org
