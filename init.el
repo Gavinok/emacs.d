@@ -2198,7 +2198,15 @@ directory when working with a single file project."
     "Make sure Eldoc will show us all of the feedback at point."
     (setq-local eldoc-documentation-strategy
                 #'eldoc-documentation-compose))
-  (add-hook 'eglot-managed-mode-hook #'my/setup-eldoc-for-eglot))
+  (add-hook 'eglot-managed-mode-hook #'my/setup-eldoc-for-eglot)
+
+  ;; Make eglot and flymake coexist see
+  ;; [[https://github.com/mohkale/flymake-collection/issues/20]]
+  ;; for more details
+  (add-to-list 'eglot-stay-out-of 'flymake)
+  (defun my/eglot+flymake ()
+    (add-to-list 'flymake-diagnostic-functions 'eglot-flymake-backend))
+  (add-hook 'eglot-managed-mode-hook #'my/eglot+flymake))
 
 (use-package consult-eglot
   :ensure t
