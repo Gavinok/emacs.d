@@ -15,6 +15,7 @@
 (defun my/eglot-server-setup-paths ()
   "Add all installed language servers to the from of the current buffer's `exec-path'."
   (interactive)
+  (make-directory my/eglot-server--npm-dir 'parents)
   (setq-local exec-path
 	      (append
 	       (directory-files-recursively my/eglot-server--npm-dir "bin$" t)

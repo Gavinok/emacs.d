@@ -1384,12 +1384,13 @@ This way our searches are kept up to date"
 
   (use-package lsp-rust :ensure nil :no-require t
     :when (executable-find "rust-analyzer")
-    :hook (rust-mode       . lsp-deferred)
+    ;; :hook (rust-mode       . lsp-deferred)
     :config
     (setq lsp-rust-analyzer-inlay-hints-mode 1))
 
   (use-package lsp-haskell :ensure t
-    :hook (haskell-mode    . lsp-deferred))
+    ;; :hook (haskell-mode    . lsp-deferred)
+    )
 
   ;; (use-package lsp-java :ensure t
   ;;   :hook (java-mode       . lsp-deferred)
@@ -1414,6 +1415,7 @@ This way our searches are kept up to date"
 (use-package extra-languages
   :ensure nil :no-require t
   :init
+  (use-package dockerfile-ts-mode :mode "Dockerfile\\'")
   (use-package yaml-ts-mode :mode "\\.yml\\'")
   (use-package toml-ts-mode :mode "\\.toml\\'")
   (use-package java-ts-mode
@@ -2282,34 +2284,35 @@ directory when working with a single file project."
 (load (locate-user-emacs-file
        "lisp/exwm-config.el"))
 
-(use-package llm
-  :config
-  (require 'llm-ollama)
-  (defvar chatgpt-buffer "*CHAT*")
-  (defvar llm-refactoring-provider (make-llm-ollama :chat-model "codellama"))
+;; (use-package llm
+;;   :ensure t
+;;   :config
+;;   (require 'llm-ollama)
+;;   (defvar chatgpt-buffer "*CHAT*")
+;;   (defvar llm-refactoring-provider (make-llm-ollama :chat-model "codellama"))
 
-  (defun my/display-llm-response ()
-    (when (not ;; visible
-           (get-buffer-window chatgpt-buffer))
-      (with-current-buffer (get-buffer-window chatgpt-buffer) (markdown-mode t))
-      (switch-to-buffer-other-window chatgpt-buffer)))
+;;   (defun my/display-llm-response ()
+;;     (when (not ;; visible
+;;            (get-buffer-window chatgpt-buffer))
+;;       (with-current-buffer (get-buffer-window chatgpt-buffer) (markdown-mode t))
+;;       (switch-to-buffer-other-window chatgpt-buffer)))
 
-  (defun my/llm-display (msg)
-    (lambda (response)
-      (with-current-buffer (get-buffer-create chatgpt-buffer)
-        (insert response))
-      (message msg)
-      (my/display-llm-response)))
+;;   (defun my/llm-display (msg)
+;;     (lambda (response)
+;;       (with-current-buffer (get-buffer-create chatgpt-buffer)
+;;         (insert response))
+;;       (message msg)
+;;       (my/display-llm-response)))
 
-  (defun my/llm-prompt ()
-    (interactive)
-    (let ((prompt (buffer-substring-no-properties (region-beginning)
-                                                  (region-end)) ))
-      (message prompt)
-      (llm-chat-async llm-refactoring-provider
-                      (llm-make-simple-chat-prompt prompt)
-                      (my/llm-display "Done")
-                      (my/llm-display "error")))))
+;;   (defun my/llm-prompt ()
+;;     (interactive)
+;;     (let ((prompt (buffer-substring-no-properties (region-beginning)
+;;                                                   (region-end)) ))
+;;       (message prompt)
+;;       (llm-chat-async llm-refactoring-provider
+;;                       (llm-make-simple-chat-prompt prompt)
+;;                       (my/llm-display "Done")
+;;                       (my/llm-display "error")))))
 
 (use-package elfeed
   :ensure t
