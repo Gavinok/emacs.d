@@ -2138,34 +2138,22 @@ Used to see multiline flymake errors"
 (use-package eglot
   :bind (:map eglot-diagnostics-map
               ("M-RET" . eglot-code-actions))
+  :commands (eglot eglot-ensure)
   :init
   ;; Ensure that cargo is ready to go
   (setenv "PATH" (concat (getenv "PATH") ":/home/gavinok/.cargo/bin"))
   :config
   ;; A hacky way to make every file opened in my HOME directory act as
-  ;; a single file project
-  (defun my/project-current (old &rest _)
-    "Blacklist my home directory from project.el. Used in my eglot
-setup to allow for single file projects"
-    (when-let ((cur (funcall old)))
-      (if (or (equal (project-root cur) "~/")
-              (equal (project-root cur) "/home/gavinok"))
-          nil
-        cur)))
-  (advice-add 'project-current :around #'my/project-current)
-
-  (cl-defmethod eglot-workspace-folders (server)
-    "My hack to allow for single file projects"
-    (let ((project (eglot--project server)))
-      (when (project-current)
-        (vconcat
-         (mapcar (lambda (dir)
-                   (list :uri (eglot-path-to-uri dir)
-                         :name (abbreviate-file-name dir)))
-                 `(,(project-root project) ,@(project-external-roots project)))))))
+  ;; a single file project see https://github.com/joaotavora/eglot/discussions/1086
+  (cl-defmethod eglot-workspace-folders :around (server)
+    (when (and (project-current)
+               (not (equal (expand-file-name
+                            (project-root (eglot--project server)))
+                           (expand-file-name "~/"))))
+      (cl-call-next-method)))
 
   (cl-defmethod eglot-register-capability :around
-    (server (method (eql workspace/didChangeWatchedFiles)) id &key watchers)
+    (server (_method (eql workspace/didChangeWatchedFiles)) _id &key _watchers)
     "A workaround to avoid monitoring all files in the current
 directory when working with a single file project."
     (if (project-current)
