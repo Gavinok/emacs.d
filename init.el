@@ -866,6 +866,7 @@ This way our searches are kept up to date"
          . writegood-mode))
 
 (use-package writeroom-mode
+  :ensure t
   :commands (writeroom-mode global-writeroom-mode)
   :init
   (setq writeroom-width 90))
@@ -923,6 +924,7 @@ This way our searches are kept up to date"
 
 ;;; VTERM AND ESHELL
 (use-package vterm
+  :ensure t
   :bind (("C-x v t" . vterm)
          :map vterm-mode-map
          ("M-p" . vterm-send-up)
@@ -1031,6 +1033,7 @@ This way our searches are kept up to date"
     (concat "compiler "
             (if buffer-file-name
                 (shell-quote-argument buffer-file-name))))
+
   (defun run-on-file (cmd)
     `(lambda () (concat ,cmd " "
                         (shell-quote-argument buffer-file-name))))
