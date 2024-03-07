@@ -12,38 +12,8 @@
                      (emacs-init-time "%.2f")
                      gcs-done)))
 
-(require 'expand)
-(add-hook 'expand-expand-hook 'indent-according-to-mode)
-(add-hook 'expand-jump-hook 'indent-according-to-mode)
-(defvar expandable-placeholder "<<+>>")
-(defmacro define-epandable (mode-abbrev-table abbreviation snippet)
-  (let ((slots-snip (with-temp-buffer
-                      (insert snippet)
-                      (goto-char (point-min))
-                      (search-forward expandable-placeholder nil t)
-                      (search-backward expandable-placeholder nil t)
-                      (cons (cl-loop
-                             for x =
-                             (when-let ((end-of-placeholder
-                                         (search-forward expandable-placeholder nil t))
-                                        (start-of-placeholder
-                                         (search-backward expandable-placeholder nil t)))
-                               (delete-region start-of-placeholder
-                                              end-of-placeholder)
-                               start-of-placeholder)
-                             while x
-                             collect x)
-                            (buffer-string)))))
-    `(expand-add-abbrev ,mode-abbrev-table ,abbreviation ,(cdr slots-snip) ',(car slots-snip)))
-  )
-(define-epandable emacs-lisp-mode-abbrev-table "cond"
-                  "(cond\n(<<+>>)\n(t <<+>>))")
-;; (define-epandable python-ts-mode-abbrev-table "if"
-;;                   "if <<+>>:\n<<+>>")
-(define-epandable text-mode-abbrev-table "idk"
-                  "I do not know ")
-(define-epandable text-mode-abbrev-table "iirc"
-                  "if I recall ")
+;; make it easy to jump between packages
+(setopt use-package-enable-imenu-support t)
 (defconst running-in-wsl (executable-find "wslpath"))
 (when running-in-wsl
   (defun wls-copy (text)
@@ -102,6 +72,8 @@
 
 ;; Keep custom-set-variables and friends out of my init.el
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(when (file-exists-p custom-file)
+  (load custom-file))
 
 ;;; ASYNC
 ;; Emacs look SIGNIFICANTLY less often which is a good thing.
@@ -193,6 +165,38 @@ If no binding is captured section of regex is found for a BINDING an error is si
          ("a" . my/increment-number-at-point)
          ("x" . my/decrement-number-at-point))
   :init
+  (require 'expand)
+  (add-hook 'expand-expand-hook 'indent-according-to-mode)
+  (add-hook 'expand-jump-hook 'indent-according-to-mode)
+  (defvar expandable-placeholder "<<+>>")
+  (defmacro define-epandable (mode-abbrev-table abbreviation snippet)
+    (let ((slots-snip (with-temp-buffer
+                        (insert snippet)
+                        (goto-char (point-min))
+                        (search-forward expandable-placeholder nil t)
+                        (search-backward expandable-placeholder nil t)
+                        (cons (cl-loop
+                               for x =
+                               (when-let ((end-of-placeholder
+                                           (search-forward expandable-placeholder nil t))
+                                          (start-of-placeholder
+                                           (search-backward expandable-placeholder nil t)))
+                                 (delete-region start-of-placeholder
+                                                end-of-placeholder)
+                                 start-of-placeholder)
+                               while x
+                               collect x)
+                              (buffer-string)))))
+      `(expand-add-abbrev ,mode-abbrev-table ,abbreviation ,(cdr slots-snip) ',(car slots-snip))))
+  (define-epandable emacs-lisp-mode-abbrev-table "cond"
+                    "(cond\n(<<+>>)\n(t <<+>>))")
+  ;; (define-epandable python-ts-mode-abbrev-table "if"
+  ;;                   "if <<+>>:\n<<+>>")
+  (define-epandable text-mode-abbrev-table "idk"
+                    "I do not know ")
+  (define-epandable text-mode-abbrev-table "iirc"
+                    "if I recall ")
+
   (defun my/next-fn (&optional arg)
     (interactive "P")
     (apply (if arg
@@ -370,9 +374,7 @@ Depends on the `gh' commandline tool"
          ("C-;"     . negative-argument)
          ("C-M-;"   . negative-argument)
          ;; ("C-g"   . my/keyboard-quit-only-if-no-macro)
-         ("M-1" . delete-other-windows)
-         ("M-2" . split-window-below)
-         ("M-3" . split-window-right))
+         )
 
   :config
   (defun my/fix-indentation ()
@@ -495,22 +497,22 @@ Depends on the `gh' commandline tool"
     :ensure t
     :unless my/is-terminal
     :config
-    (setq fontaine-presets
-          '((regular
-             :default-height 140)
-            (small
-             :default-height 110)
-            (large
-             :default-weight semilight
-             :default-height 180
-             :bold-weight extrabold)
-            (extra-large
-             :default-weight semilight
-             :default-height 210
-             :line-spacing 5
-             :bold-weight ultrabold)
-            (t                        ; our shared fallback properties
-             :default-family "PragmataPro Mono Liga")))
+    (setopt fontaine-presets
+            '((regular
+               :default-height 140)
+              (small
+               :default-height 110)
+              (large
+               :default-weight semilight
+               :default-height 180
+               :bold-weight extrabold)
+              (extra-large
+               :default-weight semilight
+               :default-height 210
+               :line-spacing 5
+               :bold-weight ultrabold)
+              (t                        ; our shared fallback properties
+               :default-family "PragmataPro Mono Liga")))
     (fontaine-set-preset 'regular))
   ;; Load pragmatapro-lig.el
   (load (locate-user-emacs-file
@@ -519,16 +521,9 @@ Depends on the `gh' commandline tool"
   ;; (require 'pragmatapro-lig)
   ;; Enable pragmatapro-lig-mode for specific modes
   (set-fontset-font t 'unicode
-                    "PragmataPro Mono:pixelsize=19:antialias=true:autohint=true"
+                    "PragmataPro Mono"
                     nil 'append))
 
-;; (use-package treesit-auto
-;;   :ensure t
-;;   :custom
-;;   (treesit-auto-install 'prompt)
-;;   :config
-;;   (treesit-auto-add-to-auto-mode-alist 'all)
-;;   (global-treesit-auto-mode))
 (setq treesit-language-source-alist
       '((bash "https://github.com/tree-sitter/tree-sitter-bash")
         (cmake "https://github.com/uyha/tree-sitter-cmake")
@@ -552,59 +547,6 @@ Depends on the `gh' commandline tool"
         (java "https://github.com/tree-sitter/tree-sitter-java")
         (ruby "https://github.com/tree-sitter/tree-sitter-ruby")
         (rust "https://github.com/tree-sitter/tree-sitter-rust")))
-
-;; (use-package vue-ts-mode
-;;   :mode "\\.vue\\'"
-;;   :hook ((vue-ts-mode . sgml-electric-tag-pair-mode)
-;;          (vue-ts-mode . my/eglot-server-setup-paths)
-;;          (vue-ts-mode . eglot-ensure))
-;;   :bind (:map vue-ts-mode-map
-;;               ("C-c C-t" . vue-ts-mode-element-transpose)
-;;               ("C-c C-w" . vue-ts-mode-attributes-toggle-wrap)
-;;               ("C-c C-o" . vue-ts-mode-element-match)
-;;               ("C-c C-f" . sgml-skip-tag-forward)
-;;               ("C-c C-n" . sgml-skip-tag-forward)
-;;               ("C-c C-b" . sgml-skip-tag-backward)
-;;               ("C-c C-p" . sgml-skip-tag-backward)
-;;               :repeat-map sgml-skip-tag
-;;               ("f"   .  sgml-skip-tag-forward)
-;;               ("C-f" .  sgml-skip-tag-forward)
-;;               ("b"   .  sgml-skip-tag-backward)
-;;               ("C-b" .  sgml-skip-tag-backward))
-;;   :init
-;;   (unless (package-installed-p 'vue-ts-mode)
-;;     (package-vc-install "https://github.com/theschmocker/vue-ts-mode"))
-;;   (with-eval-after-load 'treesit
-;;     (push '(vue "https://github.com/ikatyang/tree-sitter-vue")
-;;           treesit-language-source-alist))
-;;   :config
-;;   (setopt vue-ts-mode-indent-offset 2)
-;;   ;; from https://github.com/joaotavora/eglot/discussions/1184
-;;   (with-eval-after-load 'eglot
-;;     (defun vue-eglot-init-options ()
-;;       ;; installed with (my/eglot-server--npm-dependancy-install "typescript")
-;;       (let ((tsdk-path (expand-file-name
-;;                         "lib"
-;;                         (string-trim-right
-;;                          (shell-command-to-string (concat "npm list  --prefix "
-;;                                                           (my/eglot-server--npm-package-path "typescript")
-;;                                                           " --global --parseable typescript | head -n1"))))))
-;;         `(:typescript (:tsdk ,tsdk-path
-;;                              :languageFeatures (:completion
-;;                                                 (:defaultTagNameCase "both"
-;;                                                                      :defaultAttrNameCase "kebabCase"
-;;                                                                      :getDocumentNameCasesRequest nil
-;;                                                                      :getDocumentSelectionRequest nil)
-;;                                                 :diagnostics
-;;                                                 (:getDocumentVersionRequest nil))
-;;                              :documentFeatures (:documentFormatting
-;;                                                 (:defaultPrintWidth 100
-;;                                                                     :getDocumentPrintWidthRequest nil)
-;;                                                 :documentSymbol t
-;;                                                 :documentColor t)))))
-;;     (push `(vue-ts-mode . ("vue-language-server" "--stdio"
-;;                            :initializationOptions ,(vue-eglot-init-options)))
-;;           eglot-server-programs)))
 
 (use-package unified-marks :ensure nil :no-require t
   :custom
@@ -670,8 +612,6 @@ Depends on the `gh' commandline tool"
     :ensure t
     :commands (orderless)
     :custom (completion-styles '(orderless flex)))
-  ;; (load (locate-user-emacs-file
-  ;;               "lisp/affe-config.el"))
   (use-package marginalia
     :ensure t
     :custom
@@ -806,14 +746,15 @@ This way our searches are kept up to date"
 
 (use-package completion-preview
   :demand t
+  :hook (prog-mode . completion-preview-mode)
   :bind (:map completion-preview-active-mode-map
               ("C-i" . completion-preview-insert)
               ("M-n" . completion-preview-next-candidate)
               ("M-p" . completion-preview-prev-candidate))
+  :custom
+  (completion-preview-minimum-symbol-length 2)
   :init
-  (load "~/.emacs.d/lisp/completion-preview.el")
-  :config
-  (completion-preview-mode 1))
+  (load (locate-user-emacs-file "lisp/completion-preview.el")))
 
 ;;;; Code Completion
 (use-package corfu
@@ -848,19 +789,21 @@ This way our searches are kept up to date"
             (lambda () (setq-local corfu-quit-at-boundary t
                                    corfu-quit-no-match t
                                    corfu-auto nil)
-              (corfu-mode))))
+              (corfu-mode))
+            nil
+            t))
 (use-package cape
   :ensure t
   :defer 10
   :bind ("C-c f" . cape-file)
   :init
   ;; Add `completion-at-point-functions', used by `completion-at-point'.
-  ;; (defalias 'dabbrev-after-2 (cape-capf-prefix-length #'cape-dabbrev 2))
-  ;; (add-to-list 'completion-at-point-functions 'dabbrev-after-2 t)
-  (add-hook 'shell-mode-hook
-            (lambda ()
-              (cl-pushnew #'cape-history completion-at-point-functions)
-              (cl-pushnew #'pcomplete-completions-at-point completion-at-point-functions)))
+  (defun my/add-shell-completion ()
+    (interactive)
+    (cl-pushnew #'cape-history completion-at-point-functions)
+    (cl-pushnew #'pcomplete-completions-at-point completion-at-point-functions))
+  (add-hook 'shell-mode-hook #'my/add-shell-completion nil t)
+
   :config
   ;; Silence then pcomplete capf, no errors or messages!
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
@@ -913,15 +856,6 @@ This way our searches are kept up to date"
   (setenv "SCHEME" "dark")
   )
 
-;; (use-package doom-themes
-;;   :demand t
-;;   :ensure t
-;;   :config
-;;   (load-theme 'doom-earl-grey t)
-;;   (set-face-attribute 'default nil :foreground "#333")
-;;   (global-hl-line-mode t)
-;;   (setenv "SCHEME" "light"))
-
 ;;; WRITING
 (use-package writegood-mode
   :ensure t
@@ -929,13 +863,6 @@ This way our searches are kept up to date"
                         mail-mode
                         git-commit-mode)
          . writegood-mode))
-
-;; (use-package lsp-grammarly
-;;   :ensure t
-;;   :hook (writegood-mode . (lambda ()
-;;                        (require 'lsp-grammarly)
-;;                        (lsp-deferred))))
-                                        ; or lsp-deferred
 
 (use-package writeroom-mode
   :commands (writeroom-mode global-writeroom-mode)
@@ -959,13 +886,6 @@ This way our searches are kept up to date"
 ;;; Email
 (load (locate-user-emacs-file
        "lisp/mu4e-config.el"))
-
-;;; ChatGPT
-;; (use-package chatgpt
-;;   :load-path "lisp/"
-;;   :ensure nil
-;;   :bind (
-;; ))
 
 ;;; Git
 (use-package magit
@@ -1011,32 +931,22 @@ This way our searches are kept up to date"
   :custom (vterm-max-scrollback 10000)
   :init (when my/my-system
           (setopt term-prompt-regexp ".*ᛋ")))
-
-;; (use-package with-editor
-;;   :hook ((shell-mode-hook eshell-mode-hook term-exec-hook vterm-exec-hook)
-;;          . with-editor-export-editor)
-;;   :bind (([remap async-shell-command] . with-editor-async-shell-command)
-;;          ([remap shell-command] . with-editor-shell-command)))
-
-;; (use-package eshell
-;;   :bind ("C-x E" . eshell))
+(use-package eat
+  :ensure t
+  :custom
+  (eat-enable-auto-line-mode t)
+  :bind ("C-x E" . eat))
 
 (use-package em-alias
   :ensure nil
   :after eshell
   :config
-  (add-hook 'eshell-mode-hook
-            (lambda ()
-              (eshell/alias "e" "find-file $1")
-              (eshell/alias "ee" "find-file-other-window $1")
-              (eshell/alias "v" "view-file $1")
-              (eshell/alias "o" "crux-open-with $1")))
-  (add-hook 'eshell-mode-hook
-            (lambda ()
-              (eshell/alias "e" "find-file $1")
-              (eshell/alias "ee" "find-file-other-window $1")
-              (eshell/alias "v" "view-file $1")
-              (eshell/alias "o" "crux-open-with $1"))))
+  (defun my/setup-eshell-aliases ()
+    (eshell/alias "e" "find-file $1")
+    (eshell/alias "ee" "find-file-other-window $1")
+    (eshell/alias "v" "view-file $1")
+    (eshell/alias "o" "crux-open-with $1"))
+  (add-hook 'eshell-mode-hook my/setup-eshell-aliases))
 
 (use-package em-term
   :ensure nil
@@ -1051,11 +961,6 @@ This way our searches are kept up to date"
   :commands eshell
   :config
   (setq eshell-destroy-buffer-when-process-dies t))
-
-;; (use-package fish-completion
-;;   :demand t
-;;   :config
-;;   (global-fish-completion-mode))
 
 ;; More accurate color representation than ansi-color.el
 (use-package xterm-color
@@ -1105,7 +1010,8 @@ This way our searches are kept up to date"
 
   ;; Added in emacs 29
   (setopt project-vc-extra-root-markers
-          '("pyproject.toml" "requirements.txt" "spago.dhall" "CMakeList.txt"
+          '("pyproject.toml" ;; "requirements.txt"
+            "spago.dhall" "CMakeList.txt"
             "package.clj" "package.json" "Project.toml" ".project" "Cargo.toml"
             "mix.exs" "qlfile" ".git")))
 
@@ -1129,9 +1035,10 @@ This way our searches are kept up to date"
                         (shell-quote-argument buffer-file-name))))
 
   (setq generic-compiler-modes
-        '(c++-mode c-mode java-mode haskell-mode
+        '(c++-mode c-mode
+                   java-mode java-ts-mode haskell-mode
                    javascript-mode go-mode go-ts-mode
-                   nroff-mode java-mode))
+                   nroff-mode  rust-ts-mode))
   (setq custom-compiler-modes
         `((purescript-mode . "spago run")
           (bash-ts-mode    . ,(run-on-file "sh"))
@@ -1155,14 +1062,6 @@ This way our searches are kept up to date"
   ;; A total hack I realized I could do thanks to M-x compile
   ;; executing `(let ((command (eval compile-command))) ...)'
   (setq-default compile-command '(get-compiler))
-
-  (defun generic-compiler ()
-    (unless (has-makefile-p)
-      (setq-local compile-command
-                  (concat "compiler "
-                          (if buffer-file-name
-                              (shell-quote-argument
-                               (buffer-file-name buffer-file-name)))))))
 
   ;; Auto focus compilation buffer
   (add-hook 'compilation-finish-functions 'finish-focus-comp)
@@ -1294,7 +1193,9 @@ This way our searches are kept up to date"
   :bind (("C-x R" . query-replace-from-region))
   :init
   (unless (package-installed-p 'replace-from-region)
-    (package-vc-install `(replace-from-region :url "https://github.com/rubikitch/replace-from-region.git"))))
+    (package-vc-install
+     `(replace-from-region
+       :url "https://github.com/rubikitch/replace-from-region.git"))))
 
 (use-package multiple-cursors
   :ensure t
@@ -1462,21 +1363,22 @@ This way our searches are kept up to date"
 (use-package lsp-languages
   :no-require t :ensure nil
   :unless (eq system-type 'android)
-  :hook ((c-mode          . lsp-deferred)
-         (c++-mode        . lsp-deferred)
-         (typescript-mode . lsp-deferred)
+  :hook (;; (c-mode          . lsp-deferred)
+         ;; (c++-mode        . lsp-deferred)
+         ;; (typescript-mode . lsp-deferred)
          ;; (purescript-mode . lsp-deferred)
          ;; (python-mode     . lsp-deferred)
          ;; (python-ts-mode     . lsp-deferred)
-         (js-mode         . lsp-deferred)
-         (javascript-mode . lsp-deferred)
-         (typescript-ts-mode . lsp-deferred)
-         (tsx-ts-mode . lsp-deferred)
+         ;; (js-mode         . lsp-deferred)
+         ;; (javascript-mode . lsp-deferred)
+         ;; (typescript-ts-mode . lsp-deferred)
+         ;; (tsx-ts-mode . lsp-deferred)
          ;; (vue-ts-mode . lsp-deferred)
-         (web-mode . lsp-deferred))
+         ;; (web-mode . lsp-deferred)
+         )
   :init
   (use-package lsp-javascript :ensure nil :no-require t
-    :hook (javascript-mode . lsp-deferred)
+    ;; :hook (javascript-mode . lsp-deferred)
     :config
     (setopt lsp-javascript-display-inlay-hints t
             lsp-javascript-display-return-type-hints t
@@ -1499,53 +1401,193 @@ This way our searches are kept up to date"
   ;;   :init
   ;;   (require 'lsp-java-boot)
   ;;   (add-hook 'java-mode-hook #'lsp-java-boot-lens-mode))
-  (defun set-java-version ()
-    (interactive)
-    (let ((version-dir (completing-read "Select Java Version: "
-                                        (seq-filter (lambda (dir)
-                                                      (string-search "java" dir))
-                                                    (directory-files "/usr/lib/jvm" t))
-                                        #'file-exists-p
-                                        t)))
-      (setenv "PATH" (concat version-dir
-                             "/bin/:"
-                             (getenv "PATH")))
-      (setenv "JAVA_HOME" version-dir)
-      (setq exec-path (append (list (concat version-dir "/bin/"))
-                              exec-path)
-            process-environment (append
-                                 (list (concat
-                                        "PATH="
-                                        (cl-reduce (lambda (a b) (concat a ":" b)) (exec-path))))
-                                 process-environment))
 
-      (message "JAVA_HOME is now %s and PATH is now %s"
-               (getenv "JAVA_HOME")
-               (getenv "PATH"))))
 
-  (use-package lsp-pyright
-    :unless (eq system-type 'android)
-    :ensure t
-    :after (python-mode python-ts-mode)
-    :hook ((python-mode . (lambda ()
-                            (require 'lsp-pyright)
-                            (lsp-deferred)))
-           (python-ts-mode . (lambda ()
-                               (require 'lsp-pyright)
-                               (lsp-deferred))))
+  ;; (use-package lsp-pyright
+  ;;   :unless (eq system-type 'android)
+  ;;   :ensure t
+  ;;   :after (python-mode python-ts-mode)
+  ;;   :hook ((python-mode . (lambda ()
+  ;;                           (require 'lsp-pyright)
+  ;;                           (lsp-deferred)))
+  ;;          (python-ts-mode . (lambda ()
+  ;;                              (require 'lsp-pyright)
+  ;;                              (lsp-deferred)))))
+  )
+
+;;; Languages
+(use-package extra-languages
+  :ensure nil :no-require t
+  :init
+  (use-package yaml-ts-mode :mode "\\.yml\\'")
+  (use-package toml-ts-mode :mode "\\.toml\\'")
+  (use-package java-ts-mode
+    :mode "\\.java\\'"
     :init
+    (add-to-list 'major-mode-remap-alist '(java-mode . java-ts-mode))
+    (defun set-java-version ()
+      (interactive)
+      (let ((version-dir (completing-read "Select Java Version: "
+                                          (seq-filter (lambda (dir)
+                                                        (string-search "java" dir))
+                                                      (directory-files "/usr/lib/jvm" t))
+                                          #'file-exists-p
+                                          t)))
+        (setenv "PATH" (concat version-dir
+                               "/bin/:"
+                               (getenv "PATH")))
+        (setenv "JAVA_HOME" version-dir)
+        (setq exec-path (append (list (concat version-dir "/bin/"))
+                                exec-path)
+              process-environment (append
+                                   (list (concat
+                                          "PATH="
+                                          (cl-reduce (lambda (a b) (concat a ":" b)) (exec-path))))
+                                   process-environment))
+
+        (message "JAVA_HOME is now %s and PATH is now %s"
+                 (getenv "JAVA_HOME")
+                 (getenv "PATH")))))
+  (use-package go-ts-mode
+    :mode "\\.go\\'"
+    :init
+    (add-to-list 'major-mode-remap-alist '(go-mode . go-ts-mode)))
+  (use-package python
+    :init
+    (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
     ;; For some reason python3 is not working with readline native completion
     (setopt python-shell-completion-native-enable nil)
+    :config
     (with-eval-after-load 'compile
-      (push 'pyright compilation-error-regexp-alist)
-      (push '(pyright "^\\ \\ \\([a-zA-Z0-9/\\._-]+\\):\\([0-9]+\\):\\([0-9]+\\).*$" 1 2 3) compilation-error-regexp-alist-alist))
+      (add-to-list 'compilation-error-regexp-alist 'pyright)
+      (add-to-list 'compilation-error-regexp-alist-alist
+                   '(pyright "^\\ \\ \\([a-zA-Z0-9/\\._-]+\\):\\([0-9]+\\):\\([0-9]+\\).*$" 1 2 3)))
     (setq python-shell-enable-font-lock nil)
     (use-package pyvenv
       :commands (pyvenv-activate)
       :config
-      (pyvenv-mode t))))
+      (pyvenv-mode t))
+    (use-package flymake-ruff
+      :ensure t
+      :when (executable-find "ruff")
+      :hook ((python-ts-mode . flymake-ruff-load)))
+    (with-eval-after-load 'dape
+      (push
+       '(debugpy-attach-port-remote
+         modes (python-mode python-ts-mode)
+         port (lambda () (read-number "Port: "))
+         :request "attach"
+         :type "python"
+         :pathMappings (lambda ()
+                         (let* ((default (list (if-let ((project (project-current)))
+                                                   (project-root project)
+                                                 default-directory)))
+                                (local (completing-read "Local <Path/To/Project>: " default))
+                                (remote (completing-read "Remote <Path/To/Project>: "
+                                                         ;; Path just we often use at work
+                                                         '("/app"))))
+                           (vector (list :localRoot local :remoteRoot remote))))
+         :justMyCode nil
+         :showReturnValue t)
+       dape-configs)))
+  ;; Haskell
+  (use-package haskell-mode :ensure t :mode "\\.hs\\'"
+    ;; lets you use C-c C-l
+    :ensure t
+    :hook ((haskell-mode . interactive-haskell-mode)
+           (haskell-mode . turn-on-haskell-doc-mode)
+           (haskell-mode . haskell-indent-mode)
+           (haskell-mode . haskell-setup-outline-mode))
+    :bind (
+           :map haskell-mode-map
+           ("M-n" . haskell-goto-next-error)
+           ("M-p" . haskell-goto-prev-error))
+    :config
+    (defun haskell-setup-outline-mode ()
+      (make-local-variable 'outline-regexp)
+      (setq outline-regexp "\\`\\|\\s-+\\S-")))
 
-;;; Languages
+  (use-package purescript-mode :ensure t :mode "\\.purs\\'"
+    :hook ((purescript-mode . purescript-indent-mode)
+           (purescript-mode . turn-on-purescript-unicode-input-method))
+    :config
+    (use-package psci
+      :ensure t
+      :hook (purescript-mode . inferior-psci-mode)))
+
+  (use-package rust-ts-mode :ensure t :mode "\\.rs\\'"
+    :init
+    ;; scratchpad for rust
+    (setq lsp-rust-clippy-preference "on")
+    (use-package rust-playground
+      :commands (rust-playground)
+      :ensure t))
+  (use-package racket-mode :ensure t :mode "\\.rkt\\'"
+    :config
+    (require 'racket-xp)
+    (add-hook 'racket-mode-hook #'racket-xp-mode)
+    (add-hook 'racket-mode-hook #'prettify-symbols-mode)
+    (defun setup-racket-eldoc ()
+      (eldoc-mode +1)
+      (setq eldoc-documentation-function #'racket-xp-eldoc-function))
+    (add-hook 'racket-mode-hook #'setup-racket-eldoc))
+
+  (use-package clojure-mode :ensure t :mode "\\.clj\\'")
+
+  (use-package vue-ts-mode
+    :mode "\\.vue\\'"
+    :hook ((vue-ts-mode . sgml-electric-tag-pair-mode)
+           (vue-ts-mode . my/eglot-server-setup-paths)
+           (vue-ts-mode . eglot-ensure))
+    :bind (:map vue-ts-mode-map
+                ("C-c C-t" . vue-ts-mode-element-transpose)
+                ("C-c C-w" . vue-ts-mode-attributes-toggle-wrap)
+                ("C-c C-o" . vue-ts-mode-element-match)
+                ("C-c C-f" . sgml-skip-tag-forward)
+                ("C-c C-n" . sgml-skip-tag-forward)
+                ("C-c C-b" . sgml-skip-tag-backward)
+                ("C-c C-p" . sgml-skip-tag-backward)
+                :repeat-map sgml-skip-tag
+                ("f"   .  sgml-skip-tag-forward)
+                ("C-f" .  sgml-skip-tag-forward)
+                ("b"   .  sgml-skip-tag-backward)
+                ("C-b" .  sgml-skip-tag-backward))
+    :init
+    (unless (package-installed-p 'vue-ts-mode)
+      (package-vc-install "https://github.com/theschmocker/vue-ts-mode"))
+    (with-eval-after-load 'treesit
+      (push '(vue "https://github.com/ikatyang/tree-sitter-vue")
+            treesit-language-source-alist))
+    :config
+    (setopt vue-ts-mode-indent-offset 2)
+    ;; from https://github.com/joaotavora/eglot/discussions/1184
+    (with-eval-after-load 'eglot
+      (defun vue-eglot-init-options ()
+        ;; installed with (my/eglot-server--npm-dependancy-install "typescript")
+        (let ((tsdk-path (expand-file-name
+                          "lib"
+                          (string-trim-right
+                           (shell-command-to-string (concat "npm list  --prefix "
+                                                            (my/eglot-server--npm-package-path "typescript")
+                                                            " --global --parseable typescript | head -n1"))))))
+          `(:typescript (:tsdk ,tsdk-path
+                               :languageFeatures (:completion
+                                                  (:defaultTagNameCase "both"
+                                                                       :defaultAttrNameCase "kebabCase"
+                                                                       :getDocumentNameCasesRequest nil
+                                                                       :getDocumentSelectionRequest nil)
+                                                  :diagnostics
+                                                  (:getDocumentVersionRequest nil))
+                               :documentFeatures (:documentFormatting
+                                                  (:defaultPrintWidth 100
+                                                                      :getDocumentPrintWidthRequest nil)
+                                                  :documentSymbol t
+                                                  :documentColor t)))))
+      (push `(vue-ts-mode . ("vue-language-server" "--stdio"
+                             :initializationOptions ,(vue-eglot-init-options)))
+            eglot-server-programs))))
+
+;;;; WEB
 (use-package nvm
   :ensure nil
   :when (executable-find "nvm")
@@ -1564,107 +1606,63 @@ This way our searches are kept up to date"
                                     "/versions/node")
                             nil "v[0-9.]+")))))
 
-(use-package extra-languages
-  :ensure nil :no-require t
+(defun disable-tabs ()
+  "It's simple just disable tabs in the file."
+  (indent-tabs-mode -1))
+
+(add-hook 'web-mode-hook 'disable-tabs)
+(add-hook 'js-ts-mode-hook 'disable-tabs)
+(add-hook 'vue-ts-mode-hook 'disable-tabs)
+(add-hook 'tsx-ts-mode-hook 'disable-tabs)
+(add-hook 'typescript-ts-mode 'disable-tabs)
+(use-package typescript-ts-mode
+  :mode ("\\.ts\\'" . typescript-ts-mode)
+  :hook (tsx-ts-mode . eglot-ensure))
+(use-package tsx-ts-mode
+  :mode "\\.tsx\\'"
+  :hook (tsx-ts-mode . eglot-ensure))
+(use-package web-mode
+  :ensure t
+  :mode (("\\.html\\'" . HTML-mode))
+  :hook ((web-mode . eglot-ensure))
+  :bind (
+         :map web-mode-map
+         ("C-M-i" . completion-at-point)
+         ("C-M-u" . web-mode-element-parent)
+         ("C-M-d" . web-mode-element-child))
+  :custom
+  ;; TODO
+  ;; setup [[https://raw.githubusercontent.com/manateelazycat/lsp-bridge/master/core/tailwind_css_keyword.txt]]
+  ;; as a dictionary completion source
+  (web-mode-markup-indent-offset 2)
+  (web-mode-css-indent-offset 2)
+  (web-mode-code-indent-offset 2)
+  (web-mode-auto-close-style 1)
+  (web-mode-enable-auto-closing nil)
+  (web-mode-enable-auto-indentation nil)
+  (web-mode-enable-auto-quoting nil)
+  (web-mode-enable-auto-pairing nil)
+  (web-mode-enable-auto-opening nil)
+  (css-indent-offset 2)
+  (js-indent-level 2)
   :init
-;;;; Haskell
-  (use-package haskell-mode :ensure t :mode "\\.hs\\'"
-    ;; lets you use C-c C-l
-    :ensure t
-    :hook ((haskell-mode . interactive-haskell-mode)
-           (haskell-mode . turn-on-haskell-doc-mode)
-           (haskell-mode . haskell-indent-mode)
-           (haskell-mode . haskell-setup-outline-mode))
-    :bind (
-           :map haskell-mode-map
-           ("M-n" . haskell-goto-next-error)
-           ("M-p" . haskell-goto-prev-error))
-    :config
-    (defun haskell-setup-outline-mode ()
-      (make-local-variable 'outline-regexp)
-      (setq outline-regexp "\\`\\|\\s-+\\S-")))
-;;;; PureScript
-  (use-package purescript-mode :ensure t :mode "\\.purs\\'"
-    :hook ((purescript-mode . purescript-indent-mode)
-           (purescript-mode . turn-on-purescript-unicode-input-method))
-    :config
-    (use-package psci
-      :ensure t
-      :hook (purescript-mode . inferior-psci-mode)))
+  (define-derived-mode HTML-mode web-mode "HTML")
 
-;;;; WEB
-  (defun disable-tabs ()
-    (indent-tabs-mode -1))
+  ;; workaround to get vscode-html-language-server to provide proper diagnostics
+  (setq web-mode-markup-indent-offset 2
+        web-mode-css-indent-offset 2
+        web-mode-code-indent-offset 2
+        web-mode-auto-close-style 1
+        web-mode-enable-auto-indentation nil
+        web-mode-enable-auto-quoting nil
+        web-mode-enable-auto-pairing nil
+        web-mode-enable-auto-opening nil))
 
-  (add-hook 'web-mode-hook 'disable-tabs)
-  (add-hook 'js-ts-mode-hook 'disable-tabs)
-  (add-hook 'vue-ts-mode-hook 'disable-tabs)
-  (add-hook 'tsx-ts-mode-hook 'disable-tabs)
-  (add-hook 'typescript-ts-mode 'disable-tabs)
-
-  (use-package impatient-mode :ensure t
-    :after web-mode
-    :custom (imp-default-user-filters '((html-mode . nil)
-                                        (web-mode  . nil)
-                                        (HTML-mode . nil))))
-  (use-package web-mode
-    :ensure t
-    :mode (("\\.html\\'" . HTML-mode))
-    :hook ((web-mode            . lsp-deferred))
-    :bind (
-           :map web-mode-map
-           ("C-M-i" . completion-at-point)
-           ("C-M-u" . web-mode-element-parent)
-           ("C-M-d" . web-mode-element-child))
-    :custom
-    ;; TODO
-    ;; setup [[https://raw.githubusercontent.com/manateelazycat/lsp-bridge/master/core/tailwind_css_keyword.txt][https://raw.githubusercontent.com/manateelazycat/lsp-bridge/master/core/tailwind_css_keyword.txt]]
-    ;; as a dictionary completion source
-    (web-mode-markup-indent-offset 2)
-    (web-mode-css-indent-offset 2)
-    (web-mode-code-indent-offset 2)
-    (web-mode-auto-close-style 1)
-    (web-mode-enable-auto-closing nil)
-    (web-mode-enable-auto-indentation nil)
-    (web-mode-enable-auto-quoting nil)
-    (web-mode-enable-auto-pairing nil)
-    (web-mode-enable-auto-opening nil)
-    (css-indent-offset 2)
-    (js-indent-level 2)
-    :init
-    (define-derived-mode HTML-mode web-mode "HTML")
-
-    ;; workaround to get vscode-html-language-server to provide proper diagnostics
-    (setq web-mode-markup-indent-offset 2
-          web-mode-css-indent-offset 2
-          web-mode-code-indent-offset 2
-          web-mode-auto-close-style 1
-          web-mode-enable-auto-indentation nil
-          web-mode-enable-auto-quoting nil
-          web-mode-enable-auto-pairing nil
-          web-mode-enable-auto-opening nil))
-;;;; Rust
-  (use-package rust-mode    :ensure t :mode "\\.rs\\'"
-    :init
-    ;; scratchpad for rust
-    (setq lsp-rust-clippy-preference "on")
-    (use-package rust-playground
-      :commands (rust-playground)
-      :ensure t))
-;;;; Racket
-  (use-package racket-mode  :ensure t :mode "\\.rkt\\'"
-    :config
-    (require 'racket-xp)
-    (add-hook 'racket-mode-hook #'racket-xp-mode)
-    (add-hook 'racket-mode-hook #'prettify-symbols-mode)
-    (defun setup-racket-eldoc ()
-      (eldoc-mode +1)
-      (setq eldoc-documentation-function #'racket-xp-eldoc-function))
-    (add-hook 'racket-mode-hook #'setup-racket-eldoc))
-;;;; Clojure
-  (use-package clojure-mode :ensure t :mode "\\.clj\\'")
-  )
-
+(use-package impatient-mode :ensure t
+  :after web-mode
+  :custom (imp-default-user-filters '((html-mode . nil)
+                                      (web-mode  . nil)
+                                      (HTML-mode . nil))))
 (use-package prog-mode
   :ensure nil
   :hook ((prog-mode       . infer-indentation-style)
@@ -1795,31 +1793,6 @@ This way our searches are kept up to date"
     (yank)
     (default-indent-new-line))
 
-  ;;;; Better Killing And Yanking
-  (setq rectangle-mark-mode nil)
-  (setq *last-kill-was-rectangle* rectangle-mark-mode)
-
-  (defun remember-last-kill-type (&rest d)
-    (setq *last-kill-was-rectangle* rectangle-mark-mode))
-
-  ;; (advice-add 'kill-region :before #'remember-last-kill-type)
-  ;; (advice-add 'kill-ring-save :before #'remember-last-kill-type)
-  ;; (advice-add 'kill-rectangle :before #'remember-last-kill-type)
-
-  (defun my/kill-region (BEG END &optional REGION)
-    (interactive (list (mark) (point) 'region))
-    (cond
-     (rectangle-mark-mode (kill-rectangle
-                           (region-beginning) (region-end)))
-     (mark-active (kill-region
-                   (region-beginning) (region-end)))
-     (t (backward-kill-sexp 1))))
-
-  (defun my/yank (&optional arg) (interactive)
-         (if *last-kill-was-rectangle*
-             (yank-rectangle)
-           (yank arg)))
-
   ;; Avoid terminal binding conflict
   (unless my/is-termux
     (bind-key (kbd "M-[") #'puni-splice 'puni-mode-map)
@@ -1856,7 +1829,7 @@ This way our searches are kept up to date"
          ("?" . flymake-show-diagnostic-here)
          :map flymake-project-diagnostics-mode-map
          ("?" . flymake-show-diagnostic-here))
-  :hook (prog-mode . (lambda () (flymake-mode t)))
+  :hook (prog-mode . flymake-mode)
   :config
   (defun flymake-show-diagnostic-here (pos &optional other-window)
     "Show the full diagnostic of this error.
@@ -1867,12 +1840,6 @@ Used to see multiline flymake errors"
            (text (flymake-diagnostic-text (plist-get id :diagnostic))))
       (message text)))
   (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
-
-(use-package flymake-ruff
-  :ensure t
-  :when (executable-find "ruff")
-  :hook ((python-mode . flymake-ruff-load)
-         (python-ts-mode . flymake-ruff-load)))
 
 (use-package imenu
   :ensure nil
@@ -1982,7 +1949,12 @@ Used to see multiline flymake errors"
 
 (use-package tab-bar
   :commands tab-bar-mode
+  :bind (:map tab-prefix-map
+              ("P" . my/rename-tab-to-project))
   :config
+  (defun my/rename-tab-to-project ()
+    (interactive)
+    (tab-bar-rename-tab (format "P:%s"(project-name (project-current)))))
   (setopt tab-bar-show t)
   ;; (setopt tab-bar-auto-width-min '(15 2))
   (defun tab-bar-tab-name-format-comfortable (tab i)
@@ -1993,26 +1965,27 @@ Used to see multiline flymake errors"
                              nil nil t)
                         " ")
                 'face (funcall tab-bar-tab-face-function tab)))
+  (defun my/fake-modeline ()
+    `((my-tab-modeline
+       menu-item
+       ,(format-mode-line
+         `(,@my/mode-line-left-side
+           " "
+           ,(when (fboundp 'eglot)
+              (if (eglot-managed-p)
+                  (propertize (or "∈")
+                              'face 'success)
+                ""))
+           mode-line-process
+           (which-function-mode ("" which-func-format ""))
+           (vc-mode vc-mode)))
+       ignore)))
   (setq tab-bar-format `(tab-bar-separator
                          tab-bar-format-menu-bar
                          tab-bar-format-tabs
                          tab-bar-separator
                          tab-bar-format-align-right
-                         (lambda ()
-                           `((my-tab-modeline
-                              menu-item
-                              ,(format-mode-line
-                                `(,@my/mode-line-left-side
-                                  " "
-                                  ,(when (fboundp 'eglot)
-                                     (if (eglot-managed-p)
-                                         (propertize (or "E")
-                                                     'face 'success)
-                                       ""))
-                                  mode-line-process
-                                  (which-function-mode ("" which-func-format ""))
-                                  (vc-mode vc-mode)))
-                              ignore)))
+                         my/fake-modeline
                          tab-bar-separator
                          tab-bar-separator
                          tab-bar-format-global))
@@ -2145,23 +2118,9 @@ Used to see multiline flymake errors"
 (keymap-global-set "C-v" #'my/scroll-down)
 (keymap-global-set "M-v" #'my/scroll-up)
 
-;; (use-package direnv
-;;   :ensure t
-;;   :config
-;;   (envrc-global-mode))
-
-;; (use-package comby
-;;   :ensure t
-;;   :when (executable-find "comby"))
-
 (use-package docker
   :ensure t
   :bind (("C-x d" . docker)))
-
-;; (use-package carp
-;;   :load-path "~/.emacs.d/lisp/carp.el"
-;;   :init t
-;;   :hook (carp-mode ))
 
 (setenv "EDITOR" "emacsclient")
 (setenv "PAGER" "cat")
@@ -2170,85 +2129,101 @@ Used to see multiline flymake errors"
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 
-(let ((f "lisp/termux.el"))
-  (when (file-exists-p f)
-    (load (locate-user-emacs-file f))))
 (put 'set-goal-column 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
 (put 'dired-find-alternate-file 'disabled nil)
 (put 'list-timers 'disabled nil)
 
-(setenv "PATH" (concat (getenv "PATH") ":/home/gavinok/.cargo/bin"))
-
 (use-package eglot
   :bind (:map eglot-diagnostics-map
               ("M-RET" . eglot-code-actions))
+  :init
+  ;; Ensure that cargo is ready to go
+  (setenv "PATH" (concat (getenv "PATH") ":/home/gavinok/.cargo/bin"))
   :config
+  ;; A hacky way to make every file opened in my HOME directory act as
+  ;; a single file project
+  (defun my/project-current (old &rest _)
+    "Blacklist my home directory from project.el. Used in my eglot
+setup to allow for single file projects"
+    (when-let ((cur (funcall old)))
+      (if (or (equal (project-root cur) "~/")
+              (equal (project-root cur) "/home/gavinok"))
+          nil
+        cur)))
+  (advice-add 'project-current :around #'my/project-current)
+
+  (cl-defmethod eglot-workspace-folders (server)
+    "My hack to allow for single file projects"
+    (let ((project (eglot--project server)))
+      (when (project-current)
+        (vconcat
+         (mapcar (lambda (dir)
+                   (list :uri (eglot-path-to-uri dir)
+                         :name (abbreviate-file-name dir)))
+                 `(,(project-root project) ,@(project-external-roots project)))))))
+
+  (cl-defmethod eglot-register-capability :around
+    (server (method (eql workspace/didChangeWatchedFiles)) id &key watchers)
+    "A workaround to avoid monitoring all files in the current
+directory when working with a single file project."
+    (if (project-current)
+        (cl-call-next-method)
+      (progn (message "eglot: Single File Mode")
+             nil)))
+
+  ;; My easy way to install eglot servers
   (load (locate-user-emacs-file
          "lisp/eglot-lsp-installer.el"))
+  (defun my/advice-eglot-server-setup-paths (&rest _)
+    (my/eglot-server-setup-paths))
+  (advice-add 'eglot--connect :before #'my/advice-eglot-server-setup-paths)
+  (advice-remove 'eglot--connect 'my/eglot-server-setup-paths)
 
   ;; Inlay add typehints for typescript
+  (add-to-list  'eglot-server-programs
+                `((js-mode js-ts-mode tsx-ts-mode typescript-ts-mode typescript-mode)
+                  .
+                  ("typescript-language-server" "--stdio"
+                   :initializationOptions
+                   (:preferences
+                    (:includeInlayParameterNameHints "all"
+                                                     :includeInlayParameterNameHintsWhenArgumentMatchesName t
+                                                     :includeInlayFunctionParameterTypeHints t
+                                                     :includeInlayVariableTypeHints t
+                                                     :includeInlayVariableTypeHintsWhenTypeMatchesName t
+                                                     :includeInlayPropertyDeclarationTypeHints t
+                                                     :includeInlayFunctionLikeReturnTypeHints t
+                                                     :includeInlayEnumMemberValueHints t)))))
   (add-to-list 'eglot-server-programs
-               `((js-mode js-ts-mode tsx-ts-mode typescript-ts-mode typescript-mode)
-                 .
-                 ("typescript-language-server" "--stdio"
-                  :initializationOptions
-                  (:preferences
-                   (:includeInlayParameterNameHints "all"
-                                                    :includeInlayParameterNameHintsWhenArgumentMatchesName t
-                                                    :includeInlayFunctionParameterTypeHints t
-                                                    :includeInlayVariableTypeHints t
-                                                    :includeInlayVariableTypeHintsWhenTypeMatchesName t
-                                                    :includeInlayPropertyDeclarationTypeHints t
-                                                    :includeInlayFunctionLikeReturnTypeHints t
-                                                    :includeInlayEnumMemberValueHints t)))))
-  (add-to-list eglot-server-programs
-               `((HTML-mode :language-id "html") . ,(eglot-alternatives `(("vscode-html-language-server" "--stdio") ("html-languageserver" "--stdio")))))
-  (add-to-list eglot-server-programs `(java-mode . ("/home/gavinok/java-language-server/dist/lang_server_linux.sh")))
-  (add-to-list eglot-server-programs `((typst-mode typst-ts-mode) . ("typst-lsp")))
+               `((HTML-mode :language-id "html")
+                 . ,(eglot-alternatives `(("vscode-html-language-server" "--stdio")
+                                          ("html-languageserver" "--stdio")))))
+  (add-to-list 'eglot-server-programs
+               `(java-mode
+                 . ("/home/gavinok/java-language-server/dist/lang_server_linux.sh")))
+  (add-to-list 'eglot-server-programs
+               `((typst-mode typst-ts-mode) . ("typst-lsp")))
 
-  ;; tricks for improving performance
-  (fset #'jsonrpc--log-event #'ignore)
-  (setopt eglot-events-buffer-size 0
-          eglot-autoshutdown t)
+  (defun my/setup-eldoc-for-eglot ()
+    "Make sure Eldoc will show us all of the feedback at point."
+    (setq-local eldoc-documentation-strategy
+                #'eldoc-documentation-compose))
+  (add-hook 'eglot-managed-mode-hook #'my/setup-eldoc-for-eglot))
 
-  ;; Extra performance saving
-  ;; (setopt eglot-ignored-server-capabilities '(:documentHighlightProvider))
-
-  (add-hook 'eglot-managed-mode-hook
-            (lambda ()
-              "Make sure Eldoc will show us all of the feedback at point."
-              (setq-local eldoc-documentation-strategy
-                          #'eldoc-documentation-compose))))
+(use-package consult-eglot
+  :ensure t
+  :after eglot
+  :bind ("M-s s" . consult-eglot-symbols))
 
 (use-package dape
   ;; Currently only on github
   :init
   (unless (package-installed-p 'dape)
     (package-vc-install "https://github.com/svaante/dape"))
-  ;; By default dape uses gdb keybinding prefix
-  ;; (setq dape-key-prefix "C-xD")
   :config
   ;; Add inline variable hints, this feature is highly experimental
-  (setq dape-inline-variables t)
-  (push
-   '(debugpy-attach-port-remote
-     modes (python-mode python-ts-mode)
-     port (lambda () (read-number "Port: "))
-     :request "attach"
-     :type "python"
-     :pathMappings (lambda ()
-                     (let* ((default (list (if-let ((project (project-current)))
-                                               (project-root project)
-                                             default-directory)))
-                            (local (completing-read "Local <Path/To/Project>: " default))
-                            (remote (completing-read "Remote <Path/To/Project>: "
-                                                     ;; Path just we often use at work
-                                                     '("/app"))))
-                       (vector (list :localRoot local :remoteRoot remote))))
-     :justMyCode nil
-     :showReturnValue t)
-   dape-configs))
+  (setopt dape-inline-variables t))
 
 ;; Describe this code
 (use-package devil
@@ -2261,18 +2236,19 @@ Used to see multiline flymake errors"
   (setq overriding-text-conversion-style nil))
 
 (use-package eglot-booster
-  :after lsp-mode
+  :after (:any eglot lsp-mode)
   :when (executable-find "cargo")
   :init
   (unless (package-installed-p 'eglot-booster)
-    (package-vc-install '(eglot-booster :url "https://github.com/jdtsmith/eglot-booster")))
+    (package-vc-install
+     '(eglot-booster :url "https://github.com/jdtsmith/eglot-booster")))
   :config
   ;; tricks for improving performance
   (fset #'jsonrpc--log-event #'ignore)
   (setopt eglot-events-buffer-size 0
           eglot-autoshutdown t)
 
-  ;; install and setup lsp booster
+  ;; Install and setup lsp booster
   (let ((emacs-lsp-booster-repo "https://github.com/blahgeek/emacs-lsp-booster")
         (emacs-lsp-booster-dir (file-name-concat
                                 (expand-file-name user-emacs-directory)
@@ -2285,22 +2261,24 @@ Used to see multiline flymake errors"
         (vc-clone emacs-lsp-booster-repo 'Git emacs-lsp-booster-dir)
         (let ((default-directory emacs-lsp-booster-dir))
           (message "Building emacs-lsp-booster")
-          (make-process :name "Building emacs-lsp-booster"
-                        :buffer "*EMACS-LSP-BOOSTER-BUILD*"
-                        :command (list "cargo" "build" "--release")
-                        :sentinel (lambda (process event)
-                                    ;; TODO switch to using `process-status' instead of `event'
-                                    (with-current-buffer (process-buffer process)
-                                      (ansi-color-apply-on-region (point-min) (point-max)))
-                                    (pcase event
-                                      ("finished\n"
-                                       (message "Installed emacs-lsp-booster")
-                                       (push (file-name-concat emacs-lsp-booster-dir "target/release/")
-                                             exec-path))
+          (make-process
+           :name "Building emacs-lsp-booster"
+           :buffer "*EMACS-LSP-BOOSTER-BUILD*"
+           :command (list "cargo" "build" "--release")
+           :sentinel
+           (lambda (process event)
+             ;; TODO switch to using `process-status' instead of `event'
+             (with-current-buffer (process-buffer process)
+               (ansi-color-apply-on-region (point-min) (point-max)))
+             (pcase event
+               ("finished\n"
+                (message "Installed emacs-lsp-booster")
+                (push (file-name-concat emacs-lsp-booster-dir "target/release/")
+                      exec-path))
 
-                                      ((or "open from host-name\n" "open\n" "run\n"))
-                                      (_ (error "Unhandled case %s for event from Building emacs-lsp-booster")))
-                                    ))))))
+               ((or "open from host-name\n" "open\n" "run\n"))
+               (_ (error "Unhandled case %s for event from Building emacs-lsp-booster")))
+             ))))))
   (eglot-booster-mode))
 
 (load (locate-user-emacs-file
