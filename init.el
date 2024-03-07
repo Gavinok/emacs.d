@@ -1,19 +1,21 @@
-;; -*- lexical-binding: t -*-
-;;; Startup
-;; Minimize garbage collection during startup
-
-;; useful for quickly debugging emacs
+;; init.el --- My config -*- lexical-binding: t -*-
+;;; Commentary:
+;;; Code:
+;; useful for quickly debugging Emacs
 ;; (setq debug-on-error t)
-;; Get clipboard to work when using wsl
 (setenv "LSP_USE_PLISTS" "true")
+
+;;; Startup
 (add-hook 'emacs-startup-hook
           (lambda ()
             (message "*** Emacs loaded in %s seconds with %d garbage collections."
                      (emacs-init-time "%.2f")
                      gcs-done)))
 
-;; make it easy to jump between packages
+;; Make it easy to jump between packages
 (setopt use-package-enable-imenu-support t)
+
+;; Get clipboard to work when using wsl
 (defconst running-in-wsl (executable-find "wslpath"))
 (when running-in-wsl
   (defun wls-copy (text)
@@ -205,7 +207,7 @@ If no binding is captured section of regex is found for a BINDING an error is si
            'face
            (cond
             ((eql major-mode 'haskell-mode) 'haskell-definition-face)
-            (T                              'font-lock-function-name-face))
+            (t                              'font-lock-function-name-face))
            nil))
 
   (defun my/change-number-at-point (change increment)
@@ -229,7 +231,7 @@ If no binding is captured section of regex is found for a BINDING an error is si
     (interactive "p")
     (my/change-number-at-point '- (or increment 1)))
 
-  (defun my/center-pixel-wise (arg)
+  (defun my/center-pixel-wise (_arg)
     (interactive "P")
     (let* ((win-pixel-edges (window-pixel-edges (selected-window)))
            (delta  (- (/ (+ (nth 1 win-pixel-edges) (nth 3 win-pixel-edges)) 2)
@@ -240,13 +242,13 @@ If no binding is captured section of regex is found for a BINDING an error is si
     "Move cursor down half a screen ARG times."
     (interactive "p")
     (let ((dist (/ (window-height) 2)))
-      (next-line dist)))
+      (forward-line dist)))
 
   (defun my/scroll-up (arg)
     "Move cursor up half a screen ARG times."
     (interactive "p")
     (let ((dist (/ (window-height) 2)))
-      (previous-line dist)))
+      (forward-line (- dist))))
 
   (defun my/shell-command-on-file (command)
     "Execute COMMAND asynchronously on the current file."
@@ -269,7 +271,7 @@ returns the equivalent latex version."
                  calc-language latex)
                'top))
 
-  (defun echo-eqn-to-tex (eqn-expr &optional arg)
+  (defun echo-eqn-to-tex (eqn-expr &optional _arg)
     "Takes an eqn expression eqn-expr and prints a message with the
 latex version of it."
     (interactive "sEnter eqn here: ")
@@ -554,7 +556,7 @@ Depends on the `gh' commandline tool"
   (set-mark-command-repeat-pop 256)
   :init
   ;; Unify Marks
-  (defun my/push-mark-global (&optional location nomsg activate)
+  (defun my/push-mark-global (&optional _location _nomsg _activate)
     "Always push to the global mark when push-mark is called"
     (let ((old (nth global-mark-ring-max global-mark-ring))
           (history-delete-duplicates nil))
@@ -709,7 +711,7 @@ This way our searches are kept up to date"
   (setq prefix-help-command #'embark-prefix-help-command)
   (setq embark-prompter 'embark-completing-read-prompter)
   :config
-  (defun search-in-source-graph (text))
+  ;; (defun search-in-source-graph (text))
   (defun dragon-drop (file)
     (start-process-shell-command "dragon-drop" nil
                                  (concat "dragon-drop " file)))
@@ -853,8 +855,7 @@ This way our searches are kept up to date"
     (add-to-list 'default-frame-alist '(alpha-background . 85)))
 
   (load-theme 'spaceway t)
-  (setenv "SCHEME" "dark")
-  )
+  (setenv "SCHEME" "dark"))
 
 ;;; WRITING
 (use-package writegood-mode
@@ -900,8 +901,8 @@ This way our searches are kept up to date"
     (interactive)
     (let ((dir (project-root (project-current t))))
       (magit-status dir))))
-
 (use-package forge :ensure t :after magit)
+
 (use-package ediff
   :after (magit vc)
   :commands (ediff)
@@ -1363,19 +1364,19 @@ This way our searches are kept up to date"
 (use-package lsp-languages
   :no-require t :ensure nil
   :unless (eq system-type 'android)
-  :hook (;; (c-mode          . lsp-deferred)
-         ;; (c++-mode        . lsp-deferred)
-         ;; (typescript-mode . lsp-deferred)
-         ;; (purescript-mode . lsp-deferred)
-         ;; (python-mode     . lsp-deferred)
-         ;; (python-ts-mode     . lsp-deferred)
-         ;; (js-mode         . lsp-deferred)
-         ;; (javascript-mode . lsp-deferred)
-         ;; (typescript-ts-mode . lsp-deferred)
-         ;; (tsx-ts-mode . lsp-deferred)
-         ;; (vue-ts-mode . lsp-deferred)
-         ;; (web-mode . lsp-deferred)
-         )
+  ;; :hook ((c-mode          . lsp-deferred)
+  ;;        (c++-mode        . lsp-deferred)
+  ;;        (typescript-mode . lsp-deferred)
+  ;;        (purescript-mode . lsp-deferred)
+  ;;        (python-mode     . lsp-deferred)
+  ;;        (python-ts-mode     . lsp-deferred)
+  ;;        (js-mode         . lsp-deferred)
+  ;;        (javascript-mode . lsp-deferred)
+  ;;        (typescript-ts-mode . lsp-deferred)
+  ;;        (tsx-ts-mode . lsp-deferred)
+  ;;        (vue-ts-mode . lsp-deferred)
+  ;;        (web-mode . lsp-deferred)
+  ;;        )
   :init
   (use-package lsp-javascript :ensure nil :no-require t
     ;; :hook (javascript-mode . lsp-deferred)
@@ -2277,7 +2278,7 @@ directory when working with a single file project."
                       exec-path))
 
                ((or "open from host-name\n" "open\n" "run\n"))
-               (_ (error "Unhandled case %s for event from Building emacs-lsp-booster")))
+               (_ (error "Unhandled case %s for event from Building emacs-lsp-booster" event)))
              ))))))
   (eglot-booster-mode))
 
