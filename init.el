@@ -484,6 +484,7 @@ Depends on the `gh' commandline tool"
 
 (use-package time
   :init
+  (setopt world-clock-time-format "%a %d %b %I:%M%p %Z")
   (setopt zoneinfo-style-world-list
           '(("America/Edmonton" "Calgary")
             ("America/Vancouver" "Vancouver")
