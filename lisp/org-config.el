@@ -7,6 +7,7 @@
 
 (use-package appt
   :demand t
+  :defer 5
   :custom
   ((appt-announce-method 'appt-persistant-message-announce)
    (appt-message-warning-time 15)
