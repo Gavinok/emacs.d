@@ -315,26 +315,29 @@ Depends on the `gh' commandline tool"
                        (read-string "File Name: ")
                        (read-string "Description: ")
                        current-prefix-arg))
-    (let ((proc (make-process :name "Gist Creation"
-                              :buffer "*Gist URL*"
-                              :command (cl-remove :skip
-                                                  (list "gh" "gist" "create"
-                                                        "--filename" fname
-                                                        "--desc" desc
-                                                        (if private
-                                                            :skip
-                                                          "--public")
-                                                        "-"))
-                              :sentinel (lambda (process event)
-                                          "Listens for process finish and prints the gist's URL"
-                                          (when (string-match "finis.*" event)
-                                            (message "Gist for file %s created at %s"
-                                                     fname
-                                                     (with-current-buffer (process-buffer process)
-                                                       (goto-char (point-max))
-                                                       (thing-at-point 'line))))))))
-
-      (process-send-string proc (buffer-substring BEG END))
+    (let* ((extra-args (unless private '("--public")))
+           (command `("gh" "gist" "create"
+                      "--filename" ,fname
+                      "--desc" ,desc
+                      ,@extra-args
+                      "-"))
+           (proc (make-process :name "Gist Creation"
+                               :buffer "*Gist URL*"
+                               :command command
+                               :sentinel (lambda (process event)
+                                           "Listens for process finish and prints the gist's URL"
+                                           (unless (process-live-p process )
+                                             (if (string-match "finis.*" event)
+                                                 (let ((select-enable-clipboard t)
+                                                       (url (with-current-buffer (process-buffer process)
+                                                              (goto-char (point-max))
+                                                              (thing-at-point 'line))))
+                                                   (message "Gist for file %s created at %s (copied to clipboard)"
+                                                            fname url)
+                                                   (kill-new url))
+                                               (switch-to-buffer "*Gist URL*")))))))
+      (message "Creating Gist")
+      (process-send-region proc BEG END)
       (process-send-eof proc)
       (process-send-eof proc)))
 
