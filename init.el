@@ -943,7 +943,9 @@ This way our searches are kept up to date"
   :ensure t
   :custom
   (eat-enable-auto-line-mode t)
-  :bind ("C-x E" . eat))
+  :bind (("C-x E" . eat)
+         :map project-prefix-map
+         ("t" . eat-project)))
 
 (use-package em-alias
   :ensure nil
