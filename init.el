@@ -1432,7 +1432,14 @@ This way our searches are kept up to date"
 
         (message "JAVA_HOME is now %s and PATH is now %s"
                  (getenv "JAVA_HOME")
-                 (getenv "PATH")))))
+                 (getenv "PATH"))))
+    ;; (add-to-list 'eglot-server-programs
+    ;;              `(java-mode
+    ;;                . ("/home/gavinok/java-language-server/dist/lang_server_linux.sh")))
+    ;; (use-package eglot-java
+    ;;   :ensure t
+    ;;   :after (:and java eglot))
+    )
   (use-package go-ts-mode
     :mode "\\.go\\'"
     :init
