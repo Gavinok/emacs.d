@@ -1344,61 +1344,60 @@ This way our searches are kept up to date"
     (setq lsp-ui-sideline-show-code-actions t)
     (setq lsp-ui-sideline-show-diagnostics t)))
 
-(use-package lsp-languages
-  :no-require t :ensure nil
-  :unless (eq system-type 'android)
-  ;; :hook ((c-mode          . lsp-deferred)
-  ;;        (c++-mode        . lsp-deferred)
-  ;;        (typescript-mode . lsp-deferred)
-  ;;        (purescript-mode . lsp-deferred)
-  ;;        (python-mode     . lsp-deferred)
-  ;;        (python-ts-mode     . lsp-deferred)
-  ;;        (js-mode         . lsp-deferred)
-  ;;        (javascript-mode . lsp-deferred)
-  ;;        (typescript-ts-mode . lsp-deferred)
-  ;;        (tsx-ts-mode . lsp-deferred)
-  ;;        (vue-ts-mode . lsp-deferred)
-  ;;        (web-mode . lsp-deferred)
-  ;;        )
-  :init
-  (use-package lsp-javascript :ensure nil :no-require t
-    ;; :hook (javascript-mode . lsp-deferred)
-    :config
-    (setopt lsp-javascript-display-inlay-hints t
-            lsp-javascript-display-return-type-hints t
-            lsp-javascript-display-variable-type-hints t
-            lsp-javascript-display-parameter-type-hints t)
-    (with-eval-after-load 'js
-      (keymap-set js-mode-map "M-." 'xref-find-definitions)))
+;; (use-package lsp-languages
+;;   :no-require t :ensure nil
+;;   :unless (eq system-type 'android)
+;;   :hook ((c-mode          . lsp-deferred)
+;;          (c++-mode        . lsp-deferred)
+;;          (typescript-mode . lsp-deferred)
+;;          (purescript-mode . lsp-deferred)
+;;          (python-mode     . lsp-deferred)
+;;          (python-ts-mode     . lsp-deferred)
+;;          (js-mode         . lsp-deferred)
+;;          (javascript-mode . lsp-deferred)
+;;          (typescript-ts-mode . lsp-deferred)
+;;          (tsx-ts-mode . lsp-deferred)
+;;          (vue-ts-mode . lsp-deferred)
+;;          (web-mode . lsp-deferred)
+;;          )
+;;   :init
+;;   (use-package lsp-javascript :ensure nil :no-require t
+;;     ;; :hook (javascript-mode . lsp-deferred)
+;;     :config
+;;     (setopt lsp-javascript-display-inlay-hints t
+;;             lsp-javascript-display-return-type-hints t
+;;             lsp-javascript-display-variable-type-hints t
+;;             lsp-javascript-display-parameter-type-hints t)
+;;     (with-eval-after-load 'js
+;;       (keymap-set js-mode-map "M-." 'xref-find-definitions)))
 
-  (use-package lsp-rust :ensure nil :no-require t
-    :when (executable-find "rust-analyzer")
-    ;; :hook (rust-mode       . lsp-deferred)
-    :config
-    (setq lsp-rust-analyzer-inlay-hints-mode 1))
+;;   (use-package lsp-rust :ensure nil :no-require t
+;;     :when (executable-find "rust-analyzer")
+;;     :hook (rust-mode       . lsp-deferred)
+;;     :config
+;;     (setq lsp-rust-analyzer-inlay-hints-mode 1))
 
-  (use-package lsp-haskell :ensure t
-    ;; :hook (haskell-mode    . lsp-deferred)
-    )
+;;   (use-package lsp-haskell :ensure t
+;;     :hook (haskell-mode    . lsp-deferred))
 
-  ;; (use-package lsp-java :ensure t
-  ;;   :hook (java-mode       . lsp-deferred)
-  ;;   :init
-  ;;   (require 'lsp-java-boot)
-  ;;   (add-hook 'java-mode-hook #'lsp-java-boot-lens-mode))
+;;   (use-package lsp-java :ensure t
+;;     :hook (java-mode       . lsp-deferred)
+;;     :init
+;;     (require 'lsp-java-boot)
+;;     (add-hook 'java-mode-hook #'lsp-java-boot-lens-mode))
 
 
-  ;; (use-package lsp-pyright
-  ;;   :unless (eq system-type 'android)
-  ;;   :ensure t
-  ;;   :after (python-mode python-ts-mode)
-  ;;   :hook ((python-mode . (lambda ()
-  ;;                           (require 'lsp-pyright)
-  ;;                           (lsp-deferred)))
-  ;;          (python-ts-mode . (lambda ()
-  ;;                              (require 'lsp-pyright)
-  ;;                              (lsp-deferred)))))
-  )
+;;   (use-package lsp-pyright
+;;     :unless (eq system-type 'android)
+;;     :ensure t
+;;     :after (python-mode python-ts-mode)
+;;     :hook ((python-mode . (lambda ()
+;;                             (require 'lsp-pyright)
+;;                             (lsp-deferred)))
+;;            (python-ts-mode . (lambda ()
+;;                                (require 'lsp-pyright)
+;;                                (lsp-deferred)))))
+;;   )
 
 ;;; Languages
 (use-package extra-languages
