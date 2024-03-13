@@ -2155,57 +2155,33 @@ Used to see multiline flymake errors"
   ;; Ensure that cargo is ready to go
   (setenv "PATH" (concat (getenv "PATH") ":/home/gavinok/.cargo/bin"))
   :config
-  ;; A hacky way to make every file opened in my HOME directory act as
-  ;; a single file project see https://github.com/joaotavora/eglot/discussions/1086
-  (cl-defmethod eglot-workspace-folders :around (server)
-    (when (and (project-current)
-               (not (equal (expand-file-name
-                            (project-root (eglot--project server)))
-                           (expand-file-name "~/"))))
-      (cl-call-next-method)))
-
-  (cl-defmethod eglot-register-capability :around
-    (server (_method (eql workspace/didChangeWatchedFiles)) _id &key _watchers)
-    "A workaround to avoid monitoring all files in the current
-directory when working with a single file project."
-    (if (project-current)
-        (cl-call-next-method)
-      (progn (message "eglot: Single File Mode")
-             nil)))
+  ;; WIP
+  ;; TODO determine how to unalias jsonrpc--log-event
+  ;; (define-minor-mode debug-eglot-mode
+  ;;   "Minor mode that makes eglot more verbose. Useful for debugging eglot related issues"
+  ;;   :global t
+  ;;   (if debug-eglot-mode
+  ;;       (progn
+  ;;         (setopt eglot-events-buffer-config '(:size 1000 :format full)
+  ;;                 eglot-autoshutdown t)
+  ;;         (require 'jsonrpc)
+  ;;         (eglot-booster-mode -1))
+  ;;     (fset #'jsonrpc--log-event #'ignore)
+  ;;     (setopt eglot-events-buffer-size 0
+  ;;             eglot-autoshutdown t)
+  ;;     (eglot-booster-mode +1)))
 
   ;; My easy way to install eglot servers
   (load (locate-user-emacs-file
          "lisp/eglot-lsp-installer.el"))
-  (defun my/advice-eglot-server-setup-paths (&rest _)
+  ;; Ensures the paths used for eglot-lsp-installer are configured before starting a language server
+  (define-advice eglot--connect (:before (&rest _) my/advice-eglot-server-setup-paths)
     (my/eglot-server-setup-paths))
-  (advice-add 'eglot--connect :before #'my/advice-eglot-server-setup-paths)
-  (advice-remove 'eglot--connect 'my/eglot-server-setup-paths)
 
-  ;; Inlay add typehints for typescript
-  (add-to-list  'eglot-server-programs
-                `((js-mode js-ts-mode tsx-ts-mode typescript-ts-mode typescript-mode)
-                  .
-                  ("typescript-language-server" "--stdio"
-                   :initializationOptions
-                   (:preferences
-                    (:includeInlayParameterNameHints "all"
-                                                     :includeInlayParameterNameHintsWhenArgumentMatchesName t
-                                                     :includeInlayFunctionParameterTypeHints t
-                                                     :includeInlayVariableTypeHints t
-                                                     :includeInlayVariableTypeHintsWhenTypeMatchesName t
-                                                     :includeInlayPropertyDeclarationTypeHints t
-                                                     :includeInlayFunctionLikeReturnTypeHints t
-                                                     :includeInlayEnumMemberValueHints t)))))
-  (add-to-list 'eglot-server-programs
-               `((HTML-mode :language-id "html")
-                 . ,(eglot-alternatives `(("vscode-html-language-server" "--stdio")
-                                          ("html-languageserver" "--stdio")))))
-  (add-to-list 'eglot-server-programs
-               `(java-mode
-                 . ("/home/gavinok/java-language-server/dist/lang_server_linux.sh")))
   (add-to-list 'eglot-server-programs
                `((typst-mode typst-ts-mode) . ("typst-lsp")))
 
+  ;; Setup eldoc the way I like it for emacs
   (defun my/setup-eldoc-for-eglot ()
     "Make sure Eldoc will show us all of the feedback at point."
     (setq-local eldoc-documentation-strategy
@@ -2220,12 +2196,85 @@ directory when working with a single file project."
     (add-to-list 'flymake-diagnostic-functions 'eglot-flymake-backend))
   (add-hook 'eglot-managed-mode-hook #'my/eglot+flymake))
 
+(use-package eglot-single-file-mode :no-require t
+  :after eglot
+  :config
+
+  (defgroup eglot-single-file nil "eglot-single-file"
+    :group 'eglot)
+
+  (defcustom eglot-single-file-project-blacklist '("~/")
+    "A list of directories that eglot is not allowed to set as the
+current workspace."
+    :type '(repeat string)
+    :group 'eglot-single-file)
+
+  ;; A hacky way to make every file opened in my HOME directory act as
+  ;; a single file project see https://github.com/joaotavora/eglot/discussions/1086
+  (cl-defmethod eglot-workspace-folders :around (server)
+    "Make sure we don't treat the HOME directory as the workspace folder"
+    (when (and (project-current)
+               (not (cl-find (expand-file-name
+                              (project-root (eglot--project server)))
+                             (mapcar #'expand-file-name
+                                     eglot-single-file-project-blacklist)
+                             :test #'equal)))
+      (cl-call-next-method)))
+
+  (cl-defmethod eglot-register-capability :around
+    (_server (_method (eql workspace/didChangeWatchedFiles)) _id &key _watchers)
+    "A workaround to avoid monitoring all files in the current
+directory when working with a single file project."
+    (if (project-current)
+        (cl-call-next-method)
+      (message "eglot: Single File Mode")
+      nil)))
+
+(use-package eglot-gopls-x :no-require t
+  :after (:all eglot go-ts-mode)
+  :config
+  ;; Ensure gopls will use typehints (IDK why I needed to do this manually)
+  (setq-default eglot-workspace-configuration
+                '(:gopls (
+                          :codelenses (
+                                       :gc_details :json-false
+                                       :generate t
+                                       :regenerate_cgo t
+                                       :tidy t
+                                       :upgrade_dependency t
+                                       :vendor t
+                                       )
+                          :hints (
+                                  :assignVariableTypes t
+                                  :compositeLiteralFields t
+                                  :compositeLiteralTypes t
+                                  :constantValues t
+                                  :functionTypeParameters t
+                                  :parameterNames t
+                                  :rangeVariableTypes t
+                                  ))))
+
+  (cl-defmethod eglot-client-capabilities :around (server)
+    "Allow dynamic registration of inlay hints since it's the only way
+to get gopls to give us any inlay hints"
+    (let ((base (cl-call-next-method)))
+      (when (cl-find "gopls" (process-command
+                              (jsonrpc--process server))
+                     :test #'string-match)
+        (setf (cl-getf (cl-getf base :textDocument) :inlayHint)
+              `(:dynamicRegistration t)))
+      base))
+
+  ;; Ensure inlay hints going for eglot
+  (add-hook 'go-ts-mode-hook 'eglot-inlay-hints-mode))
+
 (use-package consult-eglot
   :ensure t
   :after eglot
   :bind ("M-s s" . consult-eglot-symbols))
 
 (use-package dape
+  :commands (dape)
   ;; Currently only on github
   :init
   (unless (package-installed-p 'dape)
