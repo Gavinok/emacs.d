@@ -561,7 +561,8 @@ Depends on the `gh' commandline tool"
   (set-mark-command-repeat-pop 256)
   :init
   ;; Unify Marks
-  (defun my/push-mark-global (&optional _location _nomsg _activate)
+  (define-advice push-mark (:after (&optional _location _nomsg _activate)
+                                   my/push-mark-global)
     "Always push to the global mark when push-mark is called"
     (let ((old (nth global-mark-ring-max global-mark-ring))
           (history-delete-duplicates nil))
@@ -569,8 +570,7 @@ Depends on the `gh' commandline tool"
        'global-mark-ring (copy-marker (mark-marker))
        global-mark-ring-max t)
       (when old
-        (set-marker old nil))))
-  (advice-add 'push-mark :after #'my/push-mark-global))
+        (set-marker old nil)))))
 ;;; General Key Bindings
 (use-package crux
   :ensure t
