@@ -1308,8 +1308,7 @@ This way our searches are kept up to date"
 (use-package lsp-mode
   :ensure t
   :defer t
-  :bind (("C-h ," . help-at-pt-buffer)
-         (:map lsp-mode-map
+  :bind ((:map lsp-mode-map
                ("M-<return>" . lsp-execute-code-action))
          (:map c++-mode-map
                ("C-c x" . lsp-clangd-find-other-file))
@@ -1341,17 +1340,6 @@ This way our searches are kept up to date"
               (setf (alist-get 'lsp-capf completion-category-defaults)
                     '((styles . (orderless))))))
   :config
-  (defun help-at-pt-buffer ()
-    (interactive)
-    (let ((help (help-at-pt-kbd-string))
-          (h-at-p-buf "*Help At Point*"))
-      (if help
-          (progn (with-current-buffer (get-buffer-create h-at-p-buf)
-                   (view-mode -1)
-                   (erase-buffer) (insert (format "%s" (substitute-command-keys help)))
-                   (view-mode +1))
-                 (switch-to-buffer-other-window h-at-p-buf))
-        (if (not arg) (message "No local help at point")))))
   (use-package lsp-ui
     :ensure t
     :after lsp
