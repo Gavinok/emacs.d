@@ -2379,6 +2379,7 @@ to get gopls to give us any inlay hints"
 
 (use-package elfeed
   :ensure t
+  :commands (elfeed)
   :config
   ;; Somewhere in your .emacs file
   (setopt elfeed-feeds
@@ -2395,4 +2396,5 @@ to get gopls to give us any inlay hints"
             "http://www.codemadness.org/atom.xml"
             "https://xkcd.com/atom.xml"
             "https://planet.emacslife.com/atom.xml"
-            "https://www.reddit.com/r/emacs/.rss")))
+            "https://www.reddit.com/r/emacs/.rss"
+            "https://andreyor.st/feed.xml")))
