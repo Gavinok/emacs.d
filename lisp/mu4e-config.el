@@ -4,6 +4,11 @@
   :after mu4e
   :bind (:map org-msg-edit-mode-map
               ("M-g M-g" . my/org-msg-goto-body))
+  :init
+  ;; Prevent mu4e from consuming the entire frame
+  (add-to-list 'display-buffer-alist
+               `(,(regexp-quote mu4e-main-buffer-name)
+                 display-buffer-same-window))
   :config
   (defun my/org-msg-goto-body (&optional end)
     "Go to either the beginning or the end of the body.
