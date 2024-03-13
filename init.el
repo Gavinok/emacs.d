@@ -1785,6 +1785,7 @@ This way our searches are kept up to date"
 (use-package etags-regen
   :when (executable-find "etags")
   :custom (etags-regen-tags-file "/tmp/TAGS")
+  :commands etags-regen-mode
   :bind (("C-c t" . complete-tag)
          ("C-c M-." . my/goto-etags))
   :init
@@ -1793,9 +1794,7 @@ This way our searches are kept up to date"
     (let ((xref-backend-functions '(etags--xref-backend t)))
       (call-interactively 'xref-find-definitions)))
   (defvar etags-regen-mode-map (make-sparse-keymap))
-  (add-to-list 'minor-mode-map-alist (cons 'etags-regen-mode etags-regen-mode-map))
-  :config
-  (etags-regen-mode t))
+  (add-to-list 'minor-mode-map-alist (cons 'etags-regen-mode etags-regen-mode-map)))
 
 (use-package flymake
   :defer 10
