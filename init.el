@@ -2339,6 +2339,11 @@ to get gopls to give us any inlay hints"
              ))))))
   (eglot-booster-mode))
 
+(use-package eglot-codelens
+  :ensure nil
+  :load-path "lisp/eglot-codelens/"
+  :after eglot)
+
 (load (locate-user-emacs-file
        "lisp/exwm-config.el"))
 
