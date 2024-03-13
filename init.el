@@ -1230,11 +1230,6 @@ This way our searches are kept up to date"
         ("<mouse-5>"     . next-line)
         ("<mouse-6>"     . backward-char)
         ("<mouse-7>"     . forward-char)
-        ;; :map key-translation-map
-        ;; ("<mouse-4>"     . "<wheel-up>")
-        ;; ("<mouse-5>"     . "<wheel-down>")
-        ;; ("<mouse-6>"     . "<wheel-left>")
-        ;; ("<mouse-7>"     . "<wheel-right>")
         )
   :init
   (context-menu-mode 1))
