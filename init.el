@@ -2283,16 +2283,6 @@ to get gopls to give us any inlay hints"
   ;; Add inline variable hints, this feature is highly experimental
   (setopt dape-inline-variables t))
 
-;; Describe this code
-(use-package devil
-  :when (eq system-type 'android)
-  :demand t
-  :ensure t
-  :bind ("<XF86Back>" . keyboard-escape-quit)
-  :config
-  (global-devil-mode 1)
-  (setq overriding-text-conversion-style nil))
-
 (use-package eglot-booster
   :after (:any eglot lsp-mode)
   :when (executable-find "cargo")
@@ -2346,6 +2336,16 @@ to get gopls to give us any inlay hints"
 
 (load (locate-user-emacs-file
        "lisp/exwm-config.el"))
+
+;; Describe this code
+(use-package devil
+  :when (eq system-type 'android)
+  :demand t
+  :ensure t
+  :bind ("<XF86Back>" . keyboard-escape-quit)
+  :config
+  (global-devil-mode 1)
+  (setq overriding-text-conversion-style nil))
 
 ;; (use-package llm
 ;;   :ensure t
