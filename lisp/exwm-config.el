@@ -10,6 +10,7 @@
  ;;;; Hooks
   (defun my/exwm-titles ()
     (pcase exwm-class-name
+      ("Brave-browser" (exwm-workspace-rename-buffer (format "%s" exwm-title)))
       ("qutebrowser" (exwm-workspace-rename-buffer (format "%s" exwm-title)))
       ("mpv" (exwm-workspace-rename-buffer (format "%s" exwm-title)))
       ("libreoffice-writer" (exwm-workspace-rename-buffer (format "Writer: %s" exwm-title)))
