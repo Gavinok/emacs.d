@@ -1984,7 +1984,7 @@ Used to see multiline flymake errors"
        ,(format-mode-line
          `(,@my/mode-line-left-side
            " "
-           ,(when (fboundp 'eglot)
+           ,(when (fboundp 'eglot-managed-p)
               (if (eglot-managed-p)
                   (propertize (or "∈")
                               'face 'success)
