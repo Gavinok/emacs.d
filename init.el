@@ -1589,7 +1589,9 @@ This way our searches are kept up to date"
       (push `(vue-ts-mode . ("vue-language-server" "--stdio"
                              :initializationOptions ,(vue-eglot-init-options)))
             eglot-server-programs))))
-
+(use-package devdocs
+  :ensure t
+  :bind ("M-s d" . devdocs-lookup))
 ;;;; WEB
 (use-package nvm
   :ensure nil
