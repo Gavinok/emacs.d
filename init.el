@@ -1638,50 +1638,50 @@ This way our searches are kept up to date"
                                                        :includeInlayPropertyDeclarationTypeHints t
                                                        :includeInlayFunctionLikeReturnTypeHints t
                                                        :includeInlayEnumMemberValueHints t)))))))
-((use-package tsx-ts-mode
-   :mode "\\.tsx\\'"
-   :hook (tsx-ts-mode . eglot-ensure))
- use-package web-mode
- :ensure t
- :mode (("\\.html\\'" . HTML-mode))
- :hook ((web-mode . eglot-ensure))
- :bind (
-        :map web-mode-map
-        ("C-M-i" . completion-at-point)
-        ("C-M-u" . web-mode-element-parent)
-        ("C-M-d" . web-mode-element-child))
- :custom
- ;; TODO
- ;; setup [[https://raw.githubusercontent.com/manateelazycat/lsp-bridge/master/core/tailwind_css_keyword.txt]]
- ;; as a dictionary completion source
- (web-mode-markup-indent-offset 2)
- (web-mode-css-indent-offset 2)
- (web-mode-code-indent-offset 2)
- (web-mode-auto-close-style 1)
- (web-mode-enable-auto-closing nil)
- (web-mode-enable-auto-indentation nil)
- (web-mode-enable-auto-quoting nil)
- (web-mode-enable-auto-pairing nil)
- (web-mode-enable-auto-opening nil)
- (css-indent-offset 2)
- (js-indent-level 2)
- :init
- (define-derived-mode HTML-mode web-mode "HTML")
- (with-eval-after-load 'eglot
-   (add-to-list 'eglot-server-programs
-                `((HTML-mode :language-id "html")
-                  . ,(eglot-alternatives `(("vscode-html-language-server" "--stdio")
-                                           ("html-languageserver" "--stdio"))))))
+(use-package tsx-ts-mode
+  :mode "\\.tsx\\'"
+  :hook (tsx-ts-mode . eglot-ensure))
+(use-package web-mode
+  :ensure t
+  :mode (("\\.html\\'" . HTML-mode))
+  :hook ((web-mode . eglot-ensure))
+  :bind (
+         :map web-mode-map
+         ("C-M-i" . completion-at-point)
+         ("C-M-u" . web-mode-element-parent)
+         ("C-M-d" . web-mode-element-child))
+  :custom
+  ;; TODO
+  ;; setup [[https://raw.githubusercontent.com/manateelazycat/lsp-bridge/master/core/tailwind_css_keyword.txt]]
+  ;; as a dictionary completion source
+  (web-mode-markup-indent-offset 2)
+  (web-mode-css-indent-offset 2)
+  (web-mode-code-indent-offset 2)
+  (web-mode-auto-close-style 1)
+  (web-mode-enable-auto-closing nil)
+  (web-mode-enable-auto-indentation nil)
+  (web-mode-enable-auto-quoting nil)
+  (web-mode-enable-auto-pairing nil)
+  (web-mode-enable-auto-opening nil)
+  (css-indent-offset 2)
+  (js-indent-level 2)
+  :init
+  (define-derived-mode HTML-mode web-mode "HTML")
+  (with-eval-after-load 'eglot
+    (add-to-list 'eglot-server-programs
+                 `((HTML-mode :language-id "html")
+                   . ,(eglot-alternatives `(("vscode-html-language-server" "--stdio")
+                                            ("html-languageserver" "--stdio"))))))
 
- ;; workaround to get vscode-html-language-server to provide proper diagnostics
- (setq web-mode-markup-indent-offset 2
-       web-mode-css-indent-offset 2
-       web-mode-code-indent-offset 2
-       web-mode-auto-close-style 1
-       web-mode-enable-auto-indentation nil
-       web-mode-enable-auto-quoting nil
-       web-mode-enable-auto-pairing nil
-       web-mode-enable-auto-opening nil))
+  ;; workaround to get vscode-html-language-server to provide proper diagnostics
+  (setq web-mode-markup-indent-offset 2
+        web-mode-css-indent-offset 2
+        web-mode-code-indent-offset 2
+        web-mode-auto-close-style 1
+        web-mode-enable-auto-indentation nil
+        web-mode-enable-auto-quoting nil
+        web-mode-enable-auto-pairing nil
+        web-mode-enable-auto-opening nil))
 
 (use-package impatient-mode :ensure t
   :after web-mode
