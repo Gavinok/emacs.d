@@ -1443,7 +1443,23 @@ This way our searches are kept up to date"
   (use-package go-ts-mode
     :mode "\\.go\\'"
     :init
-    (add-to-list 'major-mode-remap-alist '(go-mode . go-ts-mode)))
+    (add-to-list 'major-mode-remap-alist '(go-mode . go-ts-mode))
+    :config
+    (with-eval-after-load 'eglot
+      ;; Ensure gopls will use inlayhints (IDK why I needed to do this manually)
+      (setq-default eglot-workspace-configuration
+                    '(:gopls (
+                              :hints (
+                                      :assignVariableTypes t
+                                      :compositeLiteralFields t
+                                      :compositeLiteralTypes t
+                                      :constantValues t
+                                      :functionTypeParameters t
+                                      :parameterNames t
+                                      :rangeVariableTypes t
+                                      ))))
+      ;; Ensure inlay hints going for eglot
+      (add-hook 'go-ts-mode-hook 'eglot-inlay-hints-mode)))
   (use-package python
     :init
     (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
