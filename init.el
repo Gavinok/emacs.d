@@ -530,7 +530,8 @@ Depends on the `gh' commandline tool"
   (set-fontset-font "fontset-default" 'unicode "JoyPixels" nil 'prepend))
 
 (setq treesit-language-source-alist
-      '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+      '((templ "https://github.com/vrischmann/tree-sitter-templ")
+        (bash "https://github.com/tree-sitter/tree-sitter-bash")
         (cmake "https://github.com/uyha/tree-sitter-cmake")
         (css "https://github.com/tree-sitter/tree-sitter-css")
         (elisp "https://github.com/Wilfred/tree-sitter-elisp")
@@ -2038,7 +2039,7 @@ Used to see multiline flymake errors"
 ;; hl with c-c c-a h
 ;; for help M-x pdf-tools-help RET
 ;; (load (locate-user-emacs-file
-;;               "lisp/exwm-config.el"))
+;;        "lisp/exwm-config.el"))
 (use-package pdf-tools
   :ensure t :defer t
   :commands (pdf-view-mode pdf-tools-install)
