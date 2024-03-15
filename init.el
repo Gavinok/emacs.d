@@ -926,18 +926,7 @@ This way our searches are kept up to date"
   :init (global-diff-hl-mode)
   :config (diff-hl-flydiff-mode))
 
-;;; VTERM AND ESHELL
-(use-package vterm
-  :ensure t
-  :bind (("C-x v t" . vterm)
-         :map vterm-mode-map
-         ("M-p" . vterm-send-up)
-         ("M-n" . vterm-send-down))
-
-  :commands vterm
-  :custom (vterm-max-scrollback 10000)
-  :init (when my/my-system
-          (setopt term-prompt-regexp ".*ᛋ")))
+;;; EAT AND ESHELL
 (use-package eat
   :ensure t
   :custom
