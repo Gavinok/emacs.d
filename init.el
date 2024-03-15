@@ -526,9 +526,8 @@ Depends on the `gh' commandline tool"
   (add-hook 'prog-mode-hook 'prettify-hook)
   ;; (require 'pragmatapro-lig)
   ;; Enable pragmatapro-lig-mode for specific modes
-  (set-fontset-font t 'unicode
-                    "PragmataPro Mono"
-                    nil 'append))
+  ;; (set-fontset-font "fontset-default" 'unicode "Symbola" nil 'prepend)
+  (set-fontset-font "fontset-default" 'unicode "JoyPixels" nil 'prepend))
 
 (setq treesit-language-source-alist
       '((bash "https://github.com/tree-sitter/tree-sitter-bash")
