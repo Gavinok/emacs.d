@@ -2252,44 +2252,6 @@ directory when working with a single file project."
       (message "eglot: Single File Mode")
       nil)))
 
-(use-package eglot-gopls-x :no-require t
-  :after (:all eglot go-ts-mode)
-  :config
-  ;; Ensure gopls will use typehints (IDK why I needed to do this manually)
-  (setq-default eglot-workspace-configuration
-                '(:gopls (
-                          :codelenses (
-                                       :gc_details :json-false
-                                       :generate t
-                                       :regenerate_cgo t
-                                       :tidy t
-                                       :upgrade_dependency t
-                                       :vendor t
-                                       )
-                          :hints (
-                                  :assignVariableTypes t
-                                  :compositeLiteralFields t
-                                  :compositeLiteralTypes t
-                                  :constantValues t
-                                  :functionTypeParameters t
-                                  :parameterNames t
-                                  :rangeVariableTypes t
-                                  ))))
-
-  (cl-defmethod eglot-client-capabilities :around (server)
-    "Allow dynamic registration of inlay hints since it's the only way
-to get gopls to give us any inlay hints"
-    (let ((base (cl-call-next-method)))
-      (when (cl-find "gopls" (process-command
-                              (jsonrpc--process server))
-                     :test #'string-match)
-        (setf (cl-getf (cl-getf base :textDocument) :inlayHint)
-              `(:dynamicRegistration t)))
-      base))
-
-  ;; Ensure inlay hints going for eglot
-  (add-hook 'go-ts-mode-hook 'eglot-inlay-hints-mode))
-
 (use-package consult-eglot
   :ensure t
   :after eglot
