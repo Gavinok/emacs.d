@@ -10,6 +10,7 @@
 
 
 ;; TODO
+;; - Ensure lenses are cleand up when a server is shutdown
 ;; - implement the following code actions in for rust analyzer
 ;;   - rust-analyzer.runSingle
 ;;   - rust-analyzer.debugSingle
@@ -21,15 +22,23 @@
 (require 'seq)
 (require 'eglot)
 
-(defvar my/eglot-lens-debounce 0.001)
-(defvar my/eglot-lens--refresh-timer nil)
+(defgroup eglot-lens nil "Codelens support for eglot"
+  :group 'eglot)
 
-(cl-defstruct lens
+(defcustom eglot-lens-debounce 0.001
+  "The delay in seconds between file modifications and updating codelenses."
+  :type 'float
+  :group 'eglot-lens)
+
+(cl-defstruct eglot-lens-lens
   command
   range)
 
-(defvar my/eglot-codelens-overlays nil
+(defvar eglot-lens-overlays nil
   "Codelens overlays in the current file.")
+
+(defvar eglot-lens--refresh-timer nil
+  "Timer used for debouncing lens refreshes")
 
 (cl-defmethod eglot-client-capabilities :around (_server)
   "Let the language SERVER know that we support codelenses."
@@ -38,7 +47,6 @@
            (cl-getf base :workspace)
            :codeLens)
           '(:refreshSupport t))
-    (message "%s" base)
     base))
 
 (defun eglot-lens--setup-hooks ()
@@ -46,28 +54,77 @@
   (eglot-delayed-lens-update)
   (add-hook 'eglot--document-changed-hook #'eglot-delayed-lens-update nil t))
 
-(defun my/eglot-lens-delete-overlays ()
+(defun eglot-lens-delete-overlays ()
   "Clear all the overlays used for codelenses."
+  (mapc #'delete-overlay eglot-lens-overlays)
+  (setq eglot-lens-overlays nil))
+
+(defun eglot-lens-force-refresh-codelens ()
+  "Force request and redisplay codelenses."
   (interactive)
-  (mapc #'delete-overlay my/eglot-codelens-overlays)
-  (setq my/eglot-codelens-overlays nil))
+  (when (eglot-current-server)
+    (or (eglot-lens-delete-overlays)
+        (eglot-lens-apply-code-lenses))))
 
 (defun eglot-delayed-lens-update ()
   "Update lenses after a small delay to ensure the server is up to date."
-  (setq my/eglot-lens--refresh-timer
-        (run-with-timer my/eglot-lens-debounce
+  (setq eglot-lens--refresh-timer
+        (run-with-timer eglot-lens-debounce
                         nil
-                        #'my/eglot-force-refresh-codelens)))
-(defun my/eglot-get-current-lens ()
+                        #'eglot-lens-force-refresh-codelens)))
+
+(defun eglot-lens-execute-current-lens ()
   "Inspect the current overlays at point and attempt to execute it."
   (interactive)
-  (message "%s" (cl-loop for i in (overlays-at (point))
-                         when (overlay-get i 'my/eglot-lens-overlay)
-                         collect (overlay-get i 'my/eglot-lens-overlay))))
+  (let ((lenses (cl-loop for i in (overlays-at (point))
+                         when (overlay-get i 'eglot-lens-overlay)
+                         collect (overlay-get i 'eglot-lens-overlay))))
+    (pcase (length lenses)
+      (1 (eglot-lens-execute (car lenses)))
+      (0 (user-error "No lenses found"))
+      (lenses (user-error "Too many lenses %s" lenses)))))
 
-(defun my/eglot-apply-code-lenses ()
+(defun eglot-lens-make-overlay-for-lens (lens)
+  "Insert overlays for each corresponding LENS."
+  (let* ((append-to-line t)
+         (start-line (thread-first
+                       (eglot-lens-lens-range lens)
+                       (cl-getf :start)
+                       (cl-getf :line)))
+         ;; TODO indent the codelens as needed
+         (ol (make-overlay (progn (goto-char (point-min))
+                                  (forward-line start-line)
+                                  (pos-bol))
+                           (pos-eol))))
+    (overlay-put ol (if append-to-line
+                        'after-string
+                      'before-string)
+                 (concat
+                  (if append-to-line
+                      "| "
+                    (make-string (thread-first
+                                   (eglot-lens-lens-range lens)
+                                   (cl-getf :start)
+                                   (cl-getf :character))
+                                 ?\s))
+                  (propertize (cl-getf (eglot-lens-lens-command lens) :title)
+                              'face 'eglot-parameter-hint-face
+                              'pointer 'hand
+                              'mouse-face 'highlight
+                              'keymap (let ((map (make-sparse-keymap)))
+                                        (define-key map [mouse-1]
+                                                    (lambda () (interactive)
+                                                      (eglot-lens-execute lens)))
+                                        map))
+                  (if append-to-line
+                      " "
+                    "\n")))
+    (overlay-put ol 'eglot-lens-overlay lens)
+    (overlay-put ol 'cursor-face 'error)
+    (push ol eglot-lens-overlays)))
+
+(defun eglot-lens-apply-code-lenses ()
   "Request and display codelenses using eglot"
-  (interactive)
   (save-excursion
     (let ((code-lenses
            ;; request code lenses from the server
@@ -75,72 +132,37 @@
                             :textDocument/codeLens
                             (list :textDocument (eglot--TextDocumentIdentifier)))))
       (seq-map (lambda (lens)
-                 (my/make-overlay-for-lens
-                  (make-lens
+                 (eglot-lens-make-overlay-for-lens
+                  (make-eglot-lens-lens
                    :command
                    (or (cl-getf lens :command)
                        ;; Resolve the command incase none was originally provided
-                       (let ((tmp (jsonrpc-request (eglot--current-server-or-lose)
-                                                   :codeLens/resolve
-                                                   lens)))
-                         (message "%s" tmp)
-                         (cl-getf tmp
-                                  :command)))
+                       (cl-getf (jsonrpc-request (eglot--current-server-or-lose)
+                                                 :codeLens/resolve
+                                                 lens)
+                                :command))
                    :range (cl-getf lens :range))))
                code-lenses))))
 
-(defun my/eglot-force-refresh-codelens ()
-  "Force request and redisplay codelenses."
-  (interactive)
-  (when (eglot-current-server)
-    (or (my/eglot-lens-delete-overlays)
-        (my/eglot-apply-code-lenses))))
-
-(defun my/eglot-execute-lens (lens)
+(defun eglot-lens-execute (lens)
   "Execute a specific code LENS."
   (eglot-execute (eglot--current-server-or-lose)
-                 (lens-command lens))
-  (my/eglot-force-refresh-codelens))
+                 (eglot-lens-lens-command lens))
+  (eglot-lens-force-refresh-codelens))
 
-(defun my/make-overlay-for-lens (lens)
-  "Insert overlays for each corresponding LENS."
-  (let* ((start-line (cl-getf
-                      (cl-getf (lens-range lens)
-                               :start)
-                      :line))
-         (end-line (cl-getf
-                    (cl-getf (lens-range lens)
-                             :end)
-                    :line))
-         ;; TODO indent the codelens as needed
-         (ol (make-overlay (progn (goto-char (point-min))
-                                  (forward-line start-line)
-                                  (pos-bol))
-                           (pos-eol))))
-    (overlay-put ol 'before-string
-                 (concat
-                  (propertize (cl-getf (lens-command lens) :title)
-                              'face 'eglot-parameter-hint-face
-                              'pointer 'hand
-                              'mouse-face 'highlight
-                              'keymap (let ((map (make-sparse-keymap)))
-                                        (define-key map [mouse-1]
-                                                    (lambda () (interactive)
-                                                      (my/eglot-execute-lens lens)))
-                                        map))
-                  "\n"))
-    (overlay-put ol 'my/eglot-lens-overlay lens)
-    (push ol my/eglot-codelens-overlays)))
 
 (define-minor-mode eglot-lens-mode
   "Minor mode for displaying codeLenses with eglot"
   :global t
   (cond (eglot-lens-mode (add-hook 'eglot-managed-mode-hook #'eglot-lens--setup-hooks)
+                         (when eglot--managed-mode (eglot-lens--setup-hooks))
                          (cl-defmethod eglot-handle-notification
                            (_server (_method (eql workspace/codeLens/refresh))
                                     &allow-other-keys)
-                           (my/eglot-force-refresh-codelens)))
-        (t (remove-hook 'eglot-managed-mode-hook #'eglot-lens--setup-hooks t))))
+                           (eglot-lens-force-refresh-codelens)))
+        (t (eglot-lens-delete-overlays)
+           (remove-hook 'eglot--document-changed-hook #'eglot-delayed-lens-update t)
+           (remove-hook 'eglot-managed-mode-hook #'eglot-lens--setup-hooks t))))
 
 (provide 'eglot-codelens)
 ;;; eglot-codelens.el ends here
