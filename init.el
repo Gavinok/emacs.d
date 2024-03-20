@@ -1399,6 +1399,7 @@ This way our searches are kept up to date"
     :mode "\\.java\\'"
     :init
     (add-to-list 'major-mode-remap-alist '(java-mode . java-ts-mode))
+    (setopt java-ts-mode-indent-offset 2)
     (defun set-java-version ()
       (interactive)
       (let ((version-dir (completing-read "Select Java Version: "
@@ -1422,9 +1423,9 @@ This way our searches are kept up to date"
         (message "JAVA_HOME is now %s and PATH is now %s"
                  (getenv "JAVA_HOME")
                  (getenv "PATH"))))
-    ;; (add-to-list 'eglot-server-programs
-    ;;              `(java-mode
-    ;;                . ("/home/gavinok/java-language-server/dist/lang_server_linux.sh")))
+    (add-to-list 'eglot-server-programs
+                 `((java-ts-mode java-mode)
+                   . ("/home/gavinok/java-language-server/dist/lang_server_linux.sh")))
     ;; (use-package eglot-java
     ;;   :ensure t
     ;;   :after (:and java eglot))
