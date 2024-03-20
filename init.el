@@ -1583,6 +1583,12 @@ This way our searches are kept up to date"
 (use-package devdocs
   :ensure t
   :bind ("M-s d" . devdocs-lookup))
+(use-package avy
+  :ensure t
+  :bind ("M-o" . avy-goto-char-timer)
+  :custom
+  (avy-all-windows 'all-frames)
+  (avy-timeout-seconds 0.3))
 ;;;; WEB
 (use-package nvm
   :ensure nil
