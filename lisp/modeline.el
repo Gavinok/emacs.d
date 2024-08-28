@@ -46,8 +46,10 @@ This is needed to make sure that text is properly aligned.")
 
 (setq my/mode-line-right-side '(:eval (when (mode-line-window-selected-p)
                                         (list
-                                         '(vc-mode vc-mode) " "
-                                         mode-line-misc-info)
+                                         '(vc-mode vc-mode)
+                                         " "
+                                         mode-line-misc-info
+                                         )
                                         )))
 (defun tab-bar-tab-name-format-comfortable (tab i)
   "Add spacing to tab bar mode"
@@ -59,16 +61,18 @@ This is needed to make sure that text is properly aligned.")
               'face (funcall tab-bar-tab-face-function tab)))
 (setq my/mode-line-left-side '(" "
                                ;; indicate if the buffer has been modified
-                               (:eval (if (and (not buffer-read-only) (buffer-modified-p))
-                                          "● " "  " )
-                                      'face 'error)
+                               (:eval (propertize (if (and (not buffer-read-only) (buffer-modified-p))
+                                                      "● " "  " )
+                                                  'face 'error))
 
                                ;; Buffer name (no longer than 1/3 of the screen)
                                ;; mode-line-remote
-                               (:eval (truncate-string-to-width
-                                       (buffer-name)
-                                       50
-                                       nil nil t))
+                               mode-line-buffer-identification
+                               mode-line-process
+                               ;; (:eval (truncate-string-to-width
+                               ;;         (buffer-name)
+                               ;;         50
+                               ;;         nil nil t))
                                ;; " "
                                (:eval (when (mode-line-window-selected-p)" %l:%c"))
                                ;; (:eval (when (mode-line-window-selected-p)
@@ -121,6 +125,9 @@ This is needed to make sure that text is properly aligned.")
                       ;; :box '(:line-width 1 :color "#323")
                       )
   (display-time-mode t))
+
+(set-face-attribute 'appt-notification nil :foreground "#fff" :background "#333")
+
 (set-face-attribute  'org-mode-line-clock nil :foreground "#fff" :background "#333"
                      ;; :box '(:line-width 1 :color "#323")
                      :inherit 'bold)

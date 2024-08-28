@@ -1,3 +1,7 @@
+;;; /home/gavinok/.emacs.d/lisp/exwm-config.el -- My exwm config -*- lexical-binding: t; 
+;;; Commentary:
+;;; Code:
+
 (use-package exwm
   :unless my/is-termux
   :ensure t
@@ -67,13 +71,30 @@ back to switching frames."
   (defun exwm-dmenu (command)
     (interactive (list (read-shell-command "λ ")))
     (start-process-shell-command command nil command))
+  (defun my/dwm-like-next-window (&optional arg)
+    (interactive "p")
+    (message "arg was %s" arg)
+    (let* ((dir-order (if (< 0 arg)
+                          (list 'down 'right 'up)
+                        (list 'up 'left 'down)))
+           (next-wind (windmove-find-other-window (cl-first dir-order))))
+      (if (and (window-buffer next-wind)
+               (minibufferp (window-buffer next-wind)))
+          (cl-loop with x = (if (windmove-find-other-window (cl-second dir-order))
+                                (windmove-right)
+                              (windmove-left))
+                   for i = (windmove-find-other-window (cl-third dir-order))
+                   while (and i
+                              (not (minibufferp (window-buffer i))))
+                   do (windmove-do-window-select (cl-third dir-order)))
+        (windmove-do-window-select (cl-first dir-order)))))
   (setq exwm-input-global-keys
         ;; Window Managment
         `((,(kbd "s-SPC")   . ,(my/exwm-run "cabl -c"))
           ([?\s-h]          . ,(my/window-switch left))
           ([?\s-l]          . ,(my/window-switch right))
-          ([?\s-j]          . windmove-down)
-          ([?\s-k]          . windmove-up)
+          ([?\s-j]          . other-window)
+          ([?\s-k]          . other-other-window)
           (,(kbd "s-H")     . windmove-swap-states-left)
           (,(kbd "s-L")     . ,(my/window-swap right))
           (,(kbd "s-J")     . ,(my/window-swap down))
@@ -118,6 +139,37 @@ back to switching frames."
   ;; Start Programs For EXWM
   (exwm-enable))
 
+(with-eval-after-load 'corfu
+  (defun get-focused-monitor-geometry ()
+    "Get the geometry of the monitor displaying the selected frame in EXWM."
+    (let* ((monitor-attrs (frame-monitor-attributes))
+           (workarea (assoc 'workarea monitor-attrs))
+           (geometry (cdr workarea)))
+      (list (nth 0 geometry) ; X
+            (nth 1 geometry) ; Y
+            (nth 2 geometry) ; Width
+            (nth 3 geometry) ; Height
+            )))
+  (defun advise-corfu-make-frame-with-monitor-awareness (orig-fun frame x y width height buffer)
+    "Advise `corfu--make-frame` to be monitor-aware, adjusting X and
+Y according to the focused monitor."
+
+    ;; Get the geometry of the currently focused monitor
+    (let* ((monitor-geometry (get-focused-monitor-geometry))
+           (monitor-x (nth 0 monitor-geometry))
+           (monitor-y (nth 1 monitor-geometry))
+           ;; You may want to adjust the logic below if you have specific preferences
+           ;; on where on the monitor the posframe should appear.
+           ;; Currently, it places the posframe at its intended X and Y, but ensures
+           ;; it's within the bounds of the focused monitor.
+           (new-x (+ monitor-x x))
+           (new-y (+ monitor-y y)))
+
+      ;; Call the original function with potentially adjusted coordinates
+      (funcall orig-fun frame new-x new-y width height buffer)))
+
+  (advice-add 'corfu--make-frame :around #'advise-corfu-make-frame-with-monitor-awareness))
+
 ;; Broken on current version of emacs
 ;; (use-package exwm-systemtray
 ;;   :ensure nil
@@ -133,35 +185,19 @@ back to switching frames."
   :ensure nil
   :demand t
   :config
-  (setq exwm-randr-workspace-output-plist '(1 "DVI-I-1-1"))
+  (setopt exwm-randr-workspace-monitor-plist '(1 "DVI-I-1-1"))
   (defun exwm-randr-setup ()
     (lambda ()
       (start-process-shell-command
-       "xrandr" nil "xrandr --output eDP1 --primary --auto --left-of DVI-I-1-1 --auto")))
+       "xrandr" nil "xrandr --output eDP1 --primary --auto --right-of DVI-I-1-1 --auto")))
 
 
-  (setq exwm-randr-workspace-output-plist '(1 "DP2-1" 3 "DP2-3"))
-  (defun exwm-randr-setup ()
-    (lambda ()
-      (start-process-shell-command
-       "xrandr" nil "xrandr --output eDP1 --primary --mode 1920x1080 --pos 1920x0 --rotate normal --output DP1 --off --output DP2 --off --output DP2-1 --mode 1920x1080 --pos 0x0 --rotate normal --output DP2-2 --off --output DP2-3 --mode 1920x1080 --pos 3840x0 --rotate normal --output HDMI1 --off --output HDMI2 --off --output VIRTUAL1 --off --output DVI-I-1-1 --off
-")))
-  ;; (defun  exwm-randr-setup ()
-  ;;   (let ((xrandr-output-regexp "\n\\([^ ]+\\) connected ")
-  ;;         default-output)
-  ;;     (with-temp-buffer
-  ;;       (call-process "xrandr" nil t nil)
-  ;;       (goto-char (point-min))
-  ;;       (re-search-forward xrandr-output-regexp nil 'noerror)
-  ;;       (setq default-output (match-string 1))
-  ;;       (forward-line)
-  ;;       (if (not (re-search-forward xrandr-output-regexp nil 'noerror))
-  ;;           (call-process "xrandr" nil nil nil "--output" default-output "--auto")
-  ;;         (call-process
-  ;;          "xrandr" nil nil nil
-  ;;          "--output" (match-string 1) "--primary" "--auto"
-  ;;          "--output" default-output "--off")
-  ;;         (setq exwm-randr-workspace-output-plist (list 0 (match-string 1)))))))
+  ;;   (setopt exwm-randr-workspace-monitor-plist '(1 "dp2-1" 3 "dp2-3"))
+  ;;   (defun exwm-randr-setup ()
+  ;;     (lambda ()
+  ;;       (start-process-shell-command
+  ;;        "xrandr" nil "xrandr --output edp1 --primary --mode 1920x1080 --pos 1920x0 --rotate normal --output dp1 --off --output dp2 --off --output dp2-1 --mode 1920x1080 --pos 0x0 --rotate normal --output dp2-2 --off --output dp2-3 --mode 1920x1080 --pos 3840x0 --rotate normal --output hdmi1 --off --output hdmi2 --off --output virtual1 --off --output dvi-i-1-1 --off
+  ;; ")))
   (add-hook 'exwm-randr-screen-change-hook 'exwm-randr-setup)
   (exwm-randr-enable))
 
@@ -174,7 +210,7 @@ back to switching frames."
 (defvar-keymap exwm-prefix-map
   :doc "My prefix for use with EXWM"
   "k" #'kill-current-buffer
-  "c" #'vterm-other-window
+  "c" #'eat
   "o" #'other-window
   "SPC" (my/exwm-run "cabl -c"))
 (keymap-global-set "<XF86Tools>" exwm-prefix-map)
@@ -211,3 +247,6 @@ back to switching frames."
   (setopt window-divider-default-right-width 3)
   (setopt window-divider-default-places t)
   (window-divider-mode 1))
+
+;;; exwm-config.el ends here
+

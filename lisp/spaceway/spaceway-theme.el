@@ -161,7 +161,7 @@
    `(ivy-minibuffer-match-face-4 ((,class (:foreground ,spaceway-orange-0))))
    `(js2-external-variable ((,class (:foreground ,spaceway-yellow-0))))
    `(js2-function-param ((,class (:foreground ,spaceway-fg))))
-   `(lazy-highlight ((,class (:foreground ,spaceway-red-1 :background nil))))
+   `(lazy-highlight ((,class (:foreground ,spaceway-red-1 :background unspecified))))
    `(linum ((,class (:slant italic :foreground ,spaceway-grey-4))))
    `(magit-blame-heading ((,class (:foreground ,spaceway-grey-1 :background ,spaceway-grey-2))))
    `(magit-branch-local ((,class (:foreground ,spaceway-green-2))))
@@ -220,7 +220,7 @@
    `(match ((,class (:background ,spaceway-red-1))))
    `(minibuffer-prompt ((,class (:foreground ,spaceway-fg))))
    `(mmm-default-submode-face ((,class (:background ,spaceway-bg))))
-   `(header-line ((,class (:foreground ,spaceway-fg :background nil))))
+   `(header-line ((,class (:foreground ,spaceway-fg :background unspecified))))
    `(tab-bar ((,class (:inherit mode-line
                                 :box (:line-width 2 :color "#333")))))
    ;; Tab bar settings
@@ -247,6 +247,16 @@
    `(window-divider ((,class (:foreground "#222" :background "#222"))))
    `(window-divider-last-pixel ((,class (:foreground "#222" :background "#222"))))
    `(window-divider-first-pixel ((,class (:foreground "#222" :background "#222"))))
+
+   `(outline-1  ((,class (:inherit default :weight bold))))
+   `(outline-2  ((,class (:inherit default :weight bold))))
+   `(outline-3  ((,class (:inherit default :weight bold))))
+   `(outline-4  ((,class (:inherit default :weight bold))))
+   `(outline-5  ((,class (:inherit default :weight bold))))
+   `(outline-6  ((,class (:inherit default :weight bold))))
+   `(outline-7  ((,class (:inherit default :weight bold))))
+   `(outline-8  ((,class (:inherit default :weight bold))))
+
    `(org-timeline-block ((,class (:foreground ,spaceway-bg :background ,spaceway-red-0))))
    `(org-timeline-elapsed ((,class (:foreground ,spaceway-fg :background ,spaceway-grey-2))))
    `(org-ellipsis ((,class (:foreground ,spaceway-grey-1 :background nil :underline nil))))

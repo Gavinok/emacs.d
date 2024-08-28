@@ -1,42 +1,14 @@
 ;;; EMAIL
-(use-package org-msg
+;;;; Org In Emails
+(use-package org-mime
   :ensure t
   :after mu4e
-  :bind (:map org-msg-edit-mode-map
-              ("M-g M-g" . my/org-msg-goto-body))
-  :init
-  ;; Prevent mu4e from consuming the entire frame
-  (add-to-list 'display-buffer-alist
-               `(,(regexp-quote mu4e-main-buffer-name)
-                 display-buffer-same-window))
+  :bind (:map org-mode-map
+              ("C-c M-o" . org-mime-org-subtree-htmlize))
   :config
-  (defun my/org-msg-goto-body (&optional end)
-    "Go to either the beginning or the end of the body.
-END can be the symbol top, bottom, or nil to toggle."
-    (interactive)
-    (let ((initial-pos (point)))
-      (org-msg-goto-body)
-      (when (or (eq end 'top)
-                (and (or (eq initial-pos (point)) ; Already at bottom
-                         (<= initial-pos ; Above message body
-                             (save-excursion
-                               (message-goto-body)
-                               (point))))
-                     (not (eq end 'bottom))))
-        (message-goto-body)
-        (search-forward ",")
-        (backward-char))))
-  (setopt org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil author:nil email:nil \\n:t"
-	  org-msg-startup "hidestars indent inlineimages"
-	  org-msg-greeting-fmt "\nHello%s,\n\n"
-	  org-msg-greeting-name-limit 3
-	  org-msg-default-alternatives '((new		. (text html))
-				         (reply-to-html	. (text html))
-				         (reply-to-text	. (text)))
-	  org-msg-convert-citation t
-          org-msg-signature (concat "\n\n#+begin_signature\nSincerely,\n@@html:<b>@@" user-full-name "@@html:</b>@@\n#+end_signature"))
-  (org-msg-mode)
-  )
+  (setq org-mime-export-options '(:section-numbers nil
+                                                   :with-author nil
+                                                   :with-toc nil)))
 (use-package mu4e
   :unless my/is-termux
   :ensure nil
@@ -44,10 +16,12 @@ END can be the symbol top, bottom, or nil to toggle."
   :bind (("C-x M" . mu4e)
          ("C-x m" . mu4e-compose-new)
          ([remap mu4e-headers-jump-to-maildir] . my/jump-to-maildir)
-         )
+         :map message-mode-map
+         ("C-M-i" . completion-at-point))
   :demand t
   ;; :commands (mu4e mu4e-user-agent mu4e-compose-new org-mime-org-subtree-htmlize)
   :init
+  (setopt mu4e-modeline-mode nil)
   ;; Show full email address
   (setopt mu4e-completing-read-function 'completing-read
           ;; mu4e-view-show-addresses 't
@@ -69,16 +43,6 @@ END can be the symbol top, bottom, or nil to toggle."
   (setq mu4e-sent-messages-behavior 'delete
         message-kill-buffer-on-exit t)
 
-;;;; Org In Emails
-  (use-package org-mime
-    :ensure t
-    :after mu4e
-    :bind (:map org-mode-map
-                ("C-c m" . org-mime-org-subtree-htmlize))
-    :config
-    (setq org-mime-export-options '(:section-numbers nil
-                                                     :with-author nil
-                                                     :with-toc nil)))
 ;;;; mbsync and msmtp setup
   (setq mu4e-get-mail-command "mailsync"
         mu4e-context-policy 'pick-first
@@ -99,6 +63,20 @@ END can be the symbol top, bottom, or nil to toggle."
   (add-to-list 'auto-mode-alist '("^/tmp/neomutt.*\\'" . mail-mode)) ;; neomutt
   (add-to-list 'auto-mode-alist '(".*snd\.[0-9].*\\'" . mail-mode))  ;; mblaze
   (add-hook 'mu4e-view-mode-hook 'visual-line-mode)
+
+  (set-face-attribute 'mu4e-thread-fold-face nil :inherit 'default :foreground "#fff")
+
+  ;; Fold using - instead of •
+  (defun mu4e-thread-fold-info (count unread)
+    "Text to be displayed for a folded thread.
+There are COUNT hidden and UNREAD messages overall."
+    (let ((size  (+ 2 (apply #'+ (mapcar (lambda (item) (or (cdr item) 0))
+                                         mu4e-headers-fields))))
+          (msg (concat (format"[%d hidden messages%s]\n" count
+                              (if (> unread 0)
+                                  (format ", %d unread" unread)
+                                "")))))
+      (propertize (concat "  " (make-string size ?-) " " msg))))
 
 ;;;; Accounts
   (setq mu4e-contexts
@@ -136,21 +114,27 @@ END can be the symbol top, bottom, or nil to toggle."
   (add-to-list 'mu4e-view-actions
                '("org-contact-add" . mu4e-action-add-org-contact) t)
 ;;;; Bookmarks
-  (setq mu4e-bookmarks '((:name "Main INBOX"
-                                :query "maildir:/personal/INBOX or maildir:/quartech/INBOX" :key 115)
-                         (:name "To Handle"
-                                :query "((flag:flagged AND (NOT flag:replied)) OR (NOT flag:seen))" :key 116)
-                         (:name "Today's messages"
-                                :query "date:today..now" :key 118)
-                         (:name "Last 7 days"
-                                :query "date:7d..now" :hide-unread t :key 119)
-                         (:name "Messages with images"
-                                :query "mime:image/*" :key 112))) ; email client depends on mu command
+  (setopt mu4e-bookmarks '((:name "Main INBOX"
+                                  :query "maildir:/personal/INBOX or maildir:/quartech/INBOX" :key 115)
+                           (:name "To Handle"
+                                  :query "((flag:flagged AND (NOT flag:replied)) OR (NOT flag:seen)) AND (NOT flag:trashed) AND (NOT maildir:/personal/[Gmail].Spam) AND date:1y..now)" :key 116)
+                           (:name "Today's messages"
+                                  :query "date:today..now" :key 118)
+                           (:name "Last 7 days"
+                                  :query "date:7d..now" :hide-unread t :key 119)
+                           (:name "Messages with images"
+                                  :query "mime:image/*" :key 112))) ; email client depends on mu command
 
 ;;;; Headers View
   (setq mu4e-use-fancy-chars t)
-  (setq mu4e-header-sort-field :date)
+  (setopt
+   mu4e-headers-draft-mark     '("D" . "✍")
+   mu4e-headers-flagged-mark   '("F" . "✡")
+   mu4e-headers-new-mark       '("N" . "•")
+   mu4e-headers-calendar-mark  '("c" . "📅"))
+  (setq mu4e-search-sort-field :date)
   (setq mu4e-search-threads t)
+  (setopt mu4e-headers-visible-flags '(new flagged))
   (setq mu4e-headers-fields '((:flags         .    6)
                               (:from-or-to    .   22)
                               (:subject       .   70)
