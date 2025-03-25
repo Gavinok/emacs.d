@@ -5,7 +5,7 @@
        (my/my-system "~/.local/Dropbox/Documents/org")
        (t (default-value 'org-directory))))
 
-(add-hook 'after-init-hook 'my/quick-agenda)
+;; (add-hook 'after-init-hook 'my/quick-agenda)
 (defvar my/notifications nil)
 (defun get-last-note (msg)
   (alist-get (md5 msg) my/notifications nil nil 'equal))
@@ -13,7 +13,7 @@
   (setf (alist-get (md5 msg) my/notifications nil nil 'equal) replace-id))
 (use-package appt
   :demand t
-  :defer 5
+  :defer 20
   :custom
   ((appt-announce-method 'appt-persistant-message-announce)
    (appt-message-warning-time 15)
@@ -85,7 +85,7 @@
   (setopt org-todo-keywords
           '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
             (sequence "BACKLOG(b)" "ACTIVE(a)"
-                      "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)"
+                      "REVIEW(r)" "WAIT(w@/!)" "HOLD(h)"
                       "|" "DELEGATED(D)" "CANCELLED(c)")))
   :config
   (defun my/org-draw-on-code ()
@@ -163,7 +163,7 @@
           org-hide-block-startup nil
           org-src-tab-acts-natively t
           org-src-preserve-indentation nil
-          org-startup-folded t
+          org-startup-folded 'fold
           org-cycle-separator-lines 2
           org-hide-leading-stars t
           org-highlight-latex-and-related '(native)
@@ -177,7 +177,18 @@
           (seq-filter (lambda (x) (not (string-match "completed.org" x)))
                       (directory-files-recursively org-directory "\\.org$"))))
 ;;;; Clocking
-  (setq org-clock-idle-time 15)
+  (setopt org-clock-idle-time 15)
+  (setopt org-clock-clocked-in-display 'frame-title)
+  (setopt org-clock-persist t)
+  (setopt org-clock-in-resume t)
+  (use-package org-pomodoro
+    :ensure t
+    :bind (:map org-mode-map
+                ("C-c C-x i" . org-pomodoro) )
+    :config
+    (setopt org-pomodoro-length 20)
+    (setopt org-pomodoro-long-break-length 15)
+    (setopt org-pomodoro-format "pom~%s"))
   (when-let ((idle-checker (executable-find "xprintidle")))
     (setq org-clock-x11idle-program-name idle-checker))
 ;;;; Refile targets
@@ -238,7 +249,8 @@
                 (tags "TODO={REVIEW\\|DELEGATED}+work"
                       ((org-agenda-overriding-header "Review")))
                 (tags "TODO=DONE+work"
-                      ((org-agenda-overriding-header "Done")))))
+                      ((org-agenda-overriding-header "Done"))))
+               ((org-agenda-overriding-header "Thing")))
               ("q" "Life Tasks"
                ((tags-todo "REFILE|ORGZLY_REFILE"
                            ((org-agenda-overriding-header "Tasks to Refile")))
@@ -352,8 +364,9 @@
   :init
   (when (file-directory-p org-directory)
     (setq org-default-notes-file (concat org-directory "/refile.org"))
+    (setq org-capture-places "Anywhere|Home|Work|School|FGPC")
     (setq org-capture-templates
-          '(("t" "Todo" entry (file (lambda () (concat org-directory "/refile.org")))
+          `(("t" "Todo" entry (file (lambda () (concat org-directory "/refile.org")))
              "* TODO %?\nDEADLINE: %T\n %i\n %a")
             ("m" "movie" entry
              (file+headline (lambda () (concat org-directory "/mylife.org")) "Movies to Watch"))
@@ -392,18 +405,25 @@
             ("kw" "Word I learnt" entry
              (file+olp (lambda () (concat org-directory "/archive.org")) "Words")
              "* %?\nEntered on %U\n  %i\n  %a")
-
+            ("S" "Start")
+            ("Sm" "Meeting" entry
+             (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings Notes")
+             ,(concat
+               "* Meeting with %? :MEETING:\nSCHEDULED: %T\n:PROPERTIES:\n:LOCATION: %^{location|" org-capture-places "}\n:END:")
+             :clock-in t :clock-resume t)
             ("s" "Schedule")
             ;; Not sure I even want to have this
             ;; ("sE" "Errand" entry (file (lambda () (concat org-directory "/refile.org")))
             ;;  "* TODO %? :errand\nDEADLINE: %T\n  %a")
             ("sm" "Meeting" entry
-             (file+headline (lambda () (concat org-directory "/Work.org")) "Meetings")
-             "* Meeting with %? :MEETING:\nSCHEDULED: %T\n:PROPERTIES:\n:LOCATION: %^{location|Anywhere|Home|Work|School|FGPC}\n:END:")
+             (file (lambda () (concat org-directory "/refile.org")))
+             ,(concat
+               "* Meeting about %? :MEETING:\nSCHEDULED: %T\n:PROPERTIES:\n:LOCATION: %^{location|" org-capture-places "}\n:END:"))
             ("se" "Event" entry
              (file+headline (lambda () (concat org-directory "/mylife.org"))
                             "Events")
-             "* Go to the %?\n%T\n\n:PROPERTIES:\n:LOCATION: %^{location|Anywhere|Home|Work|School}\n:END:")
+             ,(concat
+               "* Go to the %?\n%T\n\n:PROPERTIES:\n:LOCATION: %^{location|" org-capture-places "}\n:END:"))
             ("st" "Time Block" entry
              (file+headline (lambda () (concat org-directory "/Work.org"))
                             "Time Blocks")
@@ -587,11 +607,104 @@
 
 ;; For creating svg art in org files
 (use-package edraw
+  :defer t
   :ensure nil
+  :after org
   :init
   (unless (package-installed-p 'edraw)
     (package-vc-install "https://github.com/misohena/el-easydraw"))
-  :config
-  (with-eval-after-load 'org
+  :init
+  (require 'edraw-org)
+  (edraw-org-setup-default)
+  ;; When using the org-export-in-background option (when using the
+  ;; asynchronous export function), the following settings are
+  ;; required. This is because Emacs started in a separate process does
+  ;; not load org.el but only ox.el.
+  (with-eval-after-load "ox"
     (require 'edraw-org)
-    (edraw-org-setup-default)))
+    (edraw-org-setup-exporter)))
+;;; Org Present
+(use-package org-present
+  :ensure t
+  :bind (:map org-mode-map
+	      ("C-c p" . org-present))
+  :hook
+  (org-present-mode . my/org-present-setup)
+  (org-present-mode-quit . my/org-present-teardown)
+  :config
+  (use-package olivetti :ensure t :commands (olivetti-mode))
+  (use-package rainbow-delimiters :ensure t :commands (rainbow-delimiters-mode))
+
+  (require 'fontaine)
+  (defun my/org-set-levels (levels)
+    (dolist (face levels)
+      (set-face-attribute (car face) nil
+                          :font (plist-get (fontaine--get-preset-properties fontaine-current-preset) :default-family)
+                          ;; ;; :foreground "#fff"
+                          :weight (cl-second face)
+                          :height (cl-third face))))
+  (defun my/org-present-setup ()
+    ;; Font Stuff
+    (setq-local org-present-last-fontaine-preset fontaine-current-preset)
+    (fontaine-set-preset 'large)
+    (my/org-set-levels '((org-level-1 heavy 1.2)
+                         (org-level-2 heavy 1.1)
+                         (org-level-3 heavy 1.05)
+                         (org-level-4 heavy 1.0)
+                         (org-level-5 heavy 1.0)
+                         (org-level-6 heavy 1.0)
+                         (org-level-7 heavy 1.0)
+                         (org-level-8 heavy 1.0)))
+
+    (setq header-line-format " ")
+    (org-display-inline-images)
+    (olivetti-mode +1)
+    (valign-mode +1)
+    ;; TODO restore this afterwards
+    (when writegood-mode
+      (writegood-mode -1))
+    (when jinx-mode
+      (jinx-mode -1))
+    (rainbow-delimiters-mode +1))
+
+  (defun my/org-present-teardown ()
+    ;; Font Stuff
+    (fontaine-set-preset org-present-last-fontaine-preset)
+    (my/org-set-levels  '((org-level-1 medium 1.0)
+                          (org-level-2 medium 1.0)
+                          (org-level-3 medium 1.0)
+                          (org-level-4 medium 1.0)
+                          (org-level-5 medium 1.0)
+                          (org-level-6 medium 1.0)
+                          (org-level-7 medium 1.0)
+                          (org-level-8 medium 1.0)))
+
+    (setq header-line-format nil)
+    (olivetti-mode -1)
+    (valign-mode -1)
+    (org-display-inline-images)
+    (rainbow-delimiters-mode -1))
+
+  (defun my/org-present-prepare-slide (buffer-name heading)
+    ;; Show only top-level headlines
+    (org-overview)
+
+    ;; Unfold the current entry
+    (org-show-entry)
+
+    ;; Show only direct subheadings of the slide but don't expand them
+    (org-show-children))
+
+  (cl-pushnew 'my/org-present-prepare-slide
+	      org-present-after-navigate-functions))
+
+
+(use-package ol
+  :config
+  (org-link-set-parameters "excalidraw"
+                           :follow #'org-excalidraw-open))
+
+(defun org-excalidraw-open (path _)
+  "Visit the manpage on PATH.
+PATH should be a topic that can be thrown at the man command."
+  (start-process-shell-command "excalidraw" nil (concat "xdg-open " path)))

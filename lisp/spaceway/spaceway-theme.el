@@ -221,17 +221,16 @@
    `(minibuffer-prompt ((,class (:foreground ,spaceway-fg))))
    `(mmm-default-submode-face ((,class (:background ,spaceway-bg))))
    `(header-line ((,class (:foreground ,spaceway-fg :background unspecified))))
-   `(tab-bar ((,class (:inherit mode-line
-                                :box (:line-width 2 :color "#333")))))
+   `(tab-bar ((,class (:inherit tab-bar-tab-ungrouped
+                                :box (:line-width 2 :color "#333333")))))
    ;; Tab bar settings
-   `(tab-bar-tab ((t (:inherit mode-line :background ,spaceway-bg :foreground ,spaceway-fg
-                               :weight bold
-                               :box (:line-width 2 :color ,spaceway-bg)
-                               ))))
-   `(tab-bar-tab-inactive ((t (:background "#444"
-                                           :box (:line-width 2 :color "#444")
+   `(tab-bar-tab ((t (:background ,spaceway-bg :foreground ,spaceway-fg
+                                  :weight bold
+                                  :box (:line-width 2 :color ,spaceway-bg)
+                                  ))))
+   `(tab-bar-tab-inactive ((t (:background "#333"
+                                           :box (:line-width 2 :color "#333")
                                            :foreground ,spaceway-fg
-                                           ;; :overline "#333"
                                            ))))
    `(mode-line ((,class (:foreground ;; "#EEDC82"
                          ,spaceway-fg

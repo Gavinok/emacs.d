@@ -105,7 +105,19 @@ There are COUNT hidden and UNREAD messages overall."
                   (mu4e-drafts-folder               . "/quartech/Drafts")
                   (mu4e-sent-folder                 . "/quartech/Sent")
                   (mu4e-refile-folder               . "/quartech/INBOX")
-                  (mu4e-trash-folder                . "/quartech/Trash")))))
+                  (mu4e-trash-folder                . "/quartech/Trash")))
+         (make-mu4e-context
+          :name "Disroot"
+          :match-func
+          (lambda (msg)
+            (when msg
+              (string-prefix-p "/disroot" (mu4e-message-field msg :maildir))))
+          :vars '((user-mail-address                . "gavinfreeborn@disroot.org")
+                  (user-full-name                   . "Gavin Jaeger-Freeborn")
+                  (mu4e-drafts-folder               . "/disroot/Drafts")
+                  (mu4e-sent-folder                 . "/disroot/Sent")
+                  (mu4e-refile-folder               . "/disroot/INBOX")
+                  (mu4e-trash-folder                . "/disroot/Trash")))))
 ;;;; Contacts
   (setq mail-personal-alias-file  "~/.config/mutt/aliases")
   (setq mu4e-org-contacts-file  (concat org-directory "/contacts.org"))
@@ -115,7 +127,7 @@ There are COUNT hidden and UNREAD messages overall."
                '("org-contact-add" . mu4e-action-add-org-contact) t)
 ;;;; Bookmarks
   (setopt mu4e-bookmarks '((:name "Main INBOX"
-                                  :query "maildir:/personal/INBOX or maildir:/quartech/INBOX" :key 115)
+                                  :query "maildir:/personal/INBOX or maildir:/quartech/INBOX or maildir:/disroot/INBOX" :key 115)
                            (:name "To Handle"
                                   :query "((flag:flagged AND (NOT flag:replied)) OR (NOT flag:seen)) AND (NOT flag:trashed) AND (NOT maildir:/personal/[Gmail].Spam) AND date:1y..now)" :key 116)
                            (:name "Today's messages"

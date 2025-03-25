@@ -14,4 +14,7 @@
    (menu-bar-lines . 0)
    (undecorated . t)
    (vertical-scroll-bars . nil)
-   (horizontal-scroll-bars . nil)))
+   (horizontal-scroll-bars . nil))
+ ;; Speedup startup
+ file-name-handler-alist nil
+ gc-cons-threshold most-positive-fixnum)

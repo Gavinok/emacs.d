@@ -51,14 +51,6 @@ This is needed to make sure that text is properly aligned.")
                                          mode-line-misc-info
                                          )
                                         )))
-(defun tab-bar-tab-name-format-comfortable (tab i)
-  "Add spacing to tab bar mode"
-  (propertize (concat " " (truncate-string-to-width
-                           (tab-bar-tab-name-format-default tab i)
-                           tab-bar-tab-name-truncated-max
-                           nil nil t)
-                      " ")
-              'face (funcall tab-bar-tab-face-function tab)))
 (setq my/mode-line-left-side '(" "
                                ;; indicate if the buffer has been modified
                                (:eval (propertize (if (and (not buffer-read-only) (buffer-modified-p))
@@ -69,11 +61,6 @@ This is needed to make sure that text is properly aligned.")
                                ;; mode-line-remote
                                mode-line-buffer-identification
                                mode-line-process
-                               ;; (:eval (truncate-string-to-width
-                               ;;         (buffer-name)
-                               ;;         50
-                               ;;         nil nil t))
-                               ;; " "
                                (:eval (when (mode-line-window-selected-p)" %l:%c"))
                                ;; (:eval (when (mode-line-window-selected-p)
                                ;;          (propertize
@@ -85,19 +72,11 @@ This is needed to make sure that text is properly aligned.")
                                ;;                   'mode-line-inactive))))
                                ))
 
-(setq my/mode-line-padding
-      '(:eval
-        (propertize " " 'display
-	            `((space :align-to
-			     (- (+ right right-fringe right-margin)
-			        ,(string-width
-                                  (format-mode-line my/mode-line-right-side))))))))
-
 (setq-default mode-line-format
               `(
                 ,@my/mode-line-left-side
                 ;; I still have yet to come up with a better option
-                ,my/mode-line-padding
+                mode-line-format-right-align
                 ,my/mode-line-right-side))
 
 

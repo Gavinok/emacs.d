@@ -192,6 +192,18 @@ java-mode
 
 org-mode
 
+(recording "#+begin_src sh :async yes"n
+           "obs --startrecording >/dev/null &"n
+           "#+end_src"n
+           "#+begin_src sh :async yes"n
+           "mpv $(ls -t ~/Videos/clips/recording/*mkv | head -1) >/dev/null &"n
+           "ls $(ls -t ~/Videos/clips/recording/*mkv | head -1) &"n
+           "#+end_src")
+
+;; time and space complexity
+(complex "| Time Complexity | Space Complexity |"n
+         "|-----------------+------------------|"n
+         "| O("p")      | O("p")             |")
 ;; Meeting notes
 (mnote (progn (org-insert-subheading 16)
               (org-time-stamp-inactive +1)
@@ -211,7 +223,8 @@ org-mode
      :post (org-edit-src-code))
 (lisp "#+begin_src lisp" n> r> n "#+end_src"
       :post (org-edit-src-code))
-
+(python "#+begin_src python" n> r> n "#+end_src"
+        :post (org-edit-src-code))
 (readmeorg
  (i title) n
  (p "A short, one-line description of the project: ") n
@@ -292,7 +305,7 @@ js-base-mode typescript-ts-base-mode vue-ts-mode
 (switch "switch (" p ") {" n> (i case) n> "default:" n> q n "}" >)
 (import "import {" p "} from \"" q "\";")
 
-typescript-ts-mode typescript-mode
+typescript-ts-mode typescript-mode tsx-ts-mode
 
 (interface "interface " (p "intrefaceName") " {"n>
            (p "item")": " (p "any") ";"n

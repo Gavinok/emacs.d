@@ -33,8 +33,6 @@
 
 (defvar file-name-handler-alist-old file-name-handler-alist)
 
-(setq file-name-handler-alist nil
-      gc-cons-threshold most-positive-fixnum)
 ;; Lower threshold to speed up garbage collection
 (add-hook 'after-init-hook
           #'(lambda ()
@@ -342,6 +340,10 @@ Depends on the `gh' commandline tool"
          )
 
   :config
+  ;; According to the POSIX, a line is defined as "a sequence of zero or
+  ;; more non-newline characters followed by a terminating newline".
+  (setopt require-final-newline t)
+  (setopt kill-region-dwim 'emacs-word)
   (defun my/keyboard-quit-only-if-no-macro ()
     "A workaround to let me accidently hit C-g while recording a macro"
     (interactive)
@@ -381,7 +383,8 @@ Depends on the `gh' commandline tool"
           delete-by-moving-to-trash t
           create-lockfiles nil
           auto-save-default nil
-          ring-bell-function 'ignore)
+          ring-bell-function 'ignore
+          delete-pair-push-mark t)
 
 ;;;; UTF-8
   (prefer-coding-system 'utf-8)
@@ -413,7 +416,8 @@ Depends on the `gh' commandline tool"
   ;; (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   ;; recentf
   (setopt recentf-make-menu-items 150)
-  (setopt recentf-make-saved-items 150))
+  (setopt recentf-make-saved-items 150)
+  (pixel-scroll-precision-mode t))
 
 (use-package time
   :init
@@ -463,32 +467,37 @@ Depends on the `gh' commandline tool"
   ;; (set-fontset-font "fontset-default" 'unicode "Symbola" nil 'prepend)
   ;; Use twitter emojis cuz I like them
   (set-fontset-font "fontset-default" 'emoji "Twemoji" nil 't))
-
-(setq treesit-language-source-alist
-      '((templ "https://github.com/vrischmann/tree-sitter-templ")
-        (bash "https://github.com/tree-sitter/tree-sitter-bash")
-        (cmake "https://github.com/uyha/tree-sitter-cmake")
-        (css "https://github.com/tree-sitter/tree-sitter-css")
-        (elisp "https://github.com/Wilfred/tree-sitter-elisp")
-        (go "https://github.com/tree-sitter/tree-sitter-go")
-        (gomod "https://github.com/camdencheek/tree-sitter-go-mod")
-        (html "https://github.com/tree-sitter/tree-sitter-html")
-        (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
-        (dockerfile "https://github.com/camdencheek/tree-sitter-dockerfile")
-        (json "https://github.com/tree-sitter/tree-sitter-json")
-        (make "https://github.com/alemuller/tree-sitter-make")
-        (markdown "https://github.com/ikatyang/tree-sitter-markdown")
-        (python "https://github.com/tree-sitter/tree-sitter-python")
-        (toml "https://github.com/tree-sitter/tree-sitter-toml")
-        (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
-        (typescript "https://github.com/tree-sitter/tree-sitter-typescript"
-                    "master" "typescript/src")
-        (yaml "https://github.com/ikatyang/tree-sitter-yaml")
-        (haskell "https://github.com/tree-sitter/tree-sitter-haskell")
-        (typst "https://github.com/uben0/tree-sitter-typst")
-        (java "https://github.com/tree-sitter/tree-sitter-java")
-        (ruby "https://github.com/tree-sitter/tree-sitter-ruby")
-        (rust "https://github.com/tree-sitter/tree-sitter-rust")))
+(use-package treesit
+  :ensure nil
+  :init
+  (setq treesit-language-source-alist
+        '((templ "https://github.com/vrischmann/tree-sitter-templ")
+          (bash "https://github.com/tree-sitter/tree-sitter-bash")
+          (cmake "https://github.com/uyha/tree-sitter-cmake")
+          (css "https://github.com/tree-sitter/tree-sitter-css")
+          (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+          (go "https://github.com/tree-sitter/tree-sitter-go")
+          (gomod "https://github.com/camdencheek/tree-sitter-go-mod")
+          (html "https://github.com/tree-sitter/tree-sitter-html")
+          (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+          (dockerfile "https://github.com/camdencheek/tree-sitter-dockerfile")
+          (json "https://github.com/tree-sitter/tree-sitter-json")
+          (make "https://github.com/alemuller/tree-sitter-make")
+          (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+          (python "https://github.com/tree-sitter/tree-sitter-python")
+          (toml "https://github.com/tree-sitter/tree-sitter-toml")
+          (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+          (typescript "https://github.com/tree-sitter/tree-sitter-typescript"
+                      "master" "typescript/src")
+          (yaml "https://github.com/ikatyang/tree-sitter-yaml")
+          (haskell "https://github.com/tree-sitter/tree-sitter-haskell")
+          (typst "https://github.com/uben0/tree-sitter-typst")
+          (java "https://github.com/tree-sitter/tree-sitter-java")
+          (ruby "https://github.com/tree-sitter/tree-sitter-ruby")
+          (rust "https://github.com/tree-sitter/tree-sitter-rust")
+          (zig "https://github.com/tree-sitter-grammars/tree-sitter-zig")
+          (cpp "https://github.com/tree-sitter/tree-sitter-cpp")))
+  (setopt treesit-font-lock-level 4))
 
 (use-package unified-marks :ensure nil :no-require t
   :custom
@@ -538,16 +547,17 @@ Depends on the `gh' commandline tool"
   :bind ("C-x a a" . align-regexp)
   :config
   ;; Align using spaces
-  (defadvice align-regexp (around align-regexp-with-spaces activate)
+  (defun align-regexp-with-spaces (ogfn &rest args)
     (let ((indent-tabs-mode nil))
-      ad-do-it)))
+      (apply ogfn args)))
+  (advice-add 'align-regexp :around #'align-regexp-with-spaces))
 
 ;;; COMPLETION
 (use-package vertico
   :ensure t
   :init
   ;; Enable vertico using the vertico-flat-mode
-  (require 'vertico-directory)
+  ;; (require 'vertico-directory)
   (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy)
 
   (use-package orderless
@@ -581,6 +591,7 @@ Depends on the `gh' commandline tool"
          ("M-g M-g"     . consult-goto-line)
          ("M-g f"       . consult-flymake)
          ("M-g i"       . consult-imenu)
+         ("M-g I"       . consult-imenu-multi)
          ("M-s l"       . consult-line)
          ("M-s L"       . consult-line-multi)
          ("M-s u"       . consult-focus-lines)
@@ -602,21 +613,6 @@ Depends on the `gh' commandline tool"
   (completion-in-region-function #'consult-completion-in-region)
   :config
   (recentf-mode t))
-;; (use-package consult-gh
-;;   :init
-;;   (unless (package-installed-p 'consult-gh)
-;;     (package-vc-install
-;;      '(consult-gh :url "https://github.com/armindarvish/consult-gh")))
-;;   )
-;; (use-package consult-gh
-;;   :init
-;;   (unless (package-installed-p 'consult-gh)
-;;     (package-vc-install
-;;      '(consult-gh :url "https://github.com/armindarvish/consult-gh.git")))
-;;   )
-;; (use-package consult-gh
-;;   :ensure nil
-;;   :quelpa (consult-gh :fetcher github :repo "armindarvish/consult-gh"))
 
 (use-package consult-dir
   :ensure t
@@ -624,7 +620,8 @@ Depends on the `gh' commandline tool"
          :map vertico-map
          ("C-x C-j" . consult-dir)))
 (use-package consult-recoll
-  :ensure t
+  :ensure nil
+  :vc (:url "https://codeberg.org/jao/consult-recoll.git")
   :bind (("M-s r" . consult-recoll))
   :init
   (setq consult-recoll-inline-snippets t)
@@ -645,7 +642,29 @@ This way our searches are kept up to date"
                       :buffer recollindex-buffer
                       :command '("recollindex" "-m" "-D")))))
   (eval-after-load 'consult-recoll
-    (my/recoll-index)))
+    (my/recoll-index))
+
+
+  ;; Keeping this here until the next release
+  (defun consult-recoll--search (&optional initial)
+    "Perform an asynchronous recoll search via `consult--read'.
+If given, use INITIAL as the starting point of the query."
+    (consult--read (consult--async-pipeline
+                    (consult--process-collection #'consult-recoll--command)
+                    (consult--async-map #'consult-recoll--transformer)
+                    (consult--async-filter #'identity))
+                   :annotate #'consult-recoll--annotation
+                   :prompt consult-recoll-prompt
+                   :require-match t
+                   :lookup #'consult--lookup-member
+                   :sort nil
+                   :state (and (not consult-recoll-inline-snippets)
+                               #'consult-recoll--preview)
+                   :group (and consult-recoll-group-by-mime
+                               #'consult-recoll--group)
+                   :initial initial
+                   :history '(:input consult-recoll-history)
+                   :category 'recoll-result)))
 
 (use-package embark
   :ensure t
@@ -657,9 +676,11 @@ This way our searches are kept up to date"
    ("C-d" . dragon-drop)
    :map embark-defun-map
    ("M-t" . chatgpt-gen-tests-for-region)
+   ("M-t" . chatgpt-explain-region)
    :map embark-general-map
    ("M-c" . chatgpt-prompt)
    :map embark-region-map
+   ("D"   . dictionary-search)
    ("?"   . chatgpt-explain-region)
    ("M-f" . chatgpt-fix-region)
    ("M-f" . chatgpt-fix-region))
@@ -688,15 +709,13 @@ This way our searches are kept up to date"
           (embark-dwim))))))
 
 ;; Helpful for editing consult-grep
-(use-package wgrep :ensure t :after embark)
-
+(use-package wgrep :ensure t :after embark
+  :bind
+  (:map grep-mode-map
+        ("C-x C-q" . wgrep-change-to-wgrep-mode)))
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
   :ensure t
-  :after (:all embark consult)
-  :demand t
-  ;; if you want to have consult previews as you move around an
-  ;; auto-updating embark collect buffer
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 ;; For uploading files
@@ -715,18 +734,16 @@ This way our searches are kept up to date"
   :hook (prog-mode . completion-preview-mode)
   :bind (:map completion-preview-active-mode-map
               ("C-i" . completion-preview-insert)
-              ("M-n" . completion-preview-next-candidate)
+              ("M-n" . completion-preview-insert-word)
               ("M-p" . completion-preview-prev-candidate))
   :custom
-  (completion-preview-minimum-symbol-length 2)
-  :init
-  (load (locate-user-emacs-file "lisp/completion-preview.el")))
+  (completion-preview-minimum-symbol-length 1))
 
 ;;;; Code Completion
 (use-package corfu
   :disabled
   :ensure t
-  ;; Optional customizations
+  ;; Optional customization
   :custom
   (corfu-cycle t)                 ; Allows cycling through candidates
   (corfu-auto t)                  ; Enable auto completion
@@ -859,10 +876,11 @@ This way our searches are kept up to date"
 (load (locate-user-emacs-file
        "lisp/org-config.el"))
 
+(add-to-list 'load-path
+             "/usr/share/emacs/site-lisp/mu4e/")
 ;;; Email
 (load (locate-user-emacs-file
        "lisp/mu4e-config.el"))
-
 ;;; Git
 (use-package magit
   :bind (("C-x v SPC" . magit-status)
@@ -870,16 +888,25 @@ This way our searches are kept up to date"
          ("m" . project-magit))
   :commands (magit project-magit)
   :config
+  (use-package git-commit
+    :ensure nil
+    :hook ((git-commit-setup . (lambda () (call-interactively 'git-commit-signoff)))))
   (add-to-list 'project-switch-commands
                '(project-magit "Magit" m))
   (defun project-magit  ()
     (interactive)
     (let ((dir (project-root (project-current t))))
       (magit-status dir))))
+(use-package orgit-forge :ensure t :after magit)
 (use-package forge :ensure t :after magit)
 (use-package git-link
   :ensure t
   :bind (("C-c g l" . git-link)))
+(use-package magit-todos
+  :ensure t
+  :after (magit)
+  :config
+  (magit-todos-mode 1))
 ;; Lets me store links to a particular git revision
 (use-package ol-git-link :after ol)
 
@@ -924,8 +951,8 @@ This way our searches are kept up to date"
 (use-package flymake-proselint
   :ensure t
   :after flymake
-  :hook ((markdown-mode org-mode text-mode) . flymake-proselint-setup)
-  )
+  :hook ((markdown-mode org-mode text-mode) . flymake-proselint-setup))
+
 (use-package em-term
   :ensure nil
   :after eshell
@@ -965,14 +992,16 @@ This way our searches are kept up to date"
   :bind (("M-s M-s" . project-find-file)
          :map project-prefix-map
          ("m" . project-magit)
-         ("d" . project-dired))
+         ("d" . project-dired)
+         ("M-s" . project-find-file))
   :init
   (setopt project-switch-commands
-          '((project-find-file "Find file" ?f)
-            (project-dired "Dired" ?d)
-            (project-vc-dir "VC-Dir" ?v)
-            (project-eshell "Eshell" ?e)
-            (project-shell "Shell" ?s))
+          '((project-find-file "Find file")
+            (project-dired "Dired")
+            (project-magit "Magit")
+            (project-compile "Compile")
+            (project-find-regexp "Find Regex")
+            (eat-project "Terminal"))
           project-compilation-buffer-name-function 'project-prefixed-buffer-name)
   :config
   ;; Optionally configure a function which returns the project root directory.
@@ -991,8 +1020,9 @@ This way our searches are kept up to date"
   (setopt project-vc-extra-root-markers
           '("*.cabal" "pyproject.toml"
             "spago.dhall" "CMakeList.txt"
-            "package.clj" "package.json" "Project.toml" ".project" "Cargo.toml"
-            "mix.exs" "qlfile" ".git"))
+            "package.clj" "package.json"
+            "Project.toml" ".project"
+            "Cargo.toml""mix.exs" "qlfile" ".git"))
 
   ;; Override project.el backends for specific directories
   ;;   (defvar my/overrided-project '("~/test/"))
@@ -1086,68 +1116,6 @@ This way our searches are kept up to date"
           (select-window window)
         (switch-to-buffer-other-window comp-buf)))))
 
-(use-package compile-multi
-  :ensure t
-  :bind (("C-x C-m" . compile-multi))
-  :config
-  ;; Use project.el to determine the project root unless it is
-  ;; blacklisted
-  (setq compile-multi-default-directory
-        (lambda ()
-          (let ((p (project-current)))
-            (if (cl-find (expand-file-name
-                          (project-root p))
-                         (mapcar #'expand-file-name
-                                 eglot-single-file-project-blacklist)
-                         :test #'equal)
-                default-directory
-              (project-root p)))))
-  (defun my/go-mod-init ()
-    (concat "go mod init " (read-string "Module name" "mymodule")))
-  (setq compile-multi-config `((t
-                                ("default:compiler" . ("compiler "
-                                                       (if buffer-file-name
-                                                           (shell-quote-argument buffer-file-name)
-                                                         ""))))
-                               (dired-mode
-                                ("new:cargo"  . "cargo new")
-                                ("new:go mod"  . ,#'my/go-mod-init)
-                                ("new:cabal init"  . "cabal init")
-                                ("new:spago init"  . "spago init")
-                                ("new:tsc init"  . "tsc --init"))
-                               (typescript-ts-mode
-                                ("tsc:compile" . "tsc")
-                                ("tsc:watch" . "tsc -w"))
-                               ((file-exists-p "Makefile")
-                                ("make:build" . "make")
-                                ("make:test" . "make test")
-                                ("make:clean" . "make clean"))
-                               ((file-exists-p "package.json")
-                                ("npm:eslint" . "npx eslint --fix .")
-                                ("npm:test" . "npm run test")
-                                ("npm:dev" . "npm run dev"))
-                               ((file-exists-p "CMakeLists.txt")
-                                ("cmake:debug build" . "cmake -B . -DCMAKE_BUILD_TYPE=Debug")
-                                ("cmake:release build" . "cmake -B . -DCMAKE_BUILD_TYPE=Release "))
-                               ((and (file-exists-p "Cargo.toml")
-                                     (eql major-mode 'rust-ts-mode))
-                                ("cargo:build" . "cargo build")
-                                ("cargo:run" . "cargo run")
-                                ("cargo:test" . "cargo test")
-                                ("cargo:check" . "cargo check")
-                                ("cargo:release" . "cargo build --release"))
-                               ((and (file-exists-p "package.json")
-                                     (eql major-mode 'vue-ts-mode))
-                                ("vue:compile" . "npx eslint --fix . && npx vue-tsc --noEmit"))
-                               ((and (file-exists-p "spago.dhall")
-                                     (executable-find "spago")
-                                     (eql major-mode 'purescript-mode))
-                                ("spago:run" . "spago run")
-                                ("spago:build" . "spago build")
-                                ("spago:package" . "spago bundle-app"))
-                               ((and (eql major-mode 'python-ts-mode))
-                                ("python:pyright" . "pyright .")))))
-
 ;;; BUFFER MANAGMENT
 (use-package ibuffer
   :ensure nil
@@ -1201,8 +1169,7 @@ This way our searches are kept up to date"
          (:repeat-map isearch-repeat-map
                       ("s" . isearch-repeat-forward)
                       ("r" . isearch-repeat-backward)))
-  :custom ((isearch-lazy-count t)
-           (lazy-count-prefix-format nil)
+  :custom ((lazy-count-prefix-format nil)
            (lazy-count-suffix-format " [%s of %s]")
            (search-whitespace-regexp ".*?")
            (isearch-lazy-highlight t)
@@ -1246,7 +1213,6 @@ This way our searches are kept up to date"
             "\\*Backtrace\\*"
             "*Flymake diagnostics.*"
             "\\*eldoc\\*"
-            "\\*compilation\\*"
             "\\*rustic-"
             "^*tex"
             "\\*Ement Notifications\\*"
@@ -1255,8 +1221,7 @@ This way our searches are kept up to date"
             "\\*Dtache Shell Command\\*"
             "\\*mu4e-update\\*"
             "\\*GDB.*out\\*"
-            help-mode
-            compilation-mode))
+            help-mode))
   (setopt popper-display-control t)
   (popper-mode +1))
 
@@ -1280,7 +1245,7 @@ This way our searches are kept up to date"
          ("C-M-," . mc/mark-previous-like-this))
   :config
   ;; Use phi-search to replace isearch when using multiple cursors
-  (defun toggle-corfu-auto-for-mc (&optional arg)
+  (defun toggle-corfu-auto-for-mc (&optional _arg)
     (if multiple-cursors-mode
         (corfu-mode -1)
       (corfu-mode 1)))
@@ -1322,6 +1287,7 @@ This way our searches are kept up to date"
 (use-package autorevert
   :ensure nil
   :defer 1
+  :custom (global-auto-revert-non-file-buffers t)
   :init (global-auto-revert-mode t))
 
 (use-package hippie-exp
@@ -1361,7 +1327,10 @@ This way our searches are kept up to date"
   (outline-minor-mode-use-buttons 'in-margins)
   (outline-minor-mode-highlight 'append)
   (outline-minor-mode-cycle t))
-
+(use-package hideshow
+  :ensure nil
+  :bind (:map hs-minor-mode-map
+              ("C-<tab>" . hs-toggle-hiding)))
 ;; Automatic code formatting
 (use-package apheleia
   :ensure t
@@ -1392,7 +1361,9 @@ This way our searches are kept up to date"
                 (outline-minor-mode)
                 (setq outline-regexp
                       "^\\([ ]\\{2\\}\\)*\\([-] \\)?\\([\"][^\"]*[\"]\\|[a-zA-Z0-9_-]*\\): *\\([>|]\\|&[a-zA-Z0-9_-]*\\)?$")
-                (setq outline-level 'yaml-outline-level))))
+                (setq outline-level 'yaml-outline-level)))
+    (push '((yaml-ts-mode yaml-mode) "helm_ls" "serve") eglot-server-programs))
+
   (use-package toml-ts-mode :mode "\\.toml\\'")
   (use-package bash-ts-mode :mode "\\.sh\\'"
     :config
@@ -1465,8 +1436,10 @@ This way our searches are kept up to date"
 			       :checkProject t
 			       :formattingProvider "none")))
       ;; Ensure inlay hints going for eglot
-      (add-hook 'go-ts-mode-hook 'eglot-inlay-hints-mode)))
+      ;; (add-hook 'go-ts-mode-hook 'eglot-inlay-hints-mode)
+      ))
   (use-package python
+    :mode "\\.py\\'"
     :hook ((python-ts-mode . prettify-symbols-mode))
     :init
     ;; (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
@@ -1531,7 +1504,20 @@ This way our searches are kept up to date"
     ;; TODO add compilation-error-regexp-alist for purs
     (use-package psci
       :ensure t
-      :hook (purescript-mode . inferior-psci-mode)))
+      :bind (:map purescript-mode-map
+                  ("C-c C-z" . purescript-switch-to-psci))
+      :hook ((purescript-mode . inferior-psci-mode)
+             (psci-mode . compilation-shell-minor-mode))
+      :init
+      (defun run-purescript ()
+        (interactive)
+        (call-interactively 'psci))
+      (defun purescript-switch-to-psci ()
+        (interactive)
+        (switch-to-buffer-other-window "*psci*"))
+      (add-to-list 'compilation-error-regexp-alist 'purescript)
+      (add-to-list 'compilation-error-regexp-alist-alist
+                   '(purescript "^at \\([a-zA-Z0-9/\\._-]+\\):\\([0-9]+\\):\\([0-9]+\\)" 1 2 3))))
 
   (use-package rust-ts-mode :ensure t :mode "\\.rs\\'"
     :init
@@ -1617,7 +1603,7 @@ This way our searches are kept up to date"
 ;;;; WEB
 (use-package nvm
   :ensure nil
-  :when (executable-find "nvm")
+  :when (getenv "NVM_DIR")
   :commands (my/nvm-use)
   :quelpa (nvm :fetcher github :repo "rejeep/nvm.el")
   :commands (nvm-use nvm-use-for-buffer my/nvm-use)
@@ -1648,20 +1634,27 @@ This way our searches are kept up to date"
   :config
   ;; Inlay add typehints for typescript
   (with-eval-after-load 'eglot
-    (add-to-list  'eglot-server-programs
-                  `((js-mode js-ts-mode tsx-ts-mode typescript-ts-mode typescript-mode)
-                    .
-                    ("typescript-language-server" "--stdio"
-                     :initializationOptions
-                     (:preferences
-		      (:includeInlayParameterNameHints "all"
-						       :includeInlayParameterNameHintsWhenArgumentMatchesName t
-						       :includeInlayFunctionParameterTypeHints t
-						       :includeInlayVariableTypeHints t
-						       :includeInlayVariableTypeHintsWhenTypeMatchesName t
-						       :includeInlayPropertyDeclarationTypeHints t
-						       :includeInlayFunctionLikeReturnTypeHints t
-						       :includeInlayEnumMemberValueHints t)))))))
+    (add-to-list  'eglot-server-programs '(((js-mode :language-id "javascript")
+                                            (js-ts-mode :language-id "javascript")
+                                            (tsx-ts-mode :language-id "typescriptreact")
+                                            (typescript-ts-mode :language-id "typescript")
+                                            (typescript-mode :language-id "typescript"))
+                                           "typescript-language-server" "--stdio"))
+    ;; (add-to-list  'eglot-server-programs
+    ;;               `((js-mode js-ts-mode tsx-ts-mode typescript-ts-mode typescript-mode)
+    ;;                 .
+    ;;                 ("typescript-language-server" "--stdio"
+    ;;                  :initializationOptions
+    ;;                  (:preferences
+    ;;     	      (:includeInlayParameterNameHints "all"
+    ;;     					       :includeInlayParameterNameHintsWhenArgumentMatchesName t
+    ;;     					       :includeInlayFunctionParameterTypeHints t
+    ;;     					       :includeInlayVariableTypeHints t
+    ;;     					       :includeInlayVariableTypeHintsWhenTypeMatchesName t
+    ;;     					       :includeInlayPropertyDeclarationTypeHints t
+    ;;     					       :includeInlayFunctionLikeReturnTypeHints t
+    ;;     					       :includeInlayEnumMemberValueHints t)))))
+    ))
 (use-package tsx-ts-mode
   :mode "\\.tsx\\'"
   :hook (tsx-ts-mode . eglot-ensure))
@@ -1823,13 +1816,13 @@ This way our searches are kept up to date"
   :bind (("C-c s" . puni-mode)
          :map puni-mode-map
          ("C-c DEL"                 . jinx-correct)
-         ([remap backward-sentence] . puni-end-of-sexp)
-         ([remap forward-sentence]  . puni-beginning-of-sexp)
+         ([remap forward-sentence]  . puni-end-of-sexp)
+         ([remap backward-sentence] . puni-beginning-of-sexp)
          ([remap forward-sexp]      . puni-forward-sexp-or-up-list)
          ([remap backward-sexp]     . puni-backward-sexp-or-up-list)
-         ([remap kill-line]        . puni-kill-line)
+         ([remap kill-line]         . puni-kill-line)
          ([remap mark-paragraph]    . puni-expand-region)
-         ([remap kill-sexp]        . puni-kill-thing-at-point)
+         ([remap kill-sexp]         . puni-kill-thing-at-point)
          ("M-k"                     . kill-sexp)
          ;; Remove outer pairs
          ("M-O"                     . puni-splice)
@@ -1869,15 +1862,20 @@ This way our searches are kept up to date"
   :bind (("M-h" . expreg-expand)))
 
 ;; Getting added in emacs 30 https://debbugs.gnu.org/cgi/bugreport.cgi?bug=67687
-(load (locate-user-emacs-file
-       "lisp/etags-regen.el"))
+;; (load (locate-user-emacs-file
+;;        "lisp/etags-regen.el"))
 (use-package etags-regen
-  :when (executable-find "etags")
-  :custom (etags-regen-tags-file "/tmp/TAGS")
+  :when (executable-find "ctags.emacs")
+  :custom (etags-regen-tags-file #'project-tag-file)
   :commands etags-regen-mode
   :bind (("C-c t" . complete-tag)
          ("C-c M-." . my/goto-etags))
   :init
+  (setopt etags-program-name "ctags.emacs")
+  (defun project-tag-file (_)
+    (concat "/tmp/"
+            (replace-regexp-in-string "\\/" "-" (project-name (project-current)))
+            "-TAGS"))
   (defun my/goto-etags ()
     (interactive)
     (let ((xref-backend-functions '(etags--xref-backend t)))
@@ -2035,6 +2033,7 @@ Used to see multiline flymake errors"
   (defun my/rename-tab-to-project ()
     (interactive)
     (tab-bar-rename-tab (format "P:%s"(project-name (project-current)))))
+  (setopt tab-line-tabs-buffer-group-function 'tab-line-tabs-buffer-group-by-project)
   (setopt tab-bar-show t)
   ;; (setopt tab-bar-auto-width-min '(15 2))
   (defun tab-bar-tab-name-format-comfortable (tab i)
@@ -2064,12 +2063,28 @@ Used to see multiline flymake errors"
                          tab-bar-format-menu-bar
                          tab-bar-format-tabs
                          tab-bar-separator
+                         tab-bar-format-add-tab
                          tab-bar-format-align-right
                          ;; my/fake-modeline
                          tab-bar-separator
                          tab-bar-separator
+                         tab-bar-org-clock
                          ;; tab-bar-format-global
                          ))
+
+  ;; Use tab bar for displaying the currently clocked in task
+  (add-hook 'org-clock-in-hook 'tab-bar-mode)
+  (defun tab-bar-org-clock ()
+    `((my-tab-modeline
+       menu-item
+       ,(format-mode-line
+         `(:eval (when (org-clock-is-active)
+                   (propertize org-mode-line-string
+                               'face 'org-agenda-clocking
+                               'local-map org-clock-mode-line-map
+                               'mouse-face 'mode-line-highlight))))
+       tab-bar-my-tab-modeline
+       :help "Menu bar")))
   ;; Make sure that the custom sections of the modeline are actually rendered
   ;; (setq-default mode-line-format nil)
   (setopt tab-bar-close-button-show nil
@@ -2116,80 +2131,9 @@ Used to see multiline flymake errors"
   :config
   :init (winner-mode 1)) ; Window Managment Undo
 
-;;; Org Present
-(use-package org-present
+(use-package sqlite-mode-extras
   :ensure t
-  :bind (:map org-mode-map
-	      ("C-c p" . org-present))
-  :hook
-  (org-present-mode . my/org-present-setup)
-  (org-present-mode-quit . my/org-present-teardown)
-  :config
-  (require 'fontaine)
-  (defun my/org-set-levels (levels)
-    (dolist (face levels)
-      (set-face-attribute (car face) nil
-                          :font (plist-get (fontaine--get-preset-properties fontaine-current-preset) :default-family)
-                          ;; ;; :foreground "#fff"
-                          :weight (cl-second face)
-                          :height (cl-third face))))
-  (defun my/org-present-setup ()
-    ;; Font Stuff
-    (setq-local org-present-last-fontaine-preset fontaine-current-preset)
-    (fontaine-set-preset 'large)
-    (my/org-set-levels '((org-level-1 heavy 1.2)
-                         (org-level-2 heavy 1.1)
-                         (org-level-3 heavy 1.05)
-                         (org-level-4 heavy 1.0)
-                         (org-level-5 heavy 1.0)
-                         (org-level-6 heavy 1.0)
-                         (org-level-7 heavy 1.0)
-                         (org-level-8 heavy 1.0)))
-
-    (setq header-line-format " ")
-    (org-display-inline-images)
-    (olivetti-mode +1)
-    (valign-mode +1)
-    ;; TODO restore this afterwards
-    (when writegood-mode
-      (writegood-mode -1))
-    (when jinx-mode
-      (jinx-mode -1))
-    (rainbow-delimiters-mode +1))
-
-  (defun my/org-present-teardown ()
-    ;; Font Stuff
-    (fontaine-set-preset org-present-last-fontaine-preset)
-    (my/org-set-levels  '((org-level-1 medium 1.0)
-                          (org-level-2 medium 1.0)
-                          (org-level-3 medium 1.0)
-                          (org-level-4 medium 1.0)
-                          (org-level-5 medium 1.0)
-                          (org-level-6 medium 1.0)
-                          (org-level-7 medium 1.0)
-                          (org-level-8 medium 1.0)))
-
-    (setq header-line-format nil)
-    (olivetti-mode -1)
-    (valign-mode -1)
-    (org-display-inline-images)
-    (rainbow-delimiters-mode -1))
-
-  (defun my/org-present-prepare-slide (buffer-name heading)
-    ;; Show only top-level headlines
-    (org-overview)
-
-    ;; Unfold the current entry
-    (org-show-entry)
-
-    ;; Show only direct subheadings of the slide but don't expand them
-    (org-show-children))
-
-  (cl-pushnew 'my/org-present-prepare-slide
-	      org-present-after-navigate-functions))
-(use-package rainbow-delimiters
-  :ensure t
-  :commands (rainbow-delimiters-mode))
+  :hook ((sqlite-mode . sqlite-extras-minor-mode)))
 
 ;; install Ement.
 (use-package ement
@@ -2205,7 +2149,7 @@ Used to see multiline flymake errors"
                    :password (password-store-get "riot.im/gavinok"))))
 
 (setq pixel-scroll-precision-interpolate-page t)
-(pixel-scroll-precision-mode t)
+
 (keymap-global-set "C-v" #'my/scroll-down)
 (keymap-global-set "M-v" #'my/scroll-up)
 
@@ -2225,6 +2169,7 @@ Used to see multiline flymake errors"
 (put 'dired-find-alternate-file 'disabled nil)
 (put 'list-timers 'disabled nil)
 
+;;; IDE
 (use-package eglot
   :bind (:map eglot-diagnostics-map
 	      ("M-RET" . eglot-code-actions))
@@ -2308,6 +2253,12 @@ directory when working with a single file project."
   :after eglot
   :bind ("M-s s" . consult-eglot-symbols))
 
+(use-package lsp-mode
+  :no-require t
+  :init
+  (setq lsp-headerline-breadcrumb-enable nil)
+  (setq lsp-diagnostics-provider :flymake)
+  (setq lsp-completion-provider :none))
 (use-package eglot-booster
   :after (:any eglot lsp-mode)
   :when (executable-find "cargo")
@@ -2317,9 +2268,11 @@ directory when working with a single file project."
      '(eglot-booster :url "https://github.com/jdtsmith/eglot-booster")))
   :config
   ;; tricks for improving performance
-  (fset #'jsonrpc--log-event #'ignore)
-  (setopt eglot-events-buffer-size 0
-          eglot-autoshutdown t)
+  (setopt eglot-events-buffer-config '(:size nil :format full)
+          eglot-autoshutdown t
+          jsonrpc-event-hook ;nil
+          (list #'jsonrpc--log-event)
+          )
 
   ;; Install and setup lsp booster
   (let ((emacs-lsp-booster-repo "https://github.com/blahgeek/emacs-lsp-booster")
@@ -2355,9 +2308,9 @@ directory when working with a single file project."
              ))))))
   (eglot-booster-mode))
 
-(use-package eglot-lens
+(use-package eglot-codelens
   :ensure nil
-  :load-path "lisp/eglot-lens/"
+  :vc (:url "https://github.com/Gavinok/eglot-codelens")
   :after eglot)
 
 (use-package dape
@@ -2374,6 +2327,7 @@ directory when working with a single file project."
 ;;        "lisp/exwm-config.el"))
 
 ;; describe this code
+;; Random Other Stuff
 (use-package devil
   :when (eq system-type 'android)
   :demand t
@@ -2382,37 +2336,6 @@ directory when working with a single file project."
   :config
   (global-devil-mode 1)
   (setq overriding-text-conversion-style nil))
-
-;; (use-package llm
-;;   :ensure t
-;;   :config
-;;   (require 'llm-ollama)
-;;   (defvar chatgpt-buffer "*CHAT*")
-;;   (defvar llm-refactoring-provider (make-llm-ollama :chat-model "codellama"))
-
-;;   (defun my/display-llm-response ()
-;;     (when (not ;; visible
-;;            (get-buffer-window chatgpt-buffer))
-;;       (with-current-buffer (get-buffer-window chatgpt-buffer) (markdown-mode t))
-;;       (switch-to-buffer-other-window chatgpt-buffer)))
-
-;;   (defun my/llm-display (msg)
-;;     (lambda (response)
-;;       (with-current-buffer (get-buffer-create chatgpt-buffer)
-;;         (insert response))
-;;       (message msg)
-;;       (my/display-llm-response)))
-
-;;   (defun my/llm-prompt ()
-;;     (interactive)
-;;     (let ((prompt (buffer-substring-no-properties (region-beginning)
-;;                                                   (region-end)) ))
-;;       (message prompt)
-;;       (llm-chat llm-refactoring-provider
-;;                 (llm-make-simple-chat-prompt prompt)
-;;                 ;; (my/llm-display "Done")
-;;                 ;; (my/llm-display "error")
-;;                 ))))
 
 (use-package elfeed
   :ensure t
@@ -2437,6 +2360,7 @@ directory when working with a single file project."
             ("andreyor" "https://andreyor.st/feed.xml" nil 86400))))
 
 (use-package eww
+  :defer t
   :custom (eww-retrieve-command nil)
   :config
   (defun my/eww-readablity ()
@@ -2450,10 +2374,10 @@ directory when working with a single file project."
   (defun ntfy-send-notification (string)
     (interactive (list (read-string "What should we send?:")))
     (plz 'post "https://ntfy.sh/gavin-emacs-notifications"
-      :headers '(("Title"  . "Sent From Emacs")
-                 ("Tags" . "computer")
-                 ("Markdown" . "yes"))
-      :body string))
+         :headers '(("Title"  . "Sent From Emacs")
+                    ("Tags" . "computer")
+                    ("Markdown" . "yes"))
+         :body string))
   (defun ntfy-me-at (time string)
     "Send me a notification at this time with this string"
     (interactive (list
@@ -2469,12 +2393,131 @@ directory when working with a single file project."
                             ("Markdown" . "yes"))
                  :body string)))
 
+(use-package gptel
+  :ensure t
+  :bind (("C-x <f12>" . gptel-menu)
+         ("C-x RET" . gptel-menu)
+         ("C-x C-M-i" . gptel-complete))
+  :init
+  (setq gptel-default-mode #'org-mode)
+  (load (locate-user-emacs-file
+         "lisp/gptel-complete.el"))
+  :config
+  (setf (alist-get 'org-mode gptel-prompt-prefix-alist) "*** ")
+  (setf (alist-get 'org-mode gptel-response-prefix-alist) "@assistant\n")
+  (add-hook 'gptel-post-stream-hook 'gptel-auto-scroll)
+  (add-hook 'gptel-post-response-functions 'gptel-end-of-response)
+  (setq gptel-tools
+        (list (gptel-make-tool
+               :function (lambda (filepath)
+                           (with-temp-buffer
+                             (if (string-equal (file-name-extension filepath) "pdf")
+                                 (shell-command-to-string (format "pdftotext '%s' -" filepath))
+                               (insert-file-contents (expand-file-name filepath))
+                               (buffer-string))))
+               :name "read_file"
+               :description "Read and display the contents of a file"
+               :args (list '(:name "filepath"
+                                   :type string
+                                   :description "Path to the file to read. Supports relative paths and ~."))
+               :category "filesystem")
+              (gptel-make-tool
+               :function (lambda (directory)
+                           (mapconcat #'identity
+                                      (directory-files directory)
+                                      "\n"))
+               :name "list_directory"
+               :description "List the contents of a given directory"
+               :args (list '(:name "directory"
+                                   :type string
+                                   :description "The path to the directory to list"))
+               :category "filesystem")
+              (gptel-make-tool
+               :function (lambda (path filename content)
+                           (let ((full-path (expand-file-name filename path)))
+                             (with-temp-buffer
+                               (insert content)
+                               (write-file full-path))
+                             (format "Created file %s in %s" filename path)))
+               :name "create_file"
+               :description "Create a new file with the specified content"
+               :args (list '(:name "path"
+                                   :type string
+                                   :description "The directory where to create the file")
+                           '(:name "filename"
+                                   :type string
+                                   :description "The name of the file to create")
+                           '(:name "content"
+                                   :type string
+                                   :description "The content to write to the file"))
+               :category "filesystem")
+
+              (gptel-make-tool
+               :function #'brave-search-query
+               :name "brave_search"
+               :description "Perform a web search using the Brave Search API"
+               :args (list '(:name "query"
+                                   :type string
+                                   :description "The search query string"))
+               :category "web")
+              (gptel-make-tool
+               :function (lambda (query)
+                           (with-temp-message (concat "Searching Email about " query)
+                             (shell-command-to-string
+                              (concat "mu find -u -r " query))))
+               :name "search_mail"
+               :description "Search User Email"
+               :args (list
+                      '(:name "Email Query"
+                              :type string
+                              :description "Search term query for email (keep this short)"))
+               :category "email")
+              (gptel-make-tool
+               :function (lambda (query)
+                           (with-temp-message (concat "Searching For Documents " query)
+                             (shell-command-to-string
+                              (concat "recollq -C -n 0-30 " query))))
+               :name "search_documents"
+               :description "Search for documents and files on this computer"
+               :args (list
+                      '(:name "Document Query"
+                              :type string
+                              :description "Search terms query for documents"))
+               :category "filesystem")
+              (gptel-make-tool
+               :function (lambda (regex)
+                           (let ((default-directory (project-root (project-current))))
+                             (with-temp-message (concat "Searching Codebase "
+                                                        default-directory)
+                               (shell-command-to-string
+                                (concat "rg " regex " " default-directory)))))
+               :name "search_codebase"
+               :confirm nil
+               :description "Search for text in the current programming project"
+               :args (list
+                      '(:name "Regex"
+                              :type string
+                              :description "The regex used to search the current codebase"))
+               :category "filesystem")))
+  (defun brave-search-query (query)
+    "Perform a web search using the Brave Search API with the given QUERY."
+    (let ((url-request-method "GET")
+          (url-request-extra-headers `(("X-Subscription-Token" . ,(password-store--run "show" "brave-api"))))
+          (url (format "https://api.search.brave.com/res/v1/web/search?q=%s" (url-encode-url query))))
+      (with-current-buffer (url-retrieve-synchronously url)
+        (goto-char (point-min))
+        (when (re-search-forward "^$" nil 'move)
+          (let ((json-object-type 'hash-table)) ; Use hash-table for JSON parsing
+            (json-parse-string (buffer-substring-no-properties (point) (point-max)))))))))
+
 (use-package pomm
+  :defer t
   :custom ((pomm-audio-enabled t))
   :config
   (pomm-mode-line-mode +1))
 
 (use-package typst-ts-mode
+  :mode "\\.typ\\'"
   :init
   (unless (package-installed-p 'typst-ts-mode)
     (package-vc-install
@@ -2482,3 +2525,107 @@ directory when working with a single file project."
   :custom
   ;; (optional) If you want to ensure your typst tree sitter grammar version is greater than the minimum requirement
   (typst-ts-mode-grammar-location (expand-file-name "tree-sitter/libtree-sitter-typst.so" user-emacs-directory)))
+
+(use-package prodigy
+  :ensure t
+  :bind ("C-x P" . prodigy)
+  :config
+  (prodigy-define-tag
+    :name 'nextjs
+    :ready-message " ✓ Ready in [0-9]+ms")
+  (prodigy-define-service
+    :name "proxima landing_page"
+    :command "npm"
+    :args '("run" "dev")
+    :cwd "/home/gavinok/code/sideprojects/landing_page"
+    :port 3000
+    :tags '(proxima nextjs)
+    :stop-signal 'kill)
+
+  (setq prodigy-vc-authn-project "/home/gavinok/code/work/vc-authn-oidc")
+  (prodigy-define-service
+    :name "build vc-authn"
+    :command (concat prodigy-vc-authn-project
+                     "/docker/manage")
+    :args '("build")
+    :cwd (concat prodigy-vc-authn-project "/docker/")
+    :tags '(build work vc-authn))
+  (prodigy-define-service
+    :name "vc-authn"
+    :command (concat prodigy-vc-authn-project
+                     "/docker/manage")
+    :args '("start")
+    :cwd (concat prodigy-vc-authn-project "/docker/")
+    :tags '(work vc-authn)
+    :ready-message "controller-1     | [-0-9:_TZ\.]+ \\[info     \\] Application startup complete.  \\[uvicorn.error\\]"
+    :env `(("DEBUGGER" "false")
+           ("ACAPY_ENDPOINT" "http://host.docker.internal:8050")
+           ("LOG_WITH_JSON" "FALSE")
+           ("NGROK_AUTH" ,(password-store-get "NGROK_AUTH")))
+    :stop-signal 'kill)
+  (prodigy-define-service
+    :name "vc-authn demo"
+    :command "docker"
+    :args '("compose" "up")
+    :cwd (concat prodigy-vc-authn-project "/demo/vue")
+    :port 8080
+    :tags '(work vc-authn)
+    :ready-message "controller-1     | [-0-9:_TZ\.]+ \\[info     \\] Application startup complete.  \\[uvicorn.error\\]"
+    :stop-signal 'kill)
+
+  (setq prodigy-endorser-project "/home/gavinok/code/work/aries-endorser-service/")
+  (prodigy-define-service
+    :name "build endorser"
+    :command (concat prodigy-endorser-project
+                     "/docker/manage")
+    :args '("build")
+    :cwd (concat prodigy-endorser-project "/docker/")
+    :tags '(build work endorser)
+    :env `(("DEBUGGER" "false")
+           ("ENDORSER_ENV" "testing")
+           ("ACAPY_ENDPOINT" "http://host.docker.internal:8050")
+           ("NGROK_AUTH" ,(password-store-get "NGROK_AUTH")))
+    :stop-signal 'kill)
+  (prodigy-define-service
+    :name "endorser"
+    :command (concat prodigy-endorser-project
+                     "/docker/manage")
+    :args '("start-bdd" "--logs")
+    :cwd (concat prodigy-endorser-project "/docker/")
+    :url "http://localhost:5050/endorser/docs"
+    :tags '(work endorser)
+    :env `(("DEBUGGER" "false")
+           ("ENDORSER_ENV" "testing")
+           ("ACAPY_ENDPOINT" "http://host.docker.internal:8050")
+           ("NGROK_AUTH" ,(password-store-get "NGROK_AUTH"))
+           ("LEDGER_URL" "http://test.bcovrin.vonx.io")
+           ("TAILS_SERVER_URL" "https://tails-test.vonx.io"))
+    :stop-signal 'kill)
+  (prodigy-define-service
+    :name "test endorser"
+    :command (concat prodigy-endorser-project
+                     "/docker/manage")
+    :args '("run-bdd-docker")
+    :cwd (concat prodigy-endorser-project "/docker/")
+    :url "http://localhost:5050/endorser/docs"
+    :tags '(test work endorser)
+    :env `(("DEBUGGER" "false")
+           ("ENDORSER_ENV" "testing")
+           ("ACAPY_ENDPOINT" "http://host.docker.internal:8050")
+           ("NGROK_AUTH" ,(password-store-get "NGROK_AUTH"))
+           ("LEDGER_URL" "http://test.bcovrin.vonx.io")
+           ("TAILS_SERVER_URL" "https://tails-test.vonx.io"))
+    :stop-signal 'kill)
+  (prodigy-define-service
+    :name "von"
+    :command (concat prodigy-endorser-project
+                     "/docker/manage")
+    :args '("start")
+    :cwd (concat prodigy-endorser-project "/docker/")
+    :url "http://localhost:5050/endorser/docs"
+    :tags '(work)
+    :env `(("DEBUGGER" "false")
+           ("ENDORSER_ENV" "testing")
+           ("ACAPY_ENDPOINT" "http://host.docker.internal:8050")
+           ("NGROK_AUTH" ,(password-store-get "NGROK_AUTH")))
+    :stop-signal 'kill))
