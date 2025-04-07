@@ -337,7 +337,7 @@ Depends on the `gh' commandline tool"
          ("C-x M-t" . transpose-regions)
          ("C-;"     . negative-argument)
          ("C-M-;"   . negative-argument)
-         ("C-g"   . my/keyboard-quit-only-if-no-macro)
+         ("C-g"     . my/keyboard-quit-only-if-no-macro)
          )
 
   :config
@@ -1414,29 +1414,7 @@ If given, use INITIAL as the starting point of the query."
   (use-package go-ts-mode
     :mode "\\.go\\'"
     :init
-    (add-to-list 'major-mode-remap-alist '(go-mode . go-ts-mode))
-    :config
-    (with-eval-after-load 'eglot
-      ;; Ensure gopls will use inlayhints (IDK why I needed to do this manually)
-      (setq-default eglot-workspace-configuration
-                    '(
-		      :gopls (
-			      :hints (
-				      :assignVariableTypes t
-				      :compositeLiteralFields t
-				      :compositeLiteralTypes t
-				      :constantValues t
-				      :functionTypeParameters t
-				      :parameterNames t
-				      :rangeVariableTypes t
-				      ))
-		      :haskell(
-			       :maxCompletions 40
-			       :checkProject t
-			       :formattingProvider "none")))
-      ;; Ensure inlay hints going for eglot
-      ;; (add-hook 'go-ts-mode-hook 'eglot-inlay-hints-mode)
-      ))
+    (add-to-list 'major-mode-remap-alist '(go-mode . go-ts-mode)))
   (use-package python
     :mode "\\.py\\'"
     :hook ((python-ts-mode . prettify-symbols-mode))
@@ -1456,7 +1434,6 @@ If given, use INITIAL as the starting point of the query."
       :config
       (pyvenv-mode t))
     (with-eval-after-load 'dape
-      (setopt dape-buffer-window-arrangement 'gud)
       (push
        '(debugpy-attach-port-remote
          modes (python-mode python-ts-mode)
@@ -2173,6 +2150,24 @@ Used to see multiline flymake errors"
   :bind (:map eglot-diagnostics-map
 	      ("M-RET" . eglot-code-actions))
   :commands (eglot eglot-ensure)
+  :init
+  ;; Ensure gopls will use inlayhints (IDK why I needed to do this manually)
+  (setq-default eglot-workspace-configuration
+                '(
+		  :gopls (
+			  :hints (
+				  :assignVariableTypes t
+				  :compositeLiteralFields t
+				  :compositeLiteralTypes t
+				  :constantValues t
+				  :functionTypeParameters t
+				  :parameterNames t
+				  :rangeVariableTypes t
+				  ))
+		  :haskell(
+			   :maxCompletions 40
+			   :checkProject t
+			   :formattingProvider "none")))
   :config
   (setopt eglot-confirm-server-edits '((eglot-rename . nil)
 				       (t . maybe-summary)))
@@ -2335,28 +2330,6 @@ directory when working with a single file project."
   :config
   (global-devil-mode 1)
   (setq overriding-text-conversion-style nil))
-
-(use-package elfeed
-  :ensure t
-  :commands (elfeed)
-  :config
-  ;; Somewhere in your .emacs file
-  (setopt newsticker-url-list
-          '(("Gnu World Order" "http://gnuworldorder.info/opus.xml" nil 86400)
-            ("hopwag" "https://feed.podbean.com/hopwag/feed.xml" nil 86400)
-            ("lukesmith" "http://lukesmith.xyz/rss.xml" nil 86400)
-            ("suckless" "https://suckless.org/atom.xml" nil 86400)
-            ("ramsdenj" "https://ramsdenj.com/feed.xml" nil 86400)
-            ("jdhao" "https://jdhao.github.io/index.xml" nil 86400)
-            ("blog" "http://blog.qutebrowser.org/feeds/all.rss.xml" nil 86400)
-            ("edwinwenink" "https://www.edwinwenink.xyz/index.xml" nil 86400)
-            ("icyphox" "https://icyphox.sh/blog/feed.xml" nil 86400)
-            ("sivers" "https://sivers.org/podcast.rss" nil 86400)
-            ("Codemadness" "http://www.codemadness.org/atom.xml" nil 86400)
-            ("xkcd" "https://xkcd.com/atom.xml" nil 86400)
-            ("planet" "https://planet.emacslife.com/atom.xml" nil 86400)
-            ("r/emacs" "https://www.reddit.com/r/emacs/.rss" nil 86400)
-            ("andreyor" "https://andreyor.st/feed.xml" nil 86400))))
 
 (use-package eww
   :defer t
@@ -2587,6 +2560,7 @@ directory when working with a single file project."
   ;; (optional) If you want to ensure your typst tree sitter grammar version is greater than the minimum requirement
   (typst-ts-mode-grammar-location (expand-file-name "tree-sitter/libtree-sitter-typst.so" user-emacs-directory)))
 
+(use-package journalctl-mode :ensure t :commands (journalctl))
 (use-package prodigy
   :ensure t
   :bind ("C-x P" . prodigy)
