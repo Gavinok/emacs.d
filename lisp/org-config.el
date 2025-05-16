@@ -13,6 +13,7 @@
   (setf (alist-get (md5 msg) my/notifications nil nil 'equal) replace-id))
 (use-package appt
   :demand t
+  :unless (eq system-type 'android)
   :defer 20
   :custom
   ((appt-announce-method 'appt-persistant-message-announce)
