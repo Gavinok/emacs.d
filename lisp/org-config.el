@@ -48,13 +48,13 @@
       ;; Notify me on my phone
       (require 'plz)
       (plz 'post "https://ntfy.sh/gavin-emacs-notifications"
-        :headers `(("Title"  . ,title)
-                   ("Priority" . ,(if (eql urgency 'critical)
-                                      "high"
-                                    "default"))
-                   ("Tags" . "calendar")
-                   ("Markdown" . "yes"))
-        :body body)))
+           :headers `(("Title"  . ,title)
+                      ("Priority" . ,(if (eql urgency 'critical)
+                                         "high"
+                                       "default"))
+                      ("Tags" . "calendar")
+                      ("Markdown" . "yes"))
+           :body body)))
   (appt-activate +1)
   (org-agenda-to-appt)
   (defvar appt-update-org-timer
@@ -510,16 +510,16 @@
 
 
 ;;;; Templates
-(use-package org-tempo
-  :ensure nil
-  :after org
-  :config
-  (let ((templates '(("sh"  . "src sh")
-                     ("el"  . "src emacs-lisp")
-                     ("vim" . "src vim")
-                     ("cpp" . "src C++ :includes <iostream>  :namespaces std"))))
-    (dolist (template templates)
-      (push template org-structure-template-alist))))
+;; (use-package org-tempo
+;;   :ensure nil
+;;   :after org
+;;   :config
+;;   (let ((templates '(("sh"  . "src sh")
+;;                      ("el"  . "src emacs-lisp")
+;;                      ("vim" . "src vim")
+;;                      ("cpp" . "src C++ :includes <iostream>  :namespaces std"))))
+;;     (dolist (template templates)
+;;       (push template org-structure-template-alist))))
 
 (use-package org-noter
   :ensure t
@@ -611,8 +611,8 @@
   :ensure nil
   :after org
   :init
-  (unless (package-installed-p 'edraw)
-    (package-vc-install "https://github.com/misohena/el-easydraw"))
+  ;; (unless (package-installed-p 'edraw)
+  ;;   (package-vc-install "https://github.com/misohena/el-easydraw"))
   :init
   (require 'edraw-org)
   (edraw-org-setup-default)

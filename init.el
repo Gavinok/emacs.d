@@ -939,14 +939,14 @@ If given, use INITIAL as the starting point of the query."
 (use-package em-alias
   :ensure nil
   :after eshell
-  ;; :config
-  ;; (defun my/setup-eshell-aliases ()
-  ;;   (eshell/alias "e" "find-file $1")
-  ;;   (eshell/alias "ee" "find-file-other-window $1")
-  ;;   (eshell/alias "v" "view-file $1")
-  ;;   (eshell/alias "o" "crux-open-with $1"))
-  ;; (add-hook 'eshell-mode-hook my/setup-eshell-aliases)
-  )
+  :config
+  (defun my/setup-eshell-aliases ()
+    (eshell/alias "e" "find-file $1")
+    (eshell/alias "ee" "find-file-other-window $1")
+    (eshell/alias "v" "view-file $1")
+    (eshell/alias "o" "crux-open-with $1"))
+  (add-hook 'eshell-mode-hook #'my/setup-eshell-aliases))
+
 (use-package flymake-proselint
   :ensure t
   :after flymake
@@ -2367,22 +2367,22 @@ directory when working with a single file project."
 
 (use-package gptel
   :ensure t
-  :bind (("C-x <f12>" . gptel-menu)
-         ("C-x RET" . gptel-menu)
-         ("C-x C-M-i" . gptel-complete))
+  :commands (gptel)
+  :bind (:map help-map
+              ("C-h" . gptel-menu)
+              ("RET" . gptel-send)
+              ("TAB" . gptel-fn-complete))
   :init
   (require 'password-store)
   (setq gptel-default-mode #'org-mode)
-  (load (locate-user-emacs-file
-         "lisp/gptel-complete.el"))
   (setq gptel-model 'gpt-4o-mini)
   (setq gptel-backend gptel--openai)
-  (gptel-make-anthropic "Claude"
-    :key (string-trim-right (password-store--run-show "anthropic") "\n"))
-  (gptel-make-gemini "Gemini"
-    :key (string-trim-right (password-store--run-show "generativelanguage.googleapis.com") "\n")
-    :stream t)
   :config
+  (gptel-make-anthropic "Claude"
+    :key (gptel-api-key-from-auth-source "api.anthropic.com"))
+  (gptel-make-gemini "Gemini"
+    :key (gptel-api-key-from-auth-source "generativelanguage.googleapis.com")
+    :stream t)
   (setf (alist-get 'org-mode gptel-prompt-prefix-alist) "*** ")
   (setf (alist-get 'org-mode gptel-response-prefix-alist) "@assistant\n")
   (setq gptel-tools
@@ -2466,7 +2466,8 @@ directory when working with a single file project."
                :args (list '(:name "url"
                                    :type string
                                    :description "The URL to read"))
-               :category "web")              ;; (gptel-make-tool
+               :category "web")
+              ;; (gptel-make-tool
               ;;  :function #'brave-search-query
               ;;  :name "brave_search"
               ;;  :description "Perform a web search using the Brave Search API"
@@ -2543,6 +2544,7 @@ directory when working with a single file project."
         (when (re-search-forward "^$" nil 'move)
           (let ((json-object-type 'hash-table)) ; Use hash-table for JSON parsing
             (json-parse-string (buffer-substring-no-properties (point) (point-max)))))))))
+(use-package gptel-fn-complete :ensure t :after gptel)
 
 (use-package pomm
   :defer t
