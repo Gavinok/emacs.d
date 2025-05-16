@@ -1,4 +1,4 @@
-;; determin the focused window
+;; determine the focused window
 (defvar cogent-line-selected-window (frame-selected-window))
 (defun cogent-line-set-selected-window (&rest _args)
   (when (not (minibuffer-window-active-p (frame-selected-window)))
@@ -64,4 +64,3 @@
 (set-face-attribute  'org-mode-line-clock nil :foreground "#fff" :background "#333"
                      ;; :box '(:line-width 1 :color "#323")
                      :inherit 'bold)
-
