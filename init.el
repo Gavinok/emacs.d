@@ -1358,16 +1358,6 @@ If given, use INITIAL as the starting point of the query."
     :bind (:map yaml-ts-mode-map
                 ([remap backward-up-list] . outline-up-heading))
     :config
-    (defun yaml-outline-level ()
-      "Return the outline level based on the indentation, hardcoded at 2 spaces."
-      (require 's)
-      (s-count-matches "[ ]\\{2\\}" (match-string 0)))
-    (add-hook 'yaml-ts-mode-hook
-              (lambda ()
-                (outline-minor-mode)
-                (setq outline-regexp
-                      "^\\([ ]\\{2\\}\\)*\\([-] \\)?\\([\"][^\"]*[\"]\\|[a-zA-Z0-9_-]*\\): *\\([>|]\\|&[a-zA-Z0-9_-]*\\)?$")
-                (setq outline-level 'yaml-outline-level)))
     (push '((yaml-ts-mode yaml-mode) "helm_ls" "serve") eglot-server-programs))
 
   (use-package toml-ts-mode :mode "\\.toml\\'")
@@ -2140,6 +2130,13 @@ Used to see multiline flymake errors"
   :ensure t
   :bind (("C-x d" . docker)))
 
+(use-package devcontainer
+  :when (executable-find "devcontainer")
+  :ensure nil
+  :vc (:url "https://github.com/lina-bh/devcontainer.el.git")
+  :commands (devcontainer-up)
+  :custom (devcontainer-engine "docker"))
+
 (setenv "EDITOR" "emacsclient")
 (setenv "PAGER" "cat")
 (setenv "READER" "emacsclient")
@@ -2153,6 +2150,20 @@ Used to see multiline flymake errors"
 (put 'list-timers 'disabled nil)
 
 ;;; IDE
+(use-package xref
+  :ensure nil
+  :bind ("M-," . xref-go-back-forward)
+  :config
+  (defun xref-go-back-forward (&optional arg)
+    "Navigate the xref stack based on ARG.
+
+    When called with a non-nil ARG, this function moves forward in the
+    xref stack. If called with nil, it moves backwards in the stack."
+    (interactive "^P")
+    (if arg
+        (xref-go-forward)
+      (xref-go-back))))
+
 (use-package eglot
   :bind (:map eglot-diagnostics-map
 	      ("M-RET" . eglot-code-actions))
@@ -2180,7 +2191,7 @@ Used to see multiline flymake errors"
 				       (t . maybe-summary)))
 
   ;; Supposedly improves performance
-  (setq read-process-output-max (* 4 1024 1024))
+  (setq read-process-output-max 1048576)
   ;; Definitely slow in larger projects
   (setopt eglot-ignored-server-capabilites '(:documentHighlightProvider))
 
@@ -2330,7 +2341,7 @@ directory when working with a single file project."
 ;; describe this code
 ;; Random Other Stuff
 (use-package devil
-  :when (eq system-type 'android)
+  ;; :when (eq system-type 'android)
   :demand t
   :ensure t
   :bind ("<xf86back>" . keyboard-escape-quit)
@@ -2342,6 +2353,11 @@ directory when working with a single file project."
   :defer t
   :custom (eww-retrieve-command nil)
   :config
+  (defun wiki (page)
+    "Search wikipedia for info on a specific term"
+    (interactive (list (completing-read "Search Term: " nil)))
+    (eww (format "https://en.wikipedia.org/wiki/%s" page)))
+
   (defun my/eww-readablity ()
     (interactive)
     (let ((eww-retrieve-command '("rdrview" "-H")))
@@ -2353,10 +2369,10 @@ directory when working with a single file project."
   (defun ntfy-send-notification (string)
     (interactive (list (read-string "What should we send?:")))
     (plz 'post "https://ntfy.sh/gavin-emacs-notifications"
-         :headers '(("Title"  . "Sent From Emacs")
-                    ("Tags" . "computer")
-                    ("Markdown" . "yes"))
-         :body string))
+      :headers '(("Title"  . "Sent From Emacs")
+                 ("Tags" . "computer")
+                 ("Markdown" . "yes"))
+      :body string))
   (defun ntfy-me-at (time string)
     "Send me a notification at this time with this string"
     (interactive (list
@@ -2383,9 +2399,10 @@ directory when working with a single file project."
   (require 'password-store)
   (setq gptel-default-mode #'org-mode)
   (setq gptel-model 'gpt-4o-mini)
-  (setq gptel-backend gptel--openai)
   :config
+  (setq gptel-backend gptel--openai)
   (gptel-make-anthropic "Claude"
+    :stream t
     :key (gptel-api-key-from-auth-source "api.anthropic.com"))
   (gptel-make-gemini "Gemini"
     :key (gptel-api-key-from-auth-source "generativelanguage.googleapis.com")
@@ -2393,135 +2410,245 @@ directory when working with a single file project."
   (setf (alist-get 'org-mode gptel-prompt-prefix-alist) "*** ")
   (setf (alist-get 'org-mode gptel-response-prefix-alist) "@assistant\n")
   (setq gptel-tools
-        (list (gptel-make-tool
-               :function (lambda (filepath)
-                           (with-temp-message (format "reading %s" filepath)
-                             (with-temp-buffer
-                               (insert-file-contents (expand-file-name filepath))
-                               (buffer-string))))
-               :name "read_file"
-               :description "Read and display the contents of a file"
-               :args (list '(:name "filepath"
-                                   :type string
-                                   :description "Path to the file to read. Supports relative paths and ~."))
-               :category "filesystem")
-              (gptel-make-tool
-               :function (lambda (directory)
-                           (mapconcat #'identity
-                                      (directory-files directory)
-                                      "\n"))
-               :name "list_directory"
-               :description "List the contents of a given directory"
-               :args (list '(:name "directory"
-                                   :type string
-                                   :description "The path to the directory to list"))
-               :category "filesystem")
-              (gptel-make-tool
-               :function (lambda (path filename content)
-                           (with-temp-message (format "Writing %s/%s with content %s" path filename content)
-                             (let ((full-path (expand-file-name filename path)))
-                               (with-temp-buffer
-                                 (insert content)
-                                 (write-file full-path))
-                               (format "Created file %s in %s" filename path))))
-               :name "create_file"
-               :description "Create a new file with the specified content"
-               :args (list '(:name "path"
-                                   :type string
-                                   :description "The directory where to create the file")
-                           '(:name "filename"
-                                   :type string
-                                   :description "The name of the file to create")
-                           '(:name "content"
-                                   :type string
-                                   :description "The content to write to the file"))
-               :category "filesystem")
-              (gptel-make-tool
-               :function (lambda (command)
-                           (with-temp-message (format "Running command: %s" command)
-                             (shell-command-to-string command)))
-               :name "run_command"
-               :description "Run a command."
-               :args (list
-                      '(:name "command"
-                              :type "string"
-                              :description "Command to run."))
-               :category "command")
-              (gptel-make-tool
-               :function #'run_async_command
-               :name "run_async_command"
-               :description "Run an async command."
-               :args (list
-                      '(:name "command"
-                              :type "string"
-                              :description "Command to run."))
-               :category "command"
-               :async t
-               :include t)
-              (gptel-make-tool
-               :function (lambda (url)
-                           (with-current-buffer (url-retrieve-synchronously url)
-                             (goto-char (point-min))
-                             (forward-paragraph)
-                             (let ((dom (libxml-parse-html-region (point) (point-max))))
-                               (run-at-time 0 nil #'kill-buffer (current-buffer))
-                               (with-temp-buffer
-                                 (shr-insert-document dom)
-                                 (buffer-substring-no-properties (point-min) (point-max))))))
-               :name "read_url"
-               :description "Fetch and read the contents of a URL"
-               :args (list '(:name "url"
-                                   :type string
-                                   :description "The URL to read"))
-               :category "web")
-              ;; (gptel-make-tool
-              ;;  :function #'brave-search-query
-              ;;  :name "brave_search"
-              ;;  :description "Perform a web search using the Brave Search API"
-              ;;  :args (list '(:name "query"
-              ;;                      :type string
-              ;;                      :description "The search query string"))
-              ;;  :category "web")
-              ;; (gptel-make-tool
-              ;;  :function (lambda (query)
-              ;;              (with-temp-message (concat "Searching Email about " query)
-              ;;                (shell-command-to-string
-              ;;                 (concat "mu find -u -r " query))))
-              ;;  :name "search_mail"
-              ;;  :description "Search User Email"
-              ;;  :args (list
-              ;;         '(:name "Email Query"
-              ;;                 :type string
-              ;;                 :description "Search term query for email (keep this short)"))
-              ;;  :category "email")
-              ;; (gptel-make-tool
-              ;;  :function (lambda (query)
-              ;;              (with-temp-message (concat "Searching For Documents " query)
-              ;;                (shell-command-to-string
-              ;;                 (concat "recollq -C -n 0-30 " query))))
-              ;;  :name "search_documents"
-              ;;  :description "Search for documents and files on this computer"
-              ;;  :args (list
-              ;;         '(:name "Document Query"
-              ;;                 :type string
-              ;;                 :description "Search terms query for documents"))
-              ;;  :category "filesystem")
-              ;; (gptel-make-tool
-              ;;  :function (lambda (regex)
-              ;;              (let ((default-directory (project-root (project-current))))
-              ;;                (with-temp-message (concat "Searching Codebase "
-              ;;                                           default-directory)
-              ;;                  (shell-command-to-string
-              ;;                   (concat "rg " regex " " default-directory)))))
-              ;;  :name "search_codebase"
-              ;;  :confirm nil
-              ;;  :description "Search for text in the current programming project"
-              ;;  :args (list
-              ;;         '(:name "Regex"
-              ;;                 :type string
-              ;;                 :description "The regex used to search the current codebase"))
-              ;;  :category "filesystem")
-              ))
+        (list
+         (gptel-make-tool
+          :function (lambda (file &optional linenumber)
+                      (with-temp-message (format "Displaying File %s on line %s" file linenumber)
+                        (with-current-buffer (get-file-buffer file)
+                          (switch-to-buffer-other-window (current-buffer))
+                          (goto-line linenumber))))
+          :name "show_file"
+          :description "Display a file to the user"
+          :args (list '( :name "file"
+                         :type string
+                         :description "The file to display to the user")
+                      '( :name "line_number"
+                         :type integer
+                         :description "the line number to display if available"
+                         :optional t))
+          :category "filesystem")
+         ;; (gptel-make-tool
+         ;;  :function (lambda (buffer start end)
+         ;;              (with-temp-message (format "Reading Buffers %s" buffer)
+         ;;                (with-current-buffer (get-buffer (string-trim buffer))
+         ;;                  (buffer-substring (goto-line start) (goto-line end)))))
+         ;;  :name "read_buffers_section"
+         ;;  :description (concat "Read a region of a buffer rather than the entire thing. "
+         ;;                       "Prefer this over read_buffer and read_file as it is more efficient.")
+         ;;  :args (list '( :name "buffer"
+         ;;                 :type string
+         ;;                 :description "The name of the emacs buffer to read the contents of. ")
+         ;;              '( :name "start"
+         ;;                 :type string
+         ;;                 :description (concat "The first line to read from"))
+         ;;              '( :name "end"
+         ;;                 :type string
+         ;;                 :description (concat "The last line to read from")))
+         ;;  :category "buffers")
+         (gptel-make-tool
+          :function (lambda (buffer)
+                      (with-temp-message (format "Reading Buffer %s" buffer)
+                        (with-current-buffer (get-buffer (string-trim buffer))
+                          (buffer-string))))
+          :name "read_buffer"
+          :description (concat "Read the contents of an emacs buffer."
+                               "Use this as a last resort as it ")
+          :args (list '( :name "buffer"
+                         :type string
+                         :description "The name of the emacs buffer to read the contents of. "))
+          :category "buffers")
+         (gptel-make-tool
+          :function (lambda ()
+                      (with-temp-message "Getting Compilation Buffer Contents"
+                        (let ((compilation-buffer-name-function
+                               (or project-compilation-buffer-name-function
+                                   compilation-buffer-name-function)))
+                          (with-current-buffer (get-buffer (compilation-find-buffer))
+                            (buffer-string)))))
+          :name "get_compilation_errors"
+          :description (concat "Return the contents of the compilation or test errors.")
+          :args nil
+          :category "errors")
+         (gptel-make-tool
+          :function (lambda ()
+                      (with-temp-message "Listing Project Buffers"
+                        (cl-reduce #'concat (mapcar (lambda (buf)
+                                                      (with-current-buffer buf
+                                                        (format "%s %s %s\n" (buffer-name buf)  major-mode (buffer-file-name buf))))
+                                                    (project-buffers (project-current))))))
+          :name "project_buffers"
+          :description (concat "List all project related buffers indicating the "
+                               "buffer name, buffer's current mode file path. "
+                               "If no file is associated with a buffer then it is nil. "
+                               "This is expected for compilation windows for example. "
+                               "compilation-mode is the mode used for compiling code. ")
+          :args nil
+          :category "buffers")
+         (gptel-make-tool
+          :function (lambda (filepath)
+                      (with-temp-message (format "Finding File %s" filepath)
+                        (let ((dir (expand-file-name
+                                    (project-root (project-current)))))
+                          (shell-command-to-string
+                           (format "find %s -type f -iname %s" dir (concat "*" filepath "*"))))))
+          :name "search_for_file"
+          :description (concat "Recursively search for files and directories matching a pattern. "
+                               "Searches through all subdirectories from the starting path. The search "
+                               "is case-insensitive and matches partial names. Returns full paths to all "
+                               "matching items. Great for finding files when you don't know their exact location. "
+                               "Only searches within allowed directories.")
+          :args (list '(:name "filepath"
+                              :type string
+                              :description "Path to the file to read. Supports relative paths and ~."))
+          :category "filesystem")
+         (gptel-make-tool
+          :function (lambda (filepath start end)
+                      (with-temp-message (format "Reading file %s" filepath)
+                        (with-temp-buffer
+                          (insert-file-contents (expand-file-name filepath))
+                          (buffer-substring (goto-line start) (goto-line end)))))
+          :name "read_file_section"
+          :description (concat "Read a region of a file rather than the entire thing. "
+                               "Prefer this over read_buffer and read_file as it is more efficient.")
+          :args (list '( :name "file"
+                         :type string
+                         :description "The name of the emacs file to read the contents of. ")
+                      '( :name "start"
+                         :type integer
+                         :description "The first line to read from")
+                      '( :name "end"
+                         :type integer
+                         :description "The last line to read from"))
+          :category "filesystem")
+         (gptel-make-tool
+          :function (lambda (filepath)
+                      (with-temp-message (format "reading %s" filepath)
+                        (with-temp-buffer
+                          (insert-file-contents (expand-file-name filepath))
+                          (buffer-string))))
+          :name "read_file"
+          :description "Read and display the contents of a file"
+          :args (list '(:name "filepath"
+                              :type string
+                              :description "Path to the file to read. Supports relative paths and ~."))
+          :category "filesystem")
+         (gptel-make-tool
+          :function (lambda (directory)
+                      (mapconcat #'identity
+                                 (directory-files directory)
+                                 "\n"))
+          :name "list_directory"
+          :description "List the contents of a given directory"
+          :args (list '(:name "directory"
+                              :type string
+                              :description "The path to the directory to list"))
+          :category "filesystem")
+         (gptel-make-tool
+          :function (lambda (path filename content)
+                      (with-temp-message (format "Writing %s/%s with content %s" path filename content)
+                        (let ((full-path (expand-file-name filename path)))
+                          (with-temp-buffer
+                            (insert content)
+                            (write-file full-path))
+                          (format "Created file %s in %s" filename path))))
+          :name "create_file"
+          :description "Create a new file with the specified content"
+          :args (list '(:name "path"
+                              :type string
+                              :description "The directory where to create the file")
+                      '(:name "filename"
+                              :type string
+                              :description "The name of the file to create")
+                      '(:name "content"
+                              :type string
+                              :description "The content to write to the file"))
+          :category "filesystem")
+         (gptel-make-tool
+          :function (lambda (command)
+                      (with-temp-message (format "Running command: %s" command)
+                        (shell-command-to-string command)))
+          :name "run_command"
+          :description "Run a command."
+          :args (list
+                 '(:name "command"
+                         :type "string"
+                         :description "Command to run."))
+          :category "command")
+         (gptel-make-tool
+          :function #'run_async_command
+          :name "run_async_command"
+          :description "Run an async command."
+          :args (list
+                 '(:name "command"
+                         :type "string"
+                         :description "Command to run."))
+          :category "command"
+          :async t
+          :include t)
+         (gptel-make-tool
+          :function (lambda (url)
+                      (with-current-buffer (url-retrieve-synchronously url)
+                        (goto-char (point-min))
+                        (forward-paragraph)
+                        (let ((dom (libxml-parse-html-region (point) (point-max))))
+                          (run-at-time 0 nil #'kill-buffer (current-buffer))
+                          (with-temp-buffer
+                            (shr-insert-document dom)
+                            (buffer-substring-no-properties (point-min) (point-max))))))
+          :name "read_url"
+          :description "Fetch and read the contents of a URL"
+          :args (list '(:name "url"
+                              :type string
+                              :description "The URL to read"))
+          :category "web")
+         ;; (gptel-make-tool
+         ;;  :function #'brave-search-query
+         ;;  :name "brave_search"
+         ;;  :description "Perform a web search using the Brave Search API"
+         ;;  :args (list '(:name "query"
+         ;;                      :type string
+         ;;                      :description "The search query string"))
+         ;;  :category "web")
+         ;; (gptel-make-tool
+         ;;  :function (lambda (query)
+         ;;              (with-temp-message (concat "Searching Email about " query)
+         ;;                (shell-command-to-string
+         ;;                 (concat "mu find -u -r " query))))
+         ;;  :name "search_mail"
+         ;;  :description "Search User Email"
+         ;;  :args (list
+         ;;         '(:name "Email Query"
+         ;;                 :type string
+         ;;                 :description "Search term query for email (keep this short)"))
+         ;;  :category "email")
+         ;; (gptel-make-tool
+         ;;  :function (lambda (query)
+         ;;              (with-temp-message (concat "Searching For Documents " query)
+         ;;                (shell-command-to-string
+         ;;                 (concat "recollq -C -n 0-30 " query))))
+         ;;  :name "search_documents"
+         ;;  :description "Search for documents and files on this computer"
+         ;;  :args (list
+         ;;         '(:name "Document Query"
+         ;;                 :type string
+         ;;                 :description "Search terms query for documents"))
+         ;;  :category "filesystem")
+         ;; (gptel-make-tool
+         ;;  :function (lambda (regex)
+         ;;              (let ((default-directory (project-root (project-current))))
+         ;;                (with-temp-message (concat "Searching Codebase "
+         ;;                                           default-directory)
+         ;;                  (shell-command-to-string
+         ;;                   (concat "rg " regex " " default-directory)))))
+         ;;  :name "search_codebase"
+         ;;  :confirm nil
+         ;;  :description "Search for text in the current programming project"
+         ;;  :args (list
+         ;;         '(:name "Regex"
+         ;;                 :type string
+         ;;                 :description "The regex used to search the current codebase"))
+         ;;  :category "filesystem")
+         ))
   (defun run_async_command (callback command)
     "Run COMMAND asynchronously and pass output to CALLBACK."
     (condition-case error
@@ -2673,3 +2800,14 @@ directory when working with a single file project."
            ("ACAPY_ENDPOINT" "http://host.docker.internal:8050")
            ("NGROK_AUTH" ,(password-store-get "NGROK_AUTH")))
     :stop-signal 'kill))
+
+(use-package ts-query-highlight
+  :vc (:url "https://git.sr.ht/~meow_king/ts-query-highlight")
+  :config
+  ;; default is `dabbrev-expand`. For `cape-dabbrev`, take a look at https://github.com/minad/cape
+  (setq ts-query-highlight-dabbrev-expand-function nil))
+
+(defun ts-get-python-functions ()
+  (treesit-query-capture (treesit-buffer-root-node) '((function_definition name: (_) @def
+                                                                           parameters: (parameters (typed_parameter (_) @arg_id type: (_) @type)
+                                                                                                   (typed_default_parameter name: (_) @arg_id type: (_) @type))) @dec) (point)))

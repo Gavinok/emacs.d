@@ -48,13 +48,13 @@
       ;; Notify me on my phone
       (require 'plz)
       (plz 'post "https://ntfy.sh/gavin-emacs-notifications"
-           :headers `(("Title"  . ,title)
-                      ("Priority" . ,(if (eql urgency 'critical)
-                                         "high"
-                                       "default"))
-                      ("Tags" . "calendar")
-                      ("Markdown" . "yes"))
-           :body body)))
+        :headers `(("Title"  . ,title)
+                   ("Priority" . ,(if (eql urgency 'critical)
+                                      "high"
+                                    "default"))
+                   ("Tags" . "calendar")
+                   ("Markdown" . "yes"))
+        :body body)))
   (appt-activate +1)
   (org-agenda-to-appt)
   (defvar appt-update-org-timer
@@ -329,9 +329,14 @@
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((sqlite . t) (haskell . t) (emacs-lisp . t) (shell . t) (python . t)
-     (C . t) (lua . t) (dot . t) (java . t)
+     (plantuml . t) (C . t) (lua . t) (dot . t) (java . t)
      (lisp . t) (clojure . t) (scheme . t)
      (forth . t) (typescript . t) (R . t))))
+
+;; check for plantuml
+(let ((f "/usr/share/java/plantuml/plantuml.jar"))
+  (if (file-exists-p f)
+      (setq org-plantuml-jar-path f)))
 
 (use-package ob-typescript :ensure t :after ob)
 
