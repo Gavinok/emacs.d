@@ -609,7 +609,14 @@ Depends on the `gh' commandline tool"
   :custom
   (completion-in-region-function #'consult-completion-in-region)
   :config
-  (recentf-mode t))
+  (recentf-mode t)
+  (defun my/quick-calc ()
+    (interactive)
+    (insert (consult--read
+             (consult--process-collection
+                 (lambda (input)
+                   (list "qalc" "-t" (string-trim input))))
+             :prompt "run qalc: "))))
 
 (use-package consult-dir
   :ensure t
