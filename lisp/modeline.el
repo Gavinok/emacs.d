@@ -1,34 +1,3 @@
-(defvar ml-text-scale-factor 1.0
-  "Scale of mode-line font size to default font size, as a float.
-This is needed to make sure that text is properly aligned.")
-
-(defun ml-fill-to-center (reserve face)
-  "Return empty space to the center, leaving RESERVE space on the right."
-  (when ml-text-scale-factor
-    (setq reserve (* ml-text-scale-factor reserve)))
-  (propertize " "
-              'display `((space :align-to (- (+ center (.5 . right-margin))
-                                             ,reserve
-                                             (.5 . left-margin))))
-              'face face))
-
-(defun ml-fill-to-right (reserve face)
-  "Return empty space, leaving RESERVE space on the right."
-  (when ml-text-scale-factor
-    (setq reserve (* ml-text-scale-factor reserve)))
-  (when (and window-system (eq 'right (get-scroll-bar-mode)))
-    (setq reserve (- reserve 2))) ; Powerline uses 3 here, but my scrollbars are narrower.
-  (propertize " "
-              'display `((space :align-to (- (+ right right-fringe right-margin)
-                                             ,reserve)))
-              'face face))
-
-(defun ml-render-2-part (left right &optional fill-face)
-  (concat left
-          (ml-fill-to-right (string-width (format-mode-line right)) fill-face)
-          right))
-
-
 ;; determin the focused window
 (defvar cogent-line-selected-window (frame-selected-window))
 (defun cogent-line-set-selected-window (&rest _args)
@@ -62,14 +31,6 @@ This is needed to make sure that text is properly aligned.")
                                mode-line-buffer-identification
                                mode-line-process
                                (:eval (when (mode-line-window-selected-p)" %l:%c"))
-                               ;; (:eval (when (mode-line-window-selected-p)
-                               ;;          (propertize
-                               ;;           (concat " %p%"
-                               ;;                   "  "
-                               ;;                   "「 %m 」")
-                               ;;           'face (if (cogent-line-selected-window-active-p)
-                               ;;                     'shadow
-                               ;;                   'mode-line-inactive))))
                                ))
 
 (setq-default mode-line-format
@@ -80,13 +41,6 @@ This is needed to make sure that text is properly aligned.")
                 ,my/mode-line-right-side))
 
 
-;; (defun vc-branch ()
-;;   (let ((backend (vc-backend buffer-file-name)))
-;;     (substring vc-mode (+ (if (eq backend 'hg) 2 3) 2))))
-;; (vc-branch)
-
-;; (set-face-attribute 'mode-line-inactive nil :foreground "#555" :background "#222"
-;;                     :box '(:line-width 2 :color "#222"))
 (use-package time
   :defer 10
   :config
