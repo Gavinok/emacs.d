@@ -1,7 +1,7 @@
 ;;; ORG  -*- lexical-binding: t; -*-
 (setq org-directory
       (cond
-       ((eq system-type 'android) "/storage/emulated/0/Dropbox/Documents/org")
+       (*android* "/storage/emulated/0/Dropbox/Documents/org")
        (my/my-system "~/.local/Dropbox/Documents/org")
        (t (default-value 'org-directory))))
 
@@ -13,7 +13,7 @@
   (setf (alist-get (md5 msg) my/notifications nil nil 'equal) replace-id))
 (use-package appt
   :demand t
-  :unless (eq system-type 'android)
+  :unless *android*
   :defer 20
   :custom
   ((appt-announce-method 'appt-persistant-message-announce)
@@ -36,7 +36,7 @@
                        'critical
                      'normal)))
       (store-last-note
-       (funcall (if  (eq system-type 'android)
+       (funcall (if  *android*
                     ;; support for android notifications
                     'android-notifications-notify
                   'notifications-notify)

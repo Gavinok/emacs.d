@@ -16,6 +16,7 @@
 
 ;; Get clipboard to work when using wsl
 (defconst running-in-wsl (executable-find "wslpath"))
+(defconst *android* (eq system-type 'android))
 (when running-in-wsl
   (setq select-active-regions nil)
   (defun wls-copy (text)
@@ -314,6 +315,21 @@ Depends on the `gh' commandline tool"
     (forward-char -1)))
 
 ;;; Defaults
+;; Random Other Stuff
+(use-package devil
+  ;; :when (eq system-type 'android)
+  :demand t
+  :ensure t
+  :bind ("<xf86back>" . keyboard-escape-quit)
+  :config
+  (global-devil-mode 1)
+  (setq overriding-text-conversion-style nil))
+
+(use-package tool-bar
+  :when *android*
+  :config
+  (modifier-bar-mode))
+
 (use-package undo-fu-session ; Persistant undo history
   :ensure t
   :demand t
@@ -867,7 +883,7 @@ If given, use INITIAL as the starting point of the query."
   (setq writeroom-width 90))
 
 (use-package jinx
-  :unless (or (eq system-type 'android)
+  :unless (or *android*
               running-in-wsl)
   :demand t
   :ensure t
@@ -1279,7 +1295,7 @@ If given, use INITIAL as the starting point of the query."
   :init
   (context-menu-mode 1))
 (use-package strokes-mode
-  :unless (eq system-type 'android)
+  :unless *android*
   :ensure nil
   :bind (("S-<down-mouse-1>" . strokes-do-stroke)
          ("S-<down-mouse-3>" . mouse-appearance-menu))
@@ -2337,17 +2353,6 @@ directory when working with a single file project."
 
 ;; (load (locate-user-emacs-file
 ;;        "lisp/exwm-config.el"))
-
-;; describe this code
-;; Random Other Stuff
-(use-package devil
-  ;; :when (eq system-type 'android)
-  :demand t
-  :ensure t
-  :bind ("<xf86back>" . keyboard-escape-quit)
-  :config
-  (global-devil-mode 1)
-  (setq overriding-text-conversion-style nil))
 
 (use-package eww
   :defer t
