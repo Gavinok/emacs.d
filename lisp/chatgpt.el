@@ -39,16 +39,15 @@
   :group 'convenience
   :prefix "chatgpt-")
 
-(defvar chatgpt-buffer "*ChatGPT*"
+(defvar chatgpt-buffer "*TMP-ChatGPT*"
   "Title of the buffer used to store the results of an OpenAI API query.")
 
 (defun chatgpt--append-to-prompt (prompt comment-str)
   "Append the string COMMENT-STR extra information to a PROMPT as a comment."
-  (concat prompt
+  (concat comment-str
           "\n"
-	  comment-start
-          " "
-	  comment-str))
+	  prompt
+          ))
 
 (defun chatgpt--display-response (response _)
   (when (stringp response)
@@ -102,5 +101,25 @@ The answer in the displays in `chatgpt-buffer'."
   (gptel-request
       prompt
     :callback #'chatgpt--display-response))
+
+;;; Other helpers
+(defun chatgpt-generate-commit-message (&optional arg)
+  (interactive)
+  (cl-assert git-commit-mode)
+  (gptel-request
+      (chatgpt--append-to-prompt
+       "Write a commit message for this git diff"
+       (shell-command-to-string "git diff --cached"))))
+
+(defun chatgpt-send-to-gptel-session (content)
+  "Send content to "
+  (interactive "M")
+  (with-current-buffer "*ChatGPT*"
+    (goto-char (point-max))
+    (insert "\n"
+            content))
+  
+  )
+
 (provide 'chatgpt)
 ;;; chatgpt.el ends here

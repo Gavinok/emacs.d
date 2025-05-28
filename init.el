@@ -695,14 +695,14 @@ If given, use INITIAL as the starting point of the query."
    :map embark-file-map
    ("C-d" . dragon-drop)
    :map embark-defun-map
-   ("M-t" . chatgpt-gen-tests-for-region)
-   ("M-t" . chatgpt-explain-region)
+   ("M-t" . chatgpt-gen-tests-for-defun)
    :map embark-general-map
    ("M-c" . chatgpt-prompt)
+   ("z"   . chatgpt-send-to-gptel-session)
    :map embark-region-map
+   ("z"   . chatgpt-send-to-gptel-session)
    ("D"   . dictionary-search)
    ("?"   . chatgpt-explain-region)
-   ("M-f" . chatgpt-fix-region)
    ("M-f" . chatgpt-fix-region))
   :custom
   (embark-indicators
@@ -714,6 +714,8 @@ If given, use INITIAL as the starting point of the query."
   (setq prefix-help-command #'embark-prefix-help-command)
   (setq embark-prompter 'embark-completing-read-prompter)
   :config
+  (load (locate-user-emacs-file
+       "lisp/chatgpt.el"))
   (defun dragon-drop (file)
     (start-process-shell-command "dragon-drop" nil
                                  (concat "dragon-drop " file)))
@@ -912,7 +914,9 @@ If given, use INITIAL as the starting point of the query."
   :config
   (use-package git-commit
     :ensure nil
-    :hook ((git-commit-setup . (lambda () (call-interactively 'git-commit-signoff)))))
+    :hook ((git-commit-setup . (lambda () (call-interactively 'git-commit-signoff))))
+    :bind (:map git-commit-mode-map
+                ("C-h TAB" . chatgpt-generate-commit-message)))
   (add-to-list 'project-switch-commands
                '(project-magit "Magit" m))
   (defun project-magit  ()
@@ -2396,10 +2400,14 @@ directory when working with a single file project."
 (use-package gptel
   :ensure t
   :commands (gptel)
-  :bind (:map help-map
-              ("C-h" . gptel-menu)
-              ("RET" . gptel-send)
-              ("TAB" . gptel-fn-complete))
+  :bind ( :map help-map
+          ("C-h" . gptel-menu)
+          ("RET" . gptel-send)
+          ("TAB" . gptel-fn-complete)
+          ("C-k" . gptel-abort)
+          ("C-a" . gptel-add)
+          ("C-a" . gptel-add)
+          :map )
   :init
   (require 'password-store)
   (setq gptel-default-mode #'org-mode)
@@ -2416,6 +2424,27 @@ directory when working with a single file project."
   (setf (alist-get 'org-mode gptel-response-prefix-alist) "@assistant\n")
   (setq gptel-tools
         (list
+         (gptel-make-tool
+          :function #'my-gptel--edit_file
+          :name "edit_file"
+          :description "Edit file with a list of edits, each edit contains a line-number,
+a old-string and a new-string, new-string will replace the old-string at the specified line.
+Only use this when explicitly told to."
+          :args (list '(:name "file-path"
+                              :type string
+                              :description "The full path of the file to edit")
+                      '(:name "file-edits"
+                              :type array
+                              :items (:type object
+                                            :properties
+                                            (:line_number
+                                             (:type integer :description "The line number of the file where edit starts.")
+                                             :old_string
+                                             (:type string :description "The old-string to be replaced.")
+                                             :new_string
+                                             (:type string :description "The new-string to replace old-string.")))
+                              :description "The list of edits to apply on the file"))
+          :category "filesystem")
          (gptel-make-tool
           :function (lambda (file &optional linenumber)
                       (with-temp-message (format "Displaying File %s on line %s" file linenumber)
@@ -2606,14 +2635,14 @@ directory when working with a single file project."
                               :type string
                               :description "The URL to read"))
           :category "web")
-         ;; (gptel-make-tool
-         ;;  :function #'brave-search-query
-         ;;  :name "brave_search"
-         ;;  :description "Perform a web search using the Brave Search API"
-         ;;  :args (list '(:name "query"
-         ;;                      :type string
-         ;;                      :description "The search query string"))
-         ;;  :category "web")
+         (gptel-make-tool
+          :function #'brave-search-query
+          :name "brave_search"
+          :description "Perform a web search using the Brave Search API"
+          :args (list '(:name "query"
+                              :type string
+                              :description "The search query string"))
+          :category "web")
          ;; (gptel-make-tool
          ;;  :function (lambda (query)
          ;;              (with-temp-message (concat "Searching Email about " query)
@@ -2682,7 +2711,36 @@ directory when working with a single file project."
         (goto-char (point-min))
         (when (re-search-forward "^$" nil 'move)
           (let ((json-object-type 'hash-table)) ; Use hash-table for JSON parsing
-            (json-parse-string (buffer-substring-no-properties (point) (point-max)))))))))
+            (json-parse-string (buffer-substring-no-properties (point) (point-max))))))))
+  (defun my-gptel--edit_file (file-path file-edits)
+    "In FILE-PATH, apply FILE-EDITS with pattern matching and replacing."
+    (if (and file-path (not (string= file-path "")) file-edits)
+        (with-current-buffer (get-buffer-create "*edit-file*")
+          (erase-buffer)
+          (insert-file-contents (expand-file-name file-path))
+          (let ((inhibit-read-only t)
+                (case-fold-search nil)
+                (file-name (expand-file-name file-path))
+                (edit-success nil))
+            ;; apply changes
+            (dolist (file-edit (seq-into file-edits 'list))
+              (when-let ((line-number (plist-get file-edit :line_number))
+                         (old-string (plist-get file-edit :old_string))
+                         (new-string (plist-get file-edit :new_string))
+                         (is-valid-old-string (not (string= old-string ""))))
+                (goto-char (point-min))
+                (forward-line (1- line-number))
+                (when (search-forward old-string nil t)
+                  (replace-match new-string t t)
+                  (setq edit-success t))))
+            ;; return result to gptel
+            (if edit-success
+                (progn
+                  ;; show diffs
+                  (ediff-buffers (find-file-noselect file-name) (current-buffer))
+                  (format "Successfully edited %s" file-name))
+              (format "Failed to edited %s" file-name))))
+      (format "Failed to edited %s" file-path))))
 (use-package gptel-fn-complete :ensure t :after gptel)
 
 (use-package pomm
