@@ -1908,7 +1908,7 @@ Used to see multiline flymake errors"
   :ensure t
   :after flymake
   :init
-  (setopt flycheck-disabled-checkers '(python-mypy haskell-ghc haskell-hlint))
+  (setopt flycheck-disabled-checkers '(python-mypy haskell-ghc haskell-hlint python-pycompile))
   :config
   (add-hook 'flymake-mode-hook 'flymake-flycheck-auto))
 
