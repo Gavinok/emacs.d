@@ -49,13 +49,13 @@
       ;; Notify me on my phone
       (require 'plz)
       (plz 'post "https://ntfy.sh/gavin-emacs-notifications"
-        :headers `(("Title"  . ,title)
-                   ("Priority" . ,(if (eql urgency 'critical)
-                                      "high"
-                                    "default"))
-                   ("Tags" . "calendar")
-                   ("Markdown" . "yes"))
-        :body body)))
+           :headers `(("Title"  . ,title)
+                      ("Priority" . ,(if (eql urgency 'critical)
+                                         "high"
+                                       "default"))
+                      ("Tags" . "calendar")
+                      ("Markdown" . "yes"))
+           :body body)))
   (appt-activate +1)
   (org-agenda-to-appt)
   (defvar appt-update-org-timer
@@ -374,6 +374,10 @@
     (setq org-capture-templates
           `(("t" "Todo" entry (file (lambda () (concat org-directory "/refile.org")))
              "* TODO %?\nDEADLINE: %T\n %i\n %a")
+            ("j" "Journal Entry"
+             entry (file+datetree (lambda () (concat org-directory "/journal.org")))
+             "* %?"
+             :empty-lines 1)
             ("m" "movie" entry
              (file+headline (lambda () (concat org-directory "/mylife.org")) "Movies to Watch"))
             ("v" "Video Idea" entry

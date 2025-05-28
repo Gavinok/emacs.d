@@ -1378,7 +1378,8 @@ If given, use INITIAL as the starting point of the query."
     :bind (:map yaml-ts-mode-map
                 ([remap backward-up-list] . outline-up-heading))
     :config
-    (push '((yaml-ts-mode yaml-mode) "helm_ls" "serve") eglot-server-programs))
+    (with-eval-after-load 'eglot
+      (push '((yaml-ts-mode yaml-mode) "helm_ls" "serve") eglot-server-programs)))
 
   (use-package toml-ts-mode :mode "\\.toml\\'")
   (use-package bash-ts-mode :mode "\\.sh\\'"
@@ -2378,10 +2379,10 @@ directory when working with a single file project."
   (defun ntfy-send-notification (string)
     (interactive (list (read-string "What should we send?:")))
     (plz 'post "https://ntfy.sh/gavin-emacs-notifications"
-      :headers '(("Title"  . "Sent From Emacs")
-                 ("Tags" . "computer")
-                 ("Markdown" . "yes"))
-      :body string))
+         :headers '(("Title"  . "Sent From Emacs")
+                    ("Tags" . "computer")
+                    ("Markdown" . "yes"))
+         :body string))
   (defun ntfy-me-at (time string)
     "Send me a notification at this time with this string"
     (interactive (list
