@@ -49,13 +49,13 @@
       ;; Notify me on my phone
       (require 'plz)
       (plz 'post "https://ntfy.sh/gavin-emacs-notifications"
-           :headers `(("Title"  . ,title)
-                      ("Priority" . ,(if (eql urgency 'critical)
-                                         "high"
-                                       "default"))
-                      ("Tags" . "calendar")
-                      ("Markdown" . "yes"))
-           :body body)))
+        :headers `(("Title"  . ,title)
+                   ("Priority" . ,(if (eql urgency 'critical)
+                                      "high"
+                                    "default"))
+                   ("Tags" . "calendar")
+                   ("Markdown" . "yes"))
+        :body body)))
   (appt-activate +1)
   (org-agenda-to-appt)
   (defvar appt-update-org-timer
@@ -338,9 +338,25 @@
 (let ((f "/usr/share/java/plantuml/plantuml.jar"))
   (if (file-exists-p f)
       (setq org-plantuml-jar-path f)))
-
 (use-package ob-typescript :ensure t :after ob)
+;; TODO: setup webdav setup for sharing my calendare with google as an ics file
+(use-package org-ics-import
+  :ensure nil
+  :vc (:url "https://git.sr.ht/~struanr/org-ics-import.el")
+  :requires password-store
+  :custom
+  (org-ics-import-calendars-alist `((,(password-store-get "seren-cal") . ,(concat org-directory "/seren-cal.org"))
+                                    (,(password-store-get "shared-cal") . ,(concat org-directory "/shared-cal.org"))
+                                    (,(password-store-get "recycling-cal") . ,(concat org-directory "/recycling.org"))))
+  (org-ics-import-exclude-strings '("Cancelled"))
+  (org-ics-import-exclude-passed-events t))
 
+(defun my/org-icalendar-export ()
+  (let ((org-icalendar-use-scheduled '(todo-start event-if-not-todo))
+        (org-icalendar-exclude-tags '("work"))
+        (org-export-use-babel nil)
+        (org-export-with-broken-links t))
+    (org-icalendar-combine-agenda-files)))
 (use-package ox
   :custom ((org-export-backends '(md org ascii html icalendar latex odt rss))
            (org-export-with-toc nil))
@@ -710,6 +726,7 @@
 
 
 (use-package ol
+  :custom (org-id-link-to-org-use-id t)
   :config
   (org-link-set-parameters "excalidraw"
                            :follow #'org-excalidraw-open))

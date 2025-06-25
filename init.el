@@ -714,8 +714,6 @@ If given, use INITIAL as the starting point of the query."
   (setq prefix-help-command #'embark-prefix-help-command)
   (setq embark-prompter 'embark-completing-read-prompter)
   :config
-  (load (locate-user-emacs-file
-       "lisp/chatgpt.el"))
   (defun dragon-drop (file)
     (start-process-shell-command "dragon-drop" nil
                                  (concat "dragon-drop " file)))
@@ -2407,13 +2405,15 @@ directory when working with a single file project."
           ("TAB" . gptel-fn-complete)
           ("C-k" . gptel-abort)
           ("C-a" . gptel-add)
-          ("C-a" . gptel-add)
-          :map )
+          ("r"   . gptel-rewrite)
+          ("g"   . chatgpt-grammar-correct))
   :init
   (require 'password-store)
   (setq gptel-default-mode #'org-mode)
   (setq gptel-model 'gpt-4o-mini)
   :config
+  (load (locate-user-emacs-file
+         "lisp/chatgpt.el"))
   (setq gptel-backend gptel--openai)
   (gptel-make-anthropic "Claude"
     :stream t
