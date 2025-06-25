@@ -29,8 +29,8 @@
 (defvar repo-map-cache-version 4
   "Version of the repo map cache format.")
 
-n(defvar repo-map-cache-dir (expand-file-name ".aider.tags.cache.v4" default-directory)
-   "Directory for storing repo map cache files.")
+(defvar repo-map-cache-dir (expand-file-name ".aider.tags.cache.v4" default-directory)
+  "Directory for storing repo map cache files.")
 
 (defvar repo-map-warned-files nil
   "Set of files that have triggered warnings.")
