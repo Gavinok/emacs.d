@@ -49,6 +49,27 @@
 (defvar mason--pip-dir (file-name-concat mason-install-dir "pip"))
 (defvar mason--go-dir (file-name-concat mason-install-dir "golang"))
 
+(defun mason-server-name (server)
+  "Get the name of a server from a mason record named SERVER."
+  (aref server 1))
+
+(defun mason--install (server)
+  "Helper for installing servers and working with a mason record SERVER."
+  (cl-assert (eql (type-of server) 'mason))
+  (let ((package (aref server 2))
+	(installer (aref server 3))
+	(extra-dependancies (aref server 4)))
+    (funcall installer package)
+    (cl-loop for p in extra-dependancies
+	     do (funcall installer p))))
+
+(defun mason-install (server-name)
+  "Install SERVER-NAME on the current system."
+  (interactive (list (completing-read "Select your server: "(mapcar #'my/eglot-server-server-name mason--installable-servers))))
+  (mason--install (cl-find server-name mason--installable-servers
+                           :test #'string=
+                           :key #'mason-server-name)))
+
 (defun mason-setup-paths ()
   "Add all installed language servers to the from of the buffer local variable `exec-path'."
   (interactive)
