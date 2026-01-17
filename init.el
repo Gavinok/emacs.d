@@ -15,9 +15,9 @@
 (setopt use-package-enable-imenu-support t)
 
 ;; Get clipboard to work when using wsl
-(defconst running-in-wsl (executable-find "wslpath"))
+(defconst *running-in-wsl* (executable-find "wslpath"))
 (defconst *android* (eq system-type 'android))
-(when running-in-wsl
+(when *running-in-wsl*
   (setq select-active-regions nil)
   (defun wls-copy (text)
     (let ((wls-copy-process (make-process :name "clip.exe"
@@ -710,6 +710,7 @@ If given, use INITIAL as the starting point of the query."
      embark-isearch-highlight-indicator
      embark-minimal-indicator))
   :init
+  (require 'gptel)
   ;; Optionally replace the key help with a completing-read interface
   (setq prefix-help-command #'embark-prefix-help-command)
   (setq embark-prompter 'embark-completing-read-prompter)
@@ -766,8 +767,9 @@ If given, use INITIAL as the starting point of the query."
   ;; Optional customization
   :custom
   (corfu-cycle t)                 ; Allows cycling through candidates
-  (corfu-auto nil)                  ; Enable auto completion
-  (corfu-auto-prefix 2)
+  (corfu-auto t)                  ; Enable auto completion
+  (corfu-auto-prefix 10)
+  (corfu-auto-trigger ".")
   (corfu-auto-delay 0.1)
   (corfu-popupinfo-delay '(0.5 . 0.2))
   (corfu-preview-current 'insert) ; insert previewed candidate
@@ -805,16 +807,13 @@ If given, use INITIAL as the starting point of the query."
   (advice-add #'comint-completion-at-point :around #'cape-wrap-nonexclusive)
 
   ;; Silence then pcomplete capf, no errors or messages!
-  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
-
-  ;; Ensure that pcomplete does not write to the buffer
-  ;; and behaves as a pure `completion-at-point-function'.
-  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent))
 
 (use-package tempel
   :ensure t
-  :hook ((prog-mode . tempel-setup-capf)
-         (text-mode . tempel-setup-capf))
+  :hook (;; (prog-mode . tempel-setup-capf)
+         (text-mode . tempel-text-setup-capf)
+         (eglot-managed-mode . tempel-eglot-setup-capf))
   :bind (("M-+" . tempel-complete) ;; Alternative tempel-expand
          ("M-*" . tempel-insert)
          :map tempel-map
@@ -832,10 +831,21 @@ If given, use INITIAL as the starting point of the query."
 
   (add-to-list 'tempel-user-elements #'tempel-include)
 
-  (defun tempel-setup-capf ()
-    (setq-local completion-at-point-functions
-                (cons #'tempel-complete
-                      completion-at-point-functions))))
+  (defun my/cape-eglot-template-capf ()
+    (cape-wrap-super #'tempel-complete #'eglot-completion-at-point))
+  (defun my/cape-word-template-capf ()
+    (cape-wrap-super #'tempel-complete #'cape-dabbrev #'cape-emoji
+                     ;; (if (executable-find "ispell")
+                     ;;     #'ispell-completion-at-point
+                     ;;   #'ignore)
+                     #'cape-elisp-block
+                     #'cape-dict #'cape-keyword))
+
+  (defun tempel-eglot-setup-capf (&rest args)
+    (remove-hook 'completion-at-point-functions 'eglot-completion-at-point t)
+    (add-hook 'completion-at-point-functions 'my/cape-eglot-template-capf nil t))
+  (defun tempel-text-setup-capf (&rest args)
+    (add-hook 'completion-at-point-functions 'my/cape-word-template-capf nil t)))
 
 (use-package eglot-tempel
   :ensure t
@@ -876,15 +886,8 @@ If given, use INITIAL as the starting point of the query."
   :config
   (writegood-duplicates-turn-off))
 
-(use-package writeroom-mode
-  :ensure t
-  :commands (writeroom-mode global-writeroom-mode)
-  :init
-  (setq writeroom-width 90))
-
 (use-package jinx
-  :unless (or *android*
-              running-in-wsl)
+  :unless *android*
   :demand t
   :ensure t
   :bind ("C-c DEL" . jinx-correct)
@@ -914,9 +917,10 @@ If given, use INITIAL as the starting point of the query."
     :ensure nil
     :hook ((git-commit-setup . (lambda () (call-interactively 'git-commit-signoff))))
     :bind (:map git-commit-mode-map
-                ("C-h TAB" . chatgpt-generate-commit-message)))
-  (add-to-list 'project-switch-commands
-               '(project-magit "Magit" m))
+                ("C-h TAB" . chatgpt-generate-commit-message))
+    :init
+    (require 'gptel))
+  (add-to-list 'project-switch-commands '(project-magit "Magit" m))
   (defun project-magit  ()
     (interactive)
     (let ((dir (project-root (project-current t))))
@@ -932,7 +936,7 @@ If given, use INITIAL as the starting point of the query."
   :config
   (magit-todos-mode 1))
 ;; Lets me store links to a particular git revision
-(use-package ol-git-link :after ol)
+;; (use-package ol-git-link :after ol)
 
 (use-package ediff
   :after (magit vc)
@@ -1015,17 +1019,24 @@ If given, use INITIAL as the starting point of the query."
   :demand t
   :bind (("M-s M-s" . project-find-file)
          :map project-prefix-map
-         ("m" . project-magit)
-         ("d" . project-dired)
-         ("M-s" . project-find-file))
+         ("b"   . consult-project-buffer)
+         ("m"   . project-magit)
+         ("d"   . project-dired)
+         ("g"   . consult-ripgrep)
+         ("M-s" . project-find-file)
+         ("C"   . gptel-project)
+         ("C-g" . ignore))
   :init
   (setopt project-switch-commands
           '((project-find-file "Find file")
             (project-dired "Dired")
             (project-magit "Magit")
             (project-compile "Compile")
-            (project-find-regexp "Find Regex")
-            (eat-project "Terminal"))
+            (consult-ripgrep "Find Regex")
+            (eat-project "Terminal")
+            (gptel-project "ChatGPT")
+            (project-query-replace-regexp "Find & Replace")
+            (ignore ""))
           project-compilation-buffer-name-function 'project-prefixed-buffer-name)
   :config
   ;; Optionally configure a function which returns the project root directory.
@@ -1047,7 +1058,14 @@ If given, use INITIAL as the starting point of the query."
             "package.clj" "package.json"
             "Project.toml" ".project"
             "Cargo.toml""mix.exs" "qlfile" ".git"))
-
+  (defun gptel-project ()
+    "Open the ChatGPT file for the current project."
+    (interactive)
+    (let ((default-directory (or (project-root (project-current))
+                                 default-directory)))
+      (find-file "Chat.org")
+      (require 'gptel)
+      (unless gptel-mode (gptel-mode 1))))
   ;; Override project.el backends for specific directories
   ;;   (defvar my/overrided-project '("~/test/"))
 
@@ -1501,6 +1519,12 @@ If given, use INITIAL as the starting point of the query."
       :hook ((purescript-mode . inferior-psci-mode)
              (psci-mode . compilation-shell-minor-mode))
       :init
+      ;; https://github.com/purefunctor/purescript-analyzer/
+      (with-eval-after-load 'eglot
+        (add-to-list 'eglot-server-programs
+                     `(purescript-mode . ,(eglot-alternatives
+                                           '(("purescript-analyzer")
+                                             ("purescript-language-server" "--stdio"))))))
       (defun run-purescript ()
         (interactive)
         (call-interactively 'psci))
@@ -1533,7 +1557,7 @@ If given, use INITIAL as the starting point of the query."
   (use-package vue-ts-mode
     :mode "\\.vue\\'"
     :hook ((vue-ts-mode . sgml-electric-tag-pair-mode)
-           (vue-ts-mode . my/eglot-server-setup-paths)
+           (vue-ts-mode . mason-setup-paths)
            (vue-ts-mode . eglot-ensure))
     :bind (:map vue-ts-mode-map
                 ("C-c C-t" . vue-ts-mode-element-transpose)
@@ -1565,7 +1589,7 @@ If given, use INITIAL as the starting point of the query."
                           "lib"
                           (string-trim-right
                            (shell-command-to-string (concat "npm list  --prefix "
-                                                            (my/eglot-server--npm-package-path "typescript")
+                                                            (mason--npm-package-path "typescript")
                                                             " --global --parseable typescript | head -n1"))))))
           `(:typescript (:tsdk ,tsdk-path
 			       :languageFeatures (:completion
@@ -1580,9 +1604,9 @@ If given, use INITIAL as the starting point of the query."
 								      :getDocumentPrintWidthRequest nil)
                                                   :documentSymbol t
                                                   :documentColor t)))))
-      (push `(vue-ts-mode . ("vue-language-server" "--stdio"
-                             :initializationOptions ,(vue-eglot-init-options)))
-            eglot-server-programs))))
+      (add-to-list 'eglot-server-programs
+                   `(vue-ts-mode . ("vue-language-server" "--stdio"
+                                    :initializationOptions ,(vue-eglot-init-options)))))))
 (use-package devdocs
   :ensure t
   :bind ("M-s d" . devdocs-lookup))
@@ -1631,6 +1655,7 @@ If given, use INITIAL as the starting point of the query."
                                             (tsx-ts-mode :language-id "typescriptreact")
                                             (typescript-ts-mode :language-id "typescript")
                                             (typescript-mode :language-id "typescript"))
+                                           lspx --lsp "typescript-language-server --stdio" --lsp "tailwindcss-language-server --stdio" --lsp "eslint-lsp --stdio"
                                            "typescript-language-server" "--stdio"))
     ;; (add-to-list  'eglot-server-programs
     ;;               `((js-mode js-ts-mode tsx-ts-mode typescript-ts-mode typescript-mode)
@@ -1654,6 +1679,9 @@ If given, use INITIAL as the starting point of the query."
   :ensure t
   :after web-mode)
 
+(use-package typescript-ts-mode
+  :ensure nil
+  :custom (typescript-ts-mode-indent-offset 4))
 (use-package web-mode
   :ensure t
   :mode (("\\.html\\'" . HTML-mode))
@@ -1797,7 +1825,15 @@ If given, use INITIAL as the starting point of the query."
           (ecl ("ecl") :coding-system utf-8-unix)
           (roswell ("ros" "-Q" "-l" ,ros-config "run"))
           (qlot ("qlot" "exec" "ros" "-l" ,ros-config "run" "-S" ".")
-                :coding-system utf-8-unix))))
+                :coding-system utf-8-unix)
+          (qlot-docker ("docker" "run" "-it" "-p" "4005:4005" "-v" "./:/app/" "fukamachi/qlot:latest"  "exec" "ros" "run" "-S" ".")
+                       :coding-system utf-8-unix)))
+
+  (defun qlot-install (&optional dir)
+    "Run qlot install in the current directory under docker"
+    (let ((default-directory (or dir
+                                 default-directory)))
+      (async-shell-command "docker run -it -v ./:/app/ fukamachi/qlot:latest install"))))
 
 ;;;; Setup Folding For Programming
 (use-package puni
@@ -1819,6 +1855,8 @@ If given, use INITIAL as the starting point of the query."
          ;; Remove outer pairs
          ("M-O"                     . puni-splice)
          ("C-)"                     . puni-slurp-forward)
+         ("C-M-}"                     . puni-slurp-backward)
+         ("C-M-{"                     . puni-slurp-forward)
          ("C-("                     . puni-slurp-backward)
          ("C-}"                     . puni-barf-forward)
          ("C-{"                     . puni-barf-backward)
@@ -1830,6 +1868,10 @@ If given, use INITIAL as the starting point of the query."
          ("M-<backspace>"           . backward-kill-word)
          ("C-w" . kill-region))
   :config
+  (when *running-in-wsl*
+    (keymap-set puni-mode-map "C-9" 'puni-slurp-backward)
+    (keymap-set puni-mode-map "C-0" 'puni-slurp-forward)
+    )
   (setopt puni-blink-region-face 'show-paren-match)
   (puni-global-mode t)
 
@@ -1901,6 +1943,17 @@ Used to see multiline flymake errors"
            (text (flymake-diagnostic-text (plist-get id :diagnostic))))
       (message text)))
   (remove-hook 'flymake-diagnostic-functions #'flymake-proc-legacy-flymake))
+
+;; (use-package flyover
+;;   :ensure t
+;;   :config
+;;   (setq flyover-levels '(error))
+;;   (setq flyover-info-icon "ℹ")
+;;   (setq flyover-warning-icon "⚠")
+;;   (setq flyover-error-icon "✘")
+;;   (setq flyover-background-lightness 90)
+;;   (setq flyover-text-tint 'darker)
+;;   )
 
 ;; Use flycheck backends with flymake
 (use-package flymake-flycheck
@@ -2002,10 +2055,7 @@ Used to see multiline flymake errors"
 ;;; PASS
 (use-package password-store
   :ensure t
-  :commands (password-store-copy
-             password-store-insert
-             password-store-generate
-             password-store-get))
+  :config (run-with-timer 3 nil (lambda () (epa-file-enable))))
 
 ;; Authenticate with auth-source-pass
 ;; (use-package auth-source-pass
@@ -2057,7 +2107,7 @@ Used to see multiline flymake errors"
                          tab-bar-separator
                          tab-bar-format-add-tab
                          tab-bar-format-align-right
-                         ;; my/fake-modeline
+                         my/fake-modeline
                          tab-bar-separator
                          tab-bar-separator
                          tab-bar-org-clock
@@ -2215,13 +2265,12 @@ Used to see multiline flymake errors"
   (setopt eglot-ignored-server-capabilites '(:documentHighlightProvider))
 
   ;; My easy way to install eglot servers
-  (load (locate-user-emacs-file
-         "lisp/eglot-lsp-installer.el"))
+  (load (locate-user-emacs-file "lisp/mason.el"))
 
   ;; Ensures the paths used for eglot-lsp-installer are configured
   ;; before starting a language server
   (define-advice eglot--connect (:before (&rest _) my/advice-eglot-server-setup-paths)
-    (my/eglot-server-setup-paths))
+    (mason-setup-paths))
 
   (add-to-list 'eglot-server-programs
 	       `((typst-mode typst-ts-mode) . ("typst-lsp")))
@@ -2259,7 +2308,7 @@ current workspace."
   ;; A hacky way to make every file opened in my HOME directory act as
   ;; a single file project see https://github.com/joaotavora/eglot/discussions/1086
   (cl-defmethod eglot-workspace-folders :around (server)
-    "Make sure we don't treat the HOME directory as the workspace folder"
+    "Ensure HOME directory is not treated as workspace"
     (if (and (project-current)
 	     (not (cl-find (expand-file-name
 			    (project-root (eglot--project server)))
@@ -2272,8 +2321,7 @@ current workspace."
 
   (cl-defmethod eglot-register-capability :around
     (_server (_method (eql workspace/didChangeWatchedFiles)) _id &key _watchers)
-    "A workaround to avoid monitoring all files in the current
-directory when working with a single file project."
+    "Prevent monitoring all files in current directory for single-file projects."
     (if (project-current)
         (cl-call-next-method)
       (message "eglot: Single File Mode")
@@ -2301,8 +2349,8 @@ directory when working with a single file project."
   ;; tricks for improving performance
   (setopt eglot-events-buffer-config '(:size nil :format full)
           eglot-autoshutdown t
-          jsonrpc-event-hook ;nil
-          (list #'jsonrpc--log-event)
+          jsonrpc-event-hook nil
+          ;; (list #'jsonrpc--log-event)
           )
 
   ;; Install and setup lsp booster
@@ -2377,10 +2425,10 @@ directory when working with a single file project."
   (defun ntfy-send-notification (string)
     (interactive (list (read-string "What should we send?:")))
     (plz 'post "https://ntfy.sh/gavin-emacs-notifications"
-         :headers '(("Title"  . "Sent From Emacs")
-                    ("Tags" . "computer")
-                    ("Markdown" . "yes"))
-         :body string))
+      :headers '(("Title"  . "Sent From Emacs")
+                 ("Tags" . "computer")
+                 ("Markdown" . "yes"))
+      :body string))
   (defun ntfy-me-at (time string)
     "Send me a notification at this time with this string"
     (interactive (list
@@ -2396,354 +2444,74 @@ directory when working with a single file project."
                             ("Markdown" . "yes"))
                  :body string)))
 
+(use-package claude-code :ensure t
+  :vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest)
+  :bind ("C-x C" . claude-code-transient)
+  :config
+  (add-hook 'claude-code-process-environment-functions #'monet-start-server-function)
+  (monet-mode 1)
+  (claude-code-mode)
+  )
+(use-package monet
+  :vc (:url "https://github.com/stevemolitor/monet" :rev :newest))
+(use-package agent-shell
+  :ensure t
+  :bind ( :map help-map
+          ("s" . agent-shell))
+  :config
+  (require 'gptel)
+  (setopt agent-shell-new-shell-config (agent-shell-anthropic-make-claude-code-config))
+  (setopt agent-shell-file-completion-enabled t)
+  (setopt agent-shell-mcp-servers (list
+                                   `((name . "github")
+                                     (command . "docker")
+                                     (args . (
+                                              "run"
+                                              "-i"
+                                              "--rm"
+                                              "-e"
+                                              ,(concat "GITHUB_PERSONAL_ACCESS_TOKEN="
+                                                       (gptel-api-key-from-auth-source "api.github.com" "Gavinok^forge"))
+                                              "ghcr.io/github/github-mcp-server"
+                                              ))
+                                     (env . (((name . "GITHUB_PERSONAL_ACCESS_TOKEN") (value . ,(gptel-api-key-from-auth-source "api.github.com" "Gavinok^forge")))))))))
+
+(use-package gptel-agent
+  :vc ( :url "https://github.com/karthink/gptel-agent"
+        :rev :newest)
+  :config (gptel-agent-update))
+
 (use-package gptel
   :ensure t
   :commands (gptel)
   :bind ( :map help-map
           ("C-h" . gptel-menu)
+          ("C-c" . gptel)
           ("RET" . gptel-send)
           ("TAB" . gptel-fn-complete)
           ("C-k" . gptel-abort)
           ("C-a" . gptel-add)
+          ("a"   . gptel-add)
           ("r"   . gptel-rewrite)
           ("g"   . chatgpt-grammar-correct))
-  :init
-  (require 'password-store)
-  (setq gptel-default-mode #'org-mode)
-  (setq gptel-model 'gpt-4o-mini)
   :config
-  (load (locate-user-emacs-file
-         "lisp/chatgpt.el"))
+  (setq gptel-default-mode #'org-mode)
+  (setq gptel-model 'mistralai/devstral-small:free)
   (setq gptel-backend gptel--openai)
-  (gptel-make-anthropic "Claude"
-    :stream t
-    :key (gptel-api-key-from-auth-source "api.anthropic.com"))
-  (gptel-make-gemini "Gemini"
-    :key (gptel-api-key-from-auth-source "generativelanguage.googleapis.com")
-    :stream t)
-  (setf (alist-get 'org-mode gptel-prompt-prefix-alist) "*** ")
-  (setf (alist-get 'org-mode gptel-response-prefix-alist) "@assistant\n")
-  (setq gptel-tools
-        (list
-         (gptel-make-tool
-          :function #'my-gptel--edit_file
-          :name "edit_file"
-          :description "Edit file with a list of edits, each edit contains a line-number,
-a old-string and a new-string, new-string will replace the old-string at the specified line.
-Only use this when explicitly told to."
-          :args (list '(:name "file-path"
-                              :type string
-                              :description "The full path of the file to edit")
-                      '(:name "file-edits"
-                              :type array
-                              :items (:type object
-                                            :properties
-                                            (:line_number
-                                             (:type integer :description "The line number of the file where edit starts.")
-                                             :old_string
-                                             (:type string :description "The old-string to be replaced.")
-                                             :new_string
-                                             (:type string :description "The new-string to replace old-string.")))
-                              :description "The list of edits to apply on the file"))
-          :category "filesystem")
-         (gptel-make-tool
-          :function (lambda (file &optional linenumber)
-                      (with-temp-message (format "Displaying File %s on line %s" file linenumber)
-                        (with-current-buffer (get-file-buffer file)
-                          (switch-to-buffer-other-window (current-buffer))
-                          (goto-line linenumber))))
-          :name "show_file"
-          :description "Display a file to the user"
-          :args (list '( :name "file"
-                         :type string
-                         :description "The file to display to the user")
-                      '( :name "line_number"
-                         :type integer
-                         :description "the line number to display if available"
-                         :optional t))
-          :category "filesystem")
-         ;; (gptel-make-tool
-         ;;  :function (lambda (buffer start end)
-         ;;              (with-temp-message (format "Reading Buffers %s" buffer)
-         ;;                (with-current-buffer (get-buffer (string-trim buffer))
-         ;;                  (buffer-substring (goto-line start) (goto-line end)))))
-         ;;  :name "read_buffers_section"
-         ;;  :description (concat "Read a region of a buffer rather than the entire thing. "
-         ;;                       "Prefer this over read_buffer and read_file as it is more efficient.")
-         ;;  :args (list '( :name "buffer"
-         ;;                 :type string
-         ;;                 :description "The name of the emacs buffer to read the contents of. ")
-         ;;              '( :name "start"
-         ;;                 :type string
-         ;;                 :description (concat "The first line to read from"))
-         ;;              '( :name "end"
-         ;;                 :type string
-         ;;                 :description (concat "The last line to read from")))
-         ;;  :category "buffers")
-         (gptel-make-tool
-          :function (lambda (buffer)
-                      (with-temp-message (format "Reading Buffer %s" buffer)
-                        (with-current-buffer (get-buffer (string-trim buffer))
-                          (buffer-string))))
-          :name "read_buffer"
-          :description (concat "Read the contents of an emacs buffer."
-                               "Use this as a last resort as it ")
-          :args (list '( :name "buffer"
-                         :type string
-                         :description "The name of the emacs buffer to read the contents of. "))
-          :category "buffers")
-         (gptel-make-tool
-          :function (lambda ()
-                      (with-temp-message "Getting Compilation Buffer Contents"
-                        (let ((compilation-buffer-name-function
-                               (or project-compilation-buffer-name-function
-                                   compilation-buffer-name-function)))
-                          (with-current-buffer (get-buffer (compilation-find-buffer))
-                            (buffer-string)))))
-          :name "get_compilation_errors"
-          :description (concat "Return the contents of the compilation or test errors.")
-          :args nil
-          :category "errors")
-         (gptel-make-tool
-          :function (lambda ()
-                      (with-temp-message "Listing Project Buffers"
-                        (cl-reduce #'concat (mapcar (lambda (buf)
-                                                      (with-current-buffer buf
-                                                        (format "%s %s %s\n" (buffer-name buf)  major-mode (buffer-file-name buf))))
-                                                    (project-buffers (project-current))))))
-          :name "project_buffers"
-          :description (concat "List all project related buffers indicating the "
-                               "buffer name, buffer's current mode file path. "
-                               "If no file is associated with a buffer then it is nil. "
-                               "This is expected for compilation windows for example. "
-                               "compilation-mode is the mode used for compiling code. ")
-          :args nil
-          :category "buffers")
-         (gptel-make-tool
-          :function (lambda (filepath)
-                      (with-temp-message (format "Finding File %s" filepath)
-                        (let ((dir (expand-file-name
-                                    (project-root (project-current)))))
-                          (shell-command-to-string
-                           (format "find %s -type f -iname %s" dir (concat "*" filepath "*"))))))
-          :name "search_for_file"
-          :description (concat "Recursively search for files and directories matching a pattern. "
-                               "Searches through all subdirectories from the starting path. The search "
-                               "is case-insensitive and matches partial names. Returns full paths to all "
-                               "matching items. Great for finding files when you don't know their exact location. "
-                               "Only searches within allowed directories.")
-          :args (list '(:name "filepath"
-                              :type string
-                              :description "Path to the file to read. Supports relative paths and ~."))
-          :category "filesystem")
-         (gptel-make-tool
-          :function (lambda (filepath start end)
-                      (with-temp-message (format "Reading file %s" filepath)
-                        (with-temp-buffer
-                          (insert-file-contents (expand-file-name filepath))
-                          (buffer-substring (goto-line start) (goto-line end)))))
-          :name "read_file_section"
-          :description (concat "Read a region of a file rather than the entire thing. "
-                               "Prefer this over read_buffer and read_file as it is more efficient.")
-          :args (list '( :name "file"
-                         :type string
-                         :description "The name of the emacs file to read the contents of. ")
-                      '( :name "start"
-                         :type integer
-                         :description "The first line to read from")
-                      '( :name "end"
-                         :type integer
-                         :description "The last line to read from"))
-          :category "filesystem")
-         (gptel-make-tool
-          :function (lambda (filepath)
-                      (with-temp-message (format "reading %s" filepath)
-                        (with-temp-buffer
-                          (insert-file-contents (expand-file-name filepath))
-                          (buffer-string))))
-          :name "read_file"
-          :description "Read and display the contents of a file"
-          :args (list '(:name "filepath"
-                              :type string
-                              :description "Path to the file to read. Supports relative paths and ~."))
-          :category "filesystem")
-         (gptel-make-tool
-          :function (lambda (directory)
-                      (mapconcat #'identity
-                                 (directory-files directory)
-                                 "\n"))
-          :name "list_directory"
-          :description "List the contents of a given directory"
-          :args (list '(:name "directory"
-                              :type string
-                              :description "The path to the directory to list"))
-          :category "filesystem")
-         (gptel-make-tool
-          :function (lambda (path filename content)
-                      (with-temp-message (format "Writing %s/%s with content %s" path filename content)
-                        (let ((full-path (expand-file-name filename path)))
-                          (with-temp-buffer
-                            (insert content)
-                            (write-file full-path))
-                          (format "Created file %s in %s" filename path))))
-          :name "create_file"
-          :description "Create a new file with the specified content"
-          :args (list '(:name "path"
-                              :type string
-                              :description "The directory where to create the file")
-                      '(:name "filename"
-                              :type string
-                              :description "The name of the file to create")
-                      '(:name "content"
-                              :type string
-                              :description "The content to write to the file"))
-          :category "filesystem")
-         (gptel-make-tool
-          :function (lambda (command)
-                      (with-temp-message (format "Running command: %s" command)
-                        (shell-command-to-string command)))
-          :name "run_command"
-          :description "Run a command."
-          :args (list
-                 '(:name "command"
-                         :type "string"
-                         :description "Command to run."))
-          :category "command")
-         (gptel-make-tool
-          :function #'run_async_command
-          :name "run_async_command"
-          :description "Run an async command."
-          :args (list
-                 '(:name "command"
-                         :type "string"
-                         :description "Command to run."))
-          :category "command"
-          :async t
-          :include t)
-         (gptel-make-tool
-          :function (lambda (url)
-                      (with-current-buffer (url-retrieve-synchronously url)
-                        (goto-char (point-min))
-                        (forward-paragraph)
-                        (let ((dom (libxml-parse-html-region (point) (point-max))))
-                          (run-at-time 0 nil #'kill-buffer (current-buffer))
-                          (with-temp-buffer
-                            (shr-insert-document dom)
-                            (buffer-substring-no-properties (point-min) (point-max))))))
-          :name "read_url"
-          :description "Fetch and read the contents of a URL"
-          :args (list '(:name "url"
-                              :type string
-                              :description "The URL to read"))
-          :category "web")
-         (gptel-make-tool
-          :function #'brave-search-query
-          :name "brave_search"
-          :description "Perform a web search using the Brave Search API"
-          :args (list '(:name "query"
-                              :type string
-                              :description "The search query string"))
-          :category "web")
-         ;; (gptel-make-tool
-         ;;  :function (lambda (query)
-         ;;              (with-temp-message (concat "Searching Email about " query)
-         ;;                (shell-command-to-string
-         ;;                 (concat "mu find -u -r " query))))
-         ;;  :name "search_mail"
-         ;;  :description "Search User Email"
-         ;;  :args (list
-         ;;         '(:name "Email Query"
-         ;;                 :type string
-         ;;                 :description "Search term query for email (keep this short)"))
-         ;;  :category "email")
-         ;; (gptel-make-tool
-         ;;  :function (lambda (query)
-         ;;              (with-temp-message (concat "Searching For Documents " query)
-         ;;                (shell-command-to-string
-         ;;                 (concat "recollq -C -n 0-30 " query))))
-         ;;  :name "search_documents"
-         ;;  :description "Search for documents and files on this computer"
-         ;;  :args (list
-         ;;         '(:name "Document Query"
-         ;;                 :type string
-         ;;                 :description "Search terms query for documents"))
-         ;;  :category "filesystem")
-         ;; (gptel-make-tool
-         ;;  :function (lambda (regex)
-         ;;              (let ((default-directory (project-root (project-current))))
-         ;;                (with-temp-message (concat "Searching Codebase "
-         ;;                                           default-directory)
-         ;;                  (shell-command-to-string
-         ;;                   (concat "rg " regex " " default-directory)))))
-         ;;  :name "search_codebase"
-         ;;  :confirm nil
-         ;;  :description "Search for text in the current programming project"
-         ;;  :args (list
-         ;;         '(:name "Regex"
-         ;;                 :type string
-         ;;                 :description "The regex used to search the current codebase"))
-         ;;  :category "filesystem")
-         ))
-  (defun run_async_command (callback command)
-    "Run COMMAND asynchronously and pass output to CALLBACK."
-    (condition-case error
-        (let ((buffer (generate-new-buffer " *async output*")))
-          (with-temp-message (format "Running async command: %s" command)
-            (async-shell-command command buffer nil))
-          (let ((proc (get-buffer-process buffer)))
-            (when proc
-              (set-process-sentinel
-               proc
-               (lambda (process _event)
-                 (unless (process-live-p process)
-                   (with-current-buffer (process-buffer process)
-                     (let ((output (buffer-substring-no-properties (point-min) (point-max))))
-                       (kill-buffer (current-buffer))
-                       (funcall callback output)))))))))
-      (t
-       ;; Handle any kind of error
-       (funcall callback (format "An error occurred: %s" error)))))
-  (defun brave-search-query (query)
-    "Perform a web search using the Brave Search API with the given QUERY."
-    (let ((url-request-method "GET")
-          (url-request-extra-headers `(("X-Subscription-Token" . ,(password-store--run "show" "brave-api"))))
-          (url (format "https://api.search.brave.com/res/v1/web/search?q=%s" (url-encode-url query))))
-      (with-current-buffer (url-retrieve-synchronously url)
-        (goto-char (point-min))
-        (when (re-search-forward "^$" nil 'move)
-          (let ((json-object-type 'hash-table)) ; Use hash-table for JSON parsing
-            (json-parse-string (buffer-substring-no-properties (point) (point-max))))))))
-  (defun my-gptel--edit_file (file-path file-edits)
-    "In FILE-PATH, apply FILE-EDITS with pattern matching and replacing."
-    (if (and file-path (not (string= file-path "")) file-edits)
-        (with-current-buffer (get-buffer-create "*edit-file*")
-          (erase-buffer)
-          (insert-file-contents (expand-file-name file-path))
-          (let ((inhibit-read-only t)
-                (case-fold-search nil)
-                (file-name (expand-file-name file-path))
-                (edit-success nil))
-            ;; apply changes
-            (dolist (file-edit (seq-into file-edits 'list))
-              (when-let ((line-number (plist-get file-edit :line_number))
-                         (old-string (plist-get file-edit :old_string))
-                         (new-string (plist-get file-edit :new_string))
-                         (is-valid-old-string (not (string= old-string ""))))
-                (goto-char (point-min))
-                (forward-line (1- line-number))
-                (when (search-forward old-string nil t)
-                  (replace-match new-string t t)
-                  (setq edit-success t))))
-            ;; return result to gptel
-            (if edit-success
-                (progn
-                  ;; show diffs
-                  (ediff-buffers (find-file-noselect file-name) (current-buffer))
-                  (format "Successfully edited %s" file-name))
-              (format "Failed to edited %s" file-name))))
-      (format "Failed to edited %s" file-path))))
+  (load (locate-user-emacs-file "lisp/chatgpt.el"))
+  (load (locate-user-emacs-file "lisp/gptel-settings.el")))
 (use-package gptel-fn-complete :ensure t :after gptel)
 
+(defun gptel-get-cursorrules ()
+  (interactive)
+  (let ((default-directory (project-root (project-current)))
+        (f ".cursorrules"))
+    (when (file-exists-p f)
+      (setq-local gptel--system-message (concat
+                                         (with-temp-buffer
+                                           (insert-file-contents f)
+                                           (buffer-string))
+                                         gptel--system-message)))))
 (use-package pomm
   :defer t
   :custom ((pomm-audio-enabled t))
@@ -2872,6 +2640,15 @@ Only use this when explicitly told to."
   (setq ts-query-highlight-dabbrev-expand-function nil))
 
 (defun ts-get-python-functions ()
-  (treesit-query-capture (treesit-buffer-root-node) '((function_definition name: (_) @def
-                                                                           parameters: (parameters (typed_parameter (_) @arg_id type: (_) @type)
-                                                                                                   (typed_default_parameter name: (_) @arg_id type: (_) @type))) @dec) (point)))
+  (treesit-query-capture (treesit-buffer-root-node)
+                         '((function_definition name: (_) @def
+                                                parameters: (parameters (typed_parameter (_) @arg_id type: (_) @type)
+                                                                        (typed_default_parameter name: (_) @arg_id type: (_) @type)))
+                           @dec)
+                         (point)))
+
+(use-package claude-code-ide
+  :vc (:url "https://github.com/manzaltu/claude-code-ide.el" :rev :newest)
+  :bind ("C-'" . claude-code-ide-menu) ; Set your favorite keybinding
+  :config
+  (claude-code-ide-emacs-tools-setup)) ; Optionally enable Emacs MCP tools

@@ -8,13 +8,41 @@
   :host "openrouter.ai"
   :endpoint "/api/v1/chat/completions"
   :stream t
-  :key "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"
-  :models '(deepseek/deepseek-r1:free
+  :key (gptel-api-key-from-auth-source "openrouter.ai")
+  :models '(baidu/ernie-4.5-300b-a47b
+            deepseek/deepseek-r1:free
             mistralai/devstral-small:free
             deepseek/deepseek-chat-v3-0324:free
             mistralai/devstral-small
             meta-llama/llama-4-maverick
-            google/gemini-2.5-pro-preview))
+            (google/gemini-2.5-pro-preview
+             :description "Most powerful Gemini thinking model with state-of-the-art performance"
+             :capabilities (tool-use json media)
+             :mime-types ("image/png" "image/jpeg" "image/webp" "image/heic" "image/heif"
+                          "application/pdf" "text/plain" "text/csv" "text/html")
+             :context-window 1048 ; 65536 output token limit
+             :input-cost 1.25 ; 2.50 for >200k tokens
+             :output-cost 10.00 ; 15 for >200k tokens
+             :cutoff-date "2025-01")
+            google/gemini-2.5-pro
+            (google/gemini-2.5-flash-preview-05-20
+             :description "Best Gemini model in terms of price-performance, offering well-rounded capabilities"
+             :capabilities (tool-use json media)
+             :mime-types ("image/png" "image/jpeg" "image/webp" "image/heic" "image/heif"
+                          "application/pdf" "text/plain" "text/csv" "text/html")
+             :context-window 1048 ; 65536 output token limit
+             :input-cost 0.15
+             :output-cost 0.60 ; 3.50 for thinking
+             :cutoff-date "2025-01")
+            (anthropic/claude-sonnet-4
+             :description "High-performance model with exceptional reasoning and efficiency"
+             :capabilities (media tool-use cache)
+             :mime-types ("image/jpeg" "image/png" "image/gif" "image/webp" "application/pdf")
+             :context-window 200
+             :input-cost 3
+             :output-cost 15
+             :cutoff-date "2025-03")
+            ))
 (setf (alist-get 'org-mode gptel-prompt-prefix-alist) "*** ")
 (setf (alist-get 'org-mode gptel-response-prefix-alist) "@assistant\n")
 (defun get-first-line-as-string (filename)
@@ -47,7 +75,8 @@ The link would look like
 Links to websites simply contain the url
 e.g. [[https://google.com]]
 ")
-        (writing     . "You are a Professional Writer assisting me with my writing. Respond concisely.")))
+        (writing     . "You are a Professional Writer assisting me with my writing. Respond concisely.")
+        (code-completion . "You are a large language model living in Emacs I want you to provide only the code implementing what the code comment before indicates it wants. Do not insert any markdown code blocks. You can add code comments as needed")))
 
 (setopt gptel-directives (mapcar (lambda (d)
                                    (cons (car d)
@@ -78,22 +107,22 @@ e.g. [[https://google.com]]
                                            (:type string :description "The new-string to replace old-string.")))
                             :description "The list of edits to apply on the file"))
         :category "filesystem")
-       (gptel-make-tool
-        :function (lambda (file &optional linenumber)
-                    (with-temp-message (format "Displaying File %s on line %s" file linenumber)
-                      (with-current-buffer (get-file-buffer file)
-                        (switch-to-buffer-other-window (current-buffer))
-                        (goto-line linenumber))))
-        :name "show_file"
-        :description "Display a file to the user"
-        :args (list '( :name "file"
-                       :type string
-                       :description "The file to display to the user")
-                    '( :name "line_number"
-                       :type integer
-                       :description "the line number to display if available"
-                       :optional t))
-        :category "filesystem")
+       ;; (gptel-make-tool
+       ;;  :function (lambda (file &optional linenumber)
+       ;;              (with-temp-message (format "Displaying File %s on line %s" file linenumber)
+       ;;                (with-current-buffer (get-file-buffer file)
+       ;;                  (switch-to-buffer-other-window (current-buffer))
+       ;;                  (goto-line linenumber))))
+       ;;  :name "show_file"
+       ;;  :description "Display a file to the user"
+       ;;  :args (list '( :name "file"
+       ;;                 :type string
+       ;;                 :description "The file to display to the user")
+       ;;              '( :name "line_number"
+       ;;                 :type integer
+       ;;                 :description "the line number to display if available"
+       ;;                 :optional t))
+       ;;  :category "filesystem")
        (gptel-make-tool
         :function (lambda (buffer)
                     (with-temp-message (format "Reading Buffer %s" buffer)
@@ -101,23 +130,23 @@ e.g. [[https://google.com]]
                         (buffer-string))))
         :name "read_buffer"
         :description (concat "Read the contents of an emacs buffer."
-                             "Use this as a last resort as it ")
+                             "Use this as a last resort as it is very expensive")
         :args (list '( :name "buffer"
                        :type string
                        :description "The name of the emacs buffer to read the contents of. "))
         :category "buffers")
-       (gptel-make-tool
-        :function (lambda ()
-                    (with-temp-message "Getting Compilation Buffer Contents"
-                      (let ((compilation-buffer-name-function
-                             (or project-compilation-buffer-name-function
-                                 compilation-buffer-name-function)))
-                        (with-current-buffer (get-buffer (compilation-find-buffer))
-                          (buffer-string)))))
-        :name "get_compilation_errors"
-        :description (concat "Return the contents of the compilation or test errors.")
-        :args nil
-        :category "errors")
+       ;; (gptel-make-tool
+       ;;  :function (lambda ()
+       ;;              (with-temp-message "Getting Compilation Buffer Contents"
+       ;;                (let ((compilation-buffer-name-function
+       ;;                       (or project-compilation-buffer-name-function
+       ;;                           compilation-buffer-name-function)))
+       ;;                  (with-current-buffer (get-buffer (compilation-find-buffer))
+       ;;                    (buffer-string)))))
+       ;;  :name "get_compilation_errors"
+       ;;  :description (concat "Return the contents of the compilation or test errors.")
+       ;;  :args nil
+       ;;  :category "errors")
        (gptel-make-tool
         :function (lambda ()
                     (with-temp-message "Listing Project Buffers"

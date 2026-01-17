@@ -88,6 +88,7 @@
             (sequence "BACKLOG(b)" "ACTIVE(a)"
                       "REVIEW(r)" "WAIT(w@/!)" "HOLD(h)"
                       "|" "DELEGATED(D)" "CANCELLED(c)")))
+  (setopt org-catch-invisible-edits 'show-and-error)
   :config
   (defun my/org-draw-on-code ()
     (interactive)
@@ -363,9 +364,8 @@
   :config
   ;; For exporting to markdown
   (require 'ox-md)
-  (require 'ox-org)
-  ;; Make sure we get syntax highlighting in for pdf's
-  )
+  (require 'ox-org))
+;; Make sure we get syntax highlighting in for pdf's
 (use-package engrave-faces
   :ensure t
   :after ox-latex
@@ -401,9 +401,9 @@
              "* RESEARCHING %?\n %? %a\n")
 
             ("g" "Gift")
-            ("gs" "Gift For Seren" checkitem
+            ("gs" "Gift For Seren" table-line
              (file+headline (lambda () (concat org-directory "/archive.org")) "Gifts for Seren")
-             nil
+             "| %? | %^{Price} | [ ] |"
              :jump-to-captured t)
             ("gw" "Wish List" checkitem
              (file+headline (lambda () (concat org-directory "/site/wishlist.org")) "Wish list")
@@ -520,7 +520,8 @@
   :custom ((org-modern-todo t)
            (org-modern-table nil)
            (org-modern-variable-pitch nil)
-           (org-modern-block-fringe nil))
+           (org-modern-block-fringe nil)
+           (org-modern-star 'replace))
   :commands (org-modern-mode org-modern-agenda)
   :init (global-org-modern-mode))
 
@@ -664,11 +665,12 @@
   (require 'fontaine)
   (defun my/org-set-levels (levels)
     (dolist (face levels)
-      (set-face-attribute (car face) nil
-                          :font (plist-get (fontaine--get-preset-properties fontaine-current-preset) :default-family)
-                          ;; ;; :foreground "#fff"
-                          :weight (cl-second face)
-                          :height (cl-third face))))
+      ;; (set-face-attribute (car face) nil
+      ;;                     :font (plist-get (fontaine--get-preset-properties fontaine-current-preset) :default-family)
+      ;;                     ;; ;; :foreground "#fff"
+      ;;                     :weight (cl-second face)
+      ;;                     :height (cl-third face))
+      ))
   (defun my/org-present-setup ()
     ;; Font Stuff
     (setq-local org-present-last-fontaine-preset fontaine-current-preset)

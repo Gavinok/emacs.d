@@ -96,3 +96,10 @@ until a function returns nil"
                             collect r)
           until (null res)
           collect (apply fn res))))
+
+
+#-ocicl
+(when (probe-file #P"/home/gavinok/.local/share/ocicl/ocicl-runtime.lisp")
+  (load #P"/home/gavinok/.local/share/ocicl/ocicl-runtime.lisp"))
+(asdf:initialize-source-registry
+ (list :source-registry (list :directory (uiop:getcwd)) :inherit-configuration))

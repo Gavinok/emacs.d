@@ -70,6 +70,9 @@
 	       process-environment))
   )
 
+(defun mason--npm-package-path (package)
+  (file-name-concat mason--npm-dir package))
+
 (defun mason-reset-paths ()
   "Remove any modifications to the current buffer's local variable `exec-path'."
   (interactive)
