@@ -1,4 +1,13 @@
 ;;; EMAIL
+;; Force local mu build over system install
+;; (let ((local-mu4e "/home/gavinok/code/other/mu/_build/mu4e")
+;;       (local-mu   "/home/gavinok/code/other/mu/_build/mu/mu"))
+;;   (when (file-directory-p local-mu4e)
+;;     (add-to-list 'load-path local-mu4e)
+;;     (dolist (f '("mu4e-config" "mu4e-search" "mu4e-server" "mu4e-headers"))
+;;       (load (expand-file-name (concat f ".elc") local-mu4e) nil t t)))
+;;   (when (file-executable-p local-mu)
+;;     (setq mu4e-mu-binary local-mu)))
 ;;;; Org In Emails
 (use-package org-mime
   :ensure t
@@ -146,8 +155,15 @@ There are COUNT hidden and UNREAD messages overall."
    mu4e-headers-calendar-mark  '("c" . "📅"))
   (setq mu4e-search-sort-field :date)
   (setq mu4e-search-threads t)
+  (setq mu4e-search-threads-reverse t)
+  (setq mu4e-headers-thread-first-child-prefix (default-value mu4e-headers-thread-first-child-prefix)
+        mu4e-headers-thread-last-child-prefix  (default-value mu4e-headers-thread-last-child-prefix))
   (setopt mu4e-headers-visible-flags '(new flagged))
   (setq mu4e-headers-fields '((:flags         .    6)
                               (:from-or-to    .   22)
                               (:subject       .   70)
                               (:human-date    .   nil))))
+
+(use-package mu4e-column-faces
+  :after mu4e
+  :config (mu4e-column-faces-mode))

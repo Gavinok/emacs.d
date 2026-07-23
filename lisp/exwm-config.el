@@ -1,4 +1,4 @@
-;;; /home/gavinok/.emacs.d/lisp/exwm-config.el -- My exwm config -*- lexical-binding: t; 
+;;; /home/gavinok/.emacs.d/lisp/exwm-config.el -- My exwm config -*- lexical-binding: t;
 ;;; Commentary:
 ;;; Code:
 
@@ -7,7 +7,7 @@
   :ensure t
   :init
   (setopt exwm-manage-force-tiling t)
-  (setopt exwm-workspace-number 2
+  (setopt exwm-workspace-number 1
           mouse-autoselect-window t
           focus-follows-mouse t)
   :config
@@ -68,6 +68,8 @@ back to switching frames."
              collect `(cons (kbd ,key) . (quote ,func))))
   (keymap-global-set "s-j" 'other-window)
   (keymap-global-set "s-k" 'other-other-window)
+  (keymap-global-set "s-l" 'tab-bar-switch-to-next-tab)
+  (keymap-global-set "s-h" 'tab-bar-switch-to-prev-tab)
   (defun exwm-dmenu (command)
     (interactive (list (read-shell-command "λ ")))
     (start-process-shell-command command nil command))
@@ -91,8 +93,8 @@ back to switching frames."
   (setq exwm-input-global-keys
         ;; Window Managment
         `((,(kbd "s-SPC")   . ,(my/exwm-run "cabl -c"))
-          ([?\s-h]          . ,(my/window-switch left))
-          ([?\s-l]          . ,(my/window-switch right))
+          ([?\s-h]          . tab-bar-switch-to-next-tab)
+          ([?\s-l]          . tab-bar-switch-to-prev-tab)
           ([?\s-j]          . other-window)
           ([?\s-k]          . other-other-window)
           (,(kbd "s-H")     . windmove-swap-states-left)
@@ -129,46 +131,22 @@ back to switching frames."
           ([?\s-g] . exwm-workspace-switch)))
   (keymap-set exwm-mode-map "C-q" 'exwm-input-send-next-key)
 
+  (defun my/set-dedicated-window (&optional arg)
+    (interactive "p")
+    (set-window-dedicated-p nil (not (< 1 arg))))
+  (keymap-global-set "C-x w d" 'my/set-dedicated-window)
+  (keymap-global-set "s-p" (my/exwm-run "clipmenu"))
+  (keymap-set exwm-mode-map "M-y" (my/exwm-run "clipmenu"))
   (require 'exwm)
   ;; Ensure that we can pass C-c and C-x through to programs
   (exwm-input--set-simulation-keys `((,(kbd "C-x C-x") . ,(kbd "C-x"))
                                      (,(kbd "C-c C-c") . ,(kbd "C-c"))))
 
-  
+
   ;; Start EXWM
   ;; Start Programs For EXWM
-  (exwm-enable))
+  (exwm-wm-mode))
 
-(with-eval-after-load 'corfu
-  (defun get-focused-monitor-geometry ()
-    "Get the geometry of the monitor displaying the selected frame in EXWM."
-    (let* ((monitor-attrs (frame-monitor-attributes))
-           (workarea (assoc 'workarea monitor-attrs))
-           (geometry (cdr workarea)))
-      (list (nth 0 geometry) ; X
-            (nth 1 geometry) ; Y
-            (nth 2 geometry) ; Width
-            (nth 3 geometry) ; Height
-            )))
-  (defun advise-corfu-make-frame-with-monitor-awareness (orig-fun frame x y width height buffer)
-    "Advise `corfu--make-frame` to be monitor-aware, adjusting X and
-Y according to the focused monitor."
-
-    ;; Get the geometry of the currently focused monitor
-    (let* ((monitor-geometry (get-focused-monitor-geometry))
-           (monitor-x (nth 0 monitor-geometry))
-           (monitor-y (nth 1 monitor-geometry))
-           ;; You may want to adjust the logic below if you have specific preferences
-           ;; on where on the monitor the posframe should appear.
-           ;; Currently, it places the posframe at its intended X and Y, but ensures
-           ;; it's within the bounds of the focused monitor.
-           (new-x (+ monitor-x x))
-           (new-y (+ monitor-y y)))
-
-      ;; Call the original function with potentially adjusted coordinates
-      (funcall orig-fun frame new-x new-y width height buffer)))
-
-  (advice-add 'corfu--make-frame :around #'advise-corfu-make-frame-with-monitor-awareness))
 
 ;; Broken on current version of emacs
 ;; (use-package exwm-systemtray
@@ -181,25 +159,25 @@ Y according to the focused monitor."
 ;;   (start-process-shell-command "kdeconnect-indicator " nil "kdeconnect-indicator")
 ;;   (setq exwm-systemtray-height 23))
 
-(use-package exwm-randr
-  :ensure nil
-  :demand t
-  :config
-  (setopt exwm-randr-workspace-monitor-plist '(1 "DVI-I-1-1"))
-  (defun exwm-randr-setup ()
-    (lambda ()
-      (start-process-shell-command
-       "xrandr" nil "xrandr --output eDP1 --primary --auto --right-of DVI-I-1-1 --auto")))
+;; (use-package exwm-randr
+;;   :ensure nil
+;;   :demand t
+;;   :config
+;;   (setopt exwm-randr-workspace-monitor-plist '(1 "DVI-I-1-1"))
+;;   (defun exwm-randr-setup ()
+;;     (lambda ()
+;;       (start-process-shell-command
+;;        "xrandr" nil "xrandr --output eDP1 --primary --auto --right-of DVI-I-1-1 --auto")))
 
 
-  ;;   (setopt exwm-randr-workspace-monitor-plist '(1 "dp2-1" 3 "dp2-3"))
-  ;;   (defun exwm-randr-setup ()
-  ;;     (lambda ()
-  ;;       (start-process-shell-command
-  ;;        "xrandr" nil "xrandr --output edp1 --primary --mode 1920x1080 --pos 1920x0 --rotate normal --output dp1 --off --output dp2 --off --output dp2-1 --mode 1920x1080 --pos 0x0 --rotate normal --output dp2-2 --off --output dp2-3 --mode 1920x1080 --pos 3840x0 --rotate normal --output hdmi1 --off --output hdmi2 --off --output virtual1 --off --output dvi-i-1-1 --off
-  ;; ")))
-  (add-hook 'exwm-randr-screen-change-hook 'exwm-randr-setup)
-  (exwm-randr-enable))
+;;   ;;   (setopt exwm-randr-workspace-monitor-plist '(1 "dp2-1" 3 "dp2-3"))
+;;   ;;   (defun exwm-randr-setup ()
+;;   ;;     (lambda ()
+;;   ;;       (start-process-shell-command
+;;   ;;        "xrandr" nil "xrandr --output edp1 --primary --mode 1920x1080 --pos 1920x0 --rotate normal --output dp1 --off --output dp2 --off --output dp2-1 --mode 1920x1080 --pos 0x0 --rotate normal --output dp2-2 --off --output dp2-3 --mode 1920x1080 --pos 3840x0 --rotate normal --output hdmi1 --off --output hdmi2 --off --output virtual1 --off --output dvi-i-1-1 --off
+;;   ;; ")))
+;;   (add-hook 'exwm-randr-screen-change-hook 'exwm-randr-setup)
+;;   (exwm-randr-enable))
 
 ;;; Streaming
 ;; Needs OBS-Websockets Plugin
@@ -249,4 +227,3 @@ Y according to the focused monitor."
   (window-divider-mode 1))
 
 ;;; exwm-config.el ends here
-

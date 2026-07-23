@@ -4,36 +4,23 @@
 (gptel-make-gemini "Gemini"
   :key (gptel-api-key-from-auth-source "generativelanguage.googleapis.com")
   :stream t)
+(gptel-make-ollama "Ollama"             ;Any name of your choosing
+  :host "localhost:11434"               ;Where it's running
+  :stream t                             ;Stream responses
+  :models '(phi3:latest))          ;List of models
 (gptel-make-openai "OpenRouter"               ;Any name you want
   :host "openrouter.ai"
   :endpoint "/api/v1/chat/completions"
   :stream t
-  :key (gptel-api-key-from-auth-source "openrouter.ai")
+  :key (nth 0 (process-lines "pass" "show" "openrouter"))
   :models '(baidu/ernie-4.5-300b-a47b
             deepseek/deepseek-r1:free
             mistralai/devstral-small:free
             deepseek/deepseek-chat-v3-0324:free
+            deepseek/deepseek-v4-flash
+            deepseek/deepseek-v4-pro
             mistralai/devstral-small
             meta-llama/llama-4-maverick
-            (google/gemini-2.5-pro-preview
-             :description "Most powerful Gemini thinking model with state-of-the-art performance"
-             :capabilities (tool-use json media)
-             :mime-types ("image/png" "image/jpeg" "image/webp" "image/heic" "image/heif"
-                          "application/pdf" "text/plain" "text/csv" "text/html")
-             :context-window 1048 ; 65536 output token limit
-             :input-cost 1.25 ; 2.50 for >200k tokens
-             :output-cost 10.00 ; 15 for >200k tokens
-             :cutoff-date "2025-01")
-            google/gemini-2.5-pro
-            (google/gemini-2.5-flash-preview-05-20
-             :description "Best Gemini model in terms of price-performance, offering well-rounded capabilities"
-             :capabilities (tool-use json media)
-             :mime-types ("image/png" "image/jpeg" "image/webp" "image/heic" "image/heif"
-                          "application/pdf" "text/plain" "text/csv" "text/html")
-             :context-window 1048 ; 65536 output token limit
-             :input-cost 0.15
-             :output-cost 0.60 ; 3.50 for thinking
-             :cutoff-date "2025-01")
             (anthropic/claude-sonnet-4
              :description "High-performance model with exceptional reasoning and efficiency"
              :capabilities (media tool-use cache)

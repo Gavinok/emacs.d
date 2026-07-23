@@ -66,15 +66,24 @@
 (setq use-package-verbose t
       native-comp-async-report-warnings-errors nil)
 
-;; Install and load `quelpa-use-package'.
-(setq quelpa-update-melpa-p nil)
-(package-install 'quelpa-use-package)
-(require 'quelpa-use-package)
-
 ;; Keep custom-set-variables and friends out of my init.el
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (when (file-exists-p custom-file)
   (load custom-file))
+
+(defun my/package-upgrade-all-with-backup ()
+  "Back up elpa/ then refresh package contents and upgrade all packages."
+  (interactive)
+  (let* ((elpa-dir (expand-file-name "elpa" user-emacs-directory))
+         (backup-dir (expand-file-name "elpa-backup" user-emacs-directory)))
+    (when (file-directory-p backup-dir)
+      (delete-directory backup-dir t))
+    (message "Backing up elpa to %s..." backup-dir)
+    (copy-directory elpa-dir backup-dir nil t t)
+    (message "Backup complete. Refreshing package contents...")
+    (package-refresh-contents)
+    (package-upgrade-all)
+    (message "Upgrade complete. Backup preserved at %s" backup-dir)))
 
 ;;; ASYNC
 ;; Emacs look SIGNIFICANTLY less often which is a good thing.
@@ -340,6 +349,14 @@ Depends on the `gh' commandline tool"
          ("C-S-z"   . undo-redo))
   :config (global-undo-fu-session-mode))
 
+(use-package proced
+  :ensure nil
+  :commands (proced)
+  :config
+  (setopt proced-auto-update-flag t
+          proced-auto-update-interval 3
+          proced-enable-color-flag t))
+
 (use-package emacs
   :ensure nil
   :demand t
@@ -390,9 +407,12 @@ Depends on the `gh' commandline tool"
                 #b01000000 #b10000000 #b10000000])
 
 ;;;; Defaults
+  ;; Defer fontification until you stop typing. Scrolling and typing may feel smoother.
+  (setopt redisplay-skip-fontification-on-input t)
   ;; Handle long lines
-  (setopt bidi-paragraph-direction 'left-to-right)
-  (setopt bidi-inhibit-bpa t)
+  (setopt bidi-display-reordering 'left-to-right
+          bidi-paragraph-direction 'left-to-right
+          bidi-inhibit-bpa t)
   (global-so-long-mode 1)
 
   (setopt history-length 1000
@@ -424,6 +444,13 @@ Depends on the `gh' commandline tool"
   ;;TRAMP
   (setq tramp-default-method "ssh"
         shell-file-name "bash")         ; don't use zsh
+
+  (use-package tramp-rpc
+    :after tramp
+    :ensure nil
+    :vc (:url "https://github.com/ArthurHeymans/emacs-tramp-rpc"
+              :rev :newest
+              :lisp-dir "lisp"))
 
   ;; For using local lsp's with tramp
   ;; (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
@@ -497,7 +524,7 @@ Depends on the `gh' commandline tool"
           (json "https://github.com/tree-sitter/tree-sitter-json")
           (make "https://github.com/alemuller/tree-sitter-make")
           (markdown "https://github.com/ikatyang/tree-sitter-markdown")
-          (python "https://github.com/tree-sitter/tree-sitter-python")
+          (python "https://github.com/tree-sitter/tree-sitter-python" "v0.23.6")
           (toml "https://github.com/tree-sitter/tree-sitter-toml")
           (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
           (typescript "https://github.com/tree-sitter/tree-sitter-typescript"
@@ -534,10 +561,11 @@ Depends on the `gh' commandline tool"
   :bind (("C-x w v" . crux-swap-windows)
          ("C-S-o"   . crux-smart-open-line-above)
          ("C-o"     . crux-smart-open-line)
-         ("C-x B"   . my/org-scratch)
+         ("C-x B"   . remember)
          :map dired-mode-map
          ("O" . crux-open-with))
   :config
+  (setopt remember-notes-initial-major-mode 'org-mode)
   (defun my/org-scratch ()
     (interactive)
     (let ((initial-major-mode 'org-mode))
@@ -548,6 +576,7 @@ Depends on the `gh' commandline tool"
   :bind (("M-SPC" . cycle-spacing)))
 ;;; TERMINAL SETTINGS
 (when my/is-terminal
+  
   (progn (set-face-background 'default "undefinded")
          (add-to-list 'term-file-aliases
                       '("st-256color" . "xterm-256color"))
@@ -748,7 +777,54 @@ If given, use INITIAL as the starting point of the query."
          ("U"    . 0x0-upload-file)
          :map embark-region-map
          ("U"    . 0x0-dwim))
-  :commands (0x0-dwim 0x0-upload-file))
+  :commands (0x0-dwim 0x0-upload-file)
+  :custom
+  (0x0-default-server 'envs)
+  :config
+  (defun 0x0--make-litterbox-curl-args (server file-name &optional bounded)
+    "Create litterbox.catbox.moe curl arguments.
+
+    The API endpoint is: https://litterbox.catbox.moe/resources/internals/api.php
+    Required form fields:
+      - reqtype: fileupload (fixed)
+      - time: 1h, 12h, 24h, 72h (we'll use 1h)
+      - fileToUpload: @filename"
+    (let ((q-string (if bounded
+                        "fileToUpload=@-"
+                      (format "fileToUpload=@%s" file-name))))
+      (list "-s" "-S"
+            "-F" "reqtype=fileupload"
+            "-F" "time=72h"
+            "-F" q-string
+            (0x0--make-server-host-uri server))))
+  ;; Custom response handler for litterbox
+  (defun 0x0--handle-resp (server size resp)
+    "Handle litterbox.catbox.moe response.
+    Litterbox returns just the plain URL, not prefixed with server host."
+    (with-current-buffer resp
+      (goto-char (point-min))
+      (save-match-data
+        ;; Litterbox returns just the URL on its own line
+        ;; e.g., "https://litter.catbox.moe/4g71z0.png"
+        (unless (search-forward-regexp "^https?://[^[:space:]\n]+" nil t)
+          (error "Failed to upload/parse. see %s for more details"
+                 (buffer-name (current-buffer))))
+        (let ((url (match-string 0)))
+          (kill-new url)
+          (message "Uploaded to: %s (copied to clipboard)" url)
+          (prog1 url
+            (kill-buffer (current-buffer)))))))
+  (setq 0x0-servers
+        (add-to-list '0x0-servers
+                     `(litterbox
+                       :scheme "https"
+                       :host "litterbox.catbox.moe/resources/internals/api.php"
+                       :default-dir "~/Desktop"
+                       :curl-args-fun 0x0--make-litterbox-curl-args
+                       :min-age 1
+                       :max-age 3
+                       :max-size ,(* 1024 1024 200))))
+  (setq 0x0-default-server litterbox))
 
 (use-package completion-preview
   :demand t
@@ -854,27 +930,24 @@ If given, use INITIAL as the starting point of the query."
   (eglot-tempel-mode t))
 
 ;;; Themeing
-(use-package spaceway-theme
-  :ensure nil
-  :load-path "lisp/spaceway/"
-  :config
-  (global-hl-line-mode t)
-  (set-frame-parameter nil 'cursor-color "#dc322f")
-  (add-to-list 'default-frame-alist '(cursor-color . "#dc322f"))
+;; (use-package spaceway-theme
+;;   :ensure nil
+;;   :load-path "lisp/spaceway/"
+;;   :config
+;;   (global-hl-line-mode t)
+;;   (set-frame-parameter nil 'cursor-color "#dc322f")
+;;   (add-to-list 'default-frame-alist '(cursor-color . "#dc322f"))
 
-  (when my/my-system
-    (set-frame-parameter nil 'alpha-background 100)
-    (add-to-list 'default-frame-alist '(alpha-background . 100)))
+;;   (when my/my-system
+;;     (set-frame-parameter nil 'alpha-background 100)
+;;     (add-to-list 'default-frame-alist '(alpha-background . 100)))
 
-  (load-theme 'spaceway t)
-  (setenv "SCHEME" "dark"))
-(use-package spacious-padding
-  :ensure t
-  :hook (after-init . spacious-padding-mode)
-  :custom
-  ;; make the modeline look minimal
-  (spacious-padding-subtle-mode-line '( :mode-line-active default
-                                        :mode-line-inactive vertical-border)))
+;;   (load-theme 'spaceway t)
+;;   (setenv "SCHEME" "dark"))
+
+(load-theme 'modus-operandi-tinted)
+;; (set-face-foreground 'mu4e-thread-fold-face "black")
+
 
 ;;; WRITING
 (use-package writegood-mode
@@ -901,11 +974,19 @@ If given, use INITIAL as the starting point of the query."
        "lisp/org-config.el"))
 
 ;;; Email
-(let ((f "/usr/share/emacs/site-lisp/mu4e/"))
-  (add-to-list 'load-path f)
-  (when (file-exists-p f)
-    (load (locate-user-emacs-file
-           "lisp/mu4e-config.el"))))
+;; (let ((f (let ((local "/home/gavinok/code/other/mu/_build/mu4e"))
+;;            (if (file-directory-p local) local
+;;              "/usr/share/emacs/site-lisp/mu4e/"))))
+;;   (add-to-list 'load-path f)
+;;   (setq mu4e-mu-binary
+;;         (let ((local "/home/gavinok/code/other/mu/_build/mu/mu"))
+;;           (if (file-executable-p local) local
+;;             "/usr/bin/mu")))
+;;   (when (file-exists-p f)
+;;     (load (locate-user-emacs-file
+;;            "lisp/mu4e-config.el"))))
+(load (locate-user-emacs-file
+       "lisp/mu4e-config.el"))
 ;;; Git
 (use-package magit
   :bind (("C-x v SPC" . magit-status)
@@ -919,7 +1000,8 @@ If given, use INITIAL as the starting point of the query."
     :bind (:map git-commit-mode-map
                 ("C-h TAB" . chatgpt-generate-commit-message))
     :init
-    (require 'gptel))
+    (require 'gptel)
+    (load (locate-user-emacs-file "lisp/chatgpt.el")))
   (add-to-list 'project-switch-commands '(project-magit "Magit" m))
   (defun project-magit  ()
     (interactive)
@@ -1024,7 +1106,7 @@ If given, use INITIAL as the starting point of the query."
          ("d"   . project-dired)
          ("g"   . consult-ripgrep)
          ("M-s" . project-find-file)
-         ("C"   . gptel-project)
+         ("C"   . agent-shell-project)
          ("C-g" . ignore))
   :init
   (setopt project-switch-commands
@@ -1034,7 +1116,7 @@ If given, use INITIAL as the starting point of the query."
             (project-compile "Compile")
             (consult-ripgrep "Find Regex")
             (eat-project "Terminal")
-            (gptel-project "ChatGPT")
+            (agent-shell-project "Agent Shell")
             (project-query-replace-regexp "Find & Replace")
             (ignore ""))
           project-compilation-buffer-name-function 'project-prefixed-buffer-name)
@@ -1058,14 +1140,20 @@ If given, use INITIAL as the starting point of the query."
             "package.clj" "package.json"
             "Project.toml" ".project"
             "Cargo.toml""mix.exs" "qlfile" ".git"))
-  (defun gptel-project ()
+  ;; (defun agent-shell-project ()
+  ;;   "Open the ChatGPT file for the current project."
+  ;;   (interactive)
+  ;;   (let ((default-directory (or (project-root (project-current))
+  ;;                                default-directory)))
+  ;;     (find-file "Chat.org")
+  ;;     (require 'gptel)
+  ;;     (unless gptel-mode (gptel-mode 1))))
+  (defun agent-shell-project ()
     "Open the ChatGPT file for the current project."
     (interactive)
     (let ((default-directory (or (project-root (project-current))
                                  default-directory)))
-      (find-file "Chat.org")
-      (require 'gptel)
-      (unless gptel-mode (gptel-mode 1))))
+      (call-interactively 'agent-shell)))
   ;; Override project.el backends for specific directories
   ;;   (defvar my/overrided-project '("~/test/"))
 
@@ -1164,7 +1252,7 @@ If given, use INITIAL as the starting point of the query."
   :bind ("C-x C-b" . ibuffer)
   :init
   (setq ibuffer-expert t)
-  (setq ibuffer-show-empty-filter-groups nil)
+  (setopt ibuffer-show-empty-filter-groups nil)
 
   ;; Modify the default ibuffer-formats
   (setopt ibuffer-formats
@@ -1192,7 +1280,8 @@ If given, use INITIAL as the starting point of the query."
              ("Browser" (mode . eaf-mode))
              ("Ement" (name . "*Ement *"))
              ("Org" (or (mode . org-mode)
-                        (filename . "OrgMode"))))))
+                        (filename . "OrgMode")))
+             ("Agents" (mode . agent-shell-mode)))))
   (add-hook 'ibuffer-mode-hook
             (lambda ()
               (ibuffer-switch-to-saved-filter-groups "home"))))
@@ -1239,7 +1328,39 @@ If given, use INITIAL as the starting point of the query."
   :custom (find-file-visit-truename t)
   :init
   ;; Save my spot when I jump to another file
-  (advice-add 'ffap :before #'push-mark))
+  (advice-add 'ffap :before #'push-mark)
+  ;;
+  ;; have ffap pick up line number and goto-line
+  ;; found on emacswiki : https://www.emacswiki.org/emacs/FindFileAtPoint#h5o-6
+  ;;
+  (defvar ffap-file-at-point-line-number t
+    "Variable to hold line number from the last `ffap-file-at-point' call.")
+
+  (defadvice ffap-file-at-point (after ffap-store-line-number activate)
+    "Search `ffap-string-at-point' for a line number pattern and
+    save it in `ffap-file-at-point-line-number' variable."
+    (let* ((string (ffap-string-at-point)) ;; string/name definition copied from `ffap-string-at-point'
+           (name
+            (or (condition-case nil
+                    (and (not (string-match "//" string)) ; foo.com://bar
+                         (substitute-in-file-name string))
+                  (error nil))
+                string))
+           (line-number-string
+            (and (string-match ":[0-9]+" name)
+                 (substring name (1+ (match-beginning 0)) (match-end 0))))
+           (line-number
+            (and line-number-string
+                 (string-to-number line-number-string))))
+      (if (and line-number (> line-number 0))
+          (setq ffap-file-at-point-line-number line-number)
+        (setq ffap-file-at-point-line-number nil))))
+
+  (defadvice find-file-at-point (after ffap-goto-line-number activate)
+    "If `ffap-file-at-point-line-number' is non-nil goto this line."
+    (when ffap-file-at-point-line-number
+      (goto-line ffap-file-at-point-line-number)
+      (setq ffap-file-at-point-line-number nil))))
 
 ;;; popup window managment
 (use-package popper
@@ -1263,6 +1384,7 @@ If given, use INITIAL as the starting point of the query."
             "\\*Dtache Shell Command\\*"
             "\\*mu4e-update\\*"
             "\\*GDB.*out\\*"
+            "*PULSEMIXER*"
             help-mode))
   (setopt popper-display-control t)
   (popper-mode +1))
@@ -1450,7 +1572,7 @@ If given, use INITIAL as the starting point of the query."
     :init
     (add-to-list 'major-mode-remap-alist '(go-mode . go-ts-mode)))
   (use-package python
-    :mode "\\.py\\'"
+    :mode ("\\.py\\'" . python-ts-mode)
     :hook ((python-ts-mode . prettify-symbols-mode))
     :init
     ;; (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
@@ -1621,7 +1743,8 @@ If given, use INITIAL as the starting point of the query."
   :ensure nil
   :when (getenv "NVM_DIR")
   :commands (my/nvm-use)
-  :quelpa (nvm :fetcher github :repo "rejeep/nvm.el")
+  :vc (:url "https://github.com/rejeep/nvm.el")
+
   :commands (nvm-use nvm-use-for-buffer my/nvm-use)
   :config
   (setq nvm-dir "/home/gavinok/.config/nvm")
@@ -1655,8 +1778,8 @@ If given, use INITIAL as the starting point of the query."
                                             (tsx-ts-mode :language-id "typescriptreact")
                                             (typescript-ts-mode :language-id "typescript")
                                             (typescript-mode :language-id "typescript"))
-                                           lspx --lsp "typescript-language-server --stdio" --lsp "tailwindcss-language-server --stdio" --lsp "eslint-lsp --stdio"
-                                           "typescript-language-server" "--stdio"))
+                                           "typescript-language-server" "--stdio" ;; "--lsp" "tailwindcss-language-server --stdio" --lsp "eslint-lsp --stdio"
+                                           ))
     ;; (add-to-list  'eglot-server-programs
     ;;               `((js-mode js-ts-mode tsx-ts-mode typescript-ts-mode typescript-mode)
     ;;                 .
@@ -1815,6 +1938,12 @@ If given, use INITIAL as the starting point of the query."
   :ensure t
   :commands (sly sly-connect)
   :init
+  (setq sly--use-container-slynk t)
+  (define-advice sly-slynk-path (:around (orig) docker-slynk-override)
+    (if sly--use-container-slynk "/slynk/" (funcall orig)))
+  (define-advice sly (:around (orig &optional command coding-system) docker-slynk-path)
+    (let ((sly--use-container-slynk (eq (or command sly-default-lisp) 'qlot-docker)))
+      (funcall orig command coding-system)))
   (setq sly-symbol-completion-mode nil
         sly-default-lisp 'roswell
         ros-config (locate-user-emacs-file
@@ -1826,14 +1955,20 @@ If given, use INITIAL as the starting point of the query."
           (roswell ("ros" "-Q" "-l" ,ros-config "run"))
           (qlot ("qlot" "exec" "ros" "-l" ,ros-config "run" "-S" ".")
                 :coding-system utf-8-unix)
-          (qlot-docker ("docker" "run" "-it" "-p" "4005:4005" "-v" "./:/app/" "fukamachi/qlot:latest"  "exec" "ros" "run" "-S" ".")
-                       :coding-system utf-8-unix)))
+          ;; (qlot-docker ("docker" "run" "-i" "--network" "host"
+          ;;               "-v" "./:/app/"
+          ;;               "-v" "/tmp/:/tmp/"
+          ;;               "-v" ,(concat (sly-slynk-path) ":/slynk/")
+          ;;               "fukamachi/qlot:latest" "exec" "ros" "run" "-S" ".")
+          ;;              :coding-system utf-8-unix)
+          ))
 
   (defun qlot-install (&optional dir)
     "Run qlot install in the current directory under docker"
+    (interactive)
     (let ((default-directory (or dir
                                  default-directory)))
-      (async-shell-command "docker run -it -v ./:/app/ fukamachi/qlot:latest install"))))
+      (async-shell-command "docker run -it -v ./:/app/ fukamachi/qlot:latest install && chmod -R 777 /app/.qlot"))))
 
 ;;;; Setup Folding For Programming
 (use-package puni
@@ -2054,6 +2189,7 @@ Used to see multiline flymake errors"
 
 ;;; PASS
 (use-package password-store
+  :functions (password-store-get)
   :ensure t
   :config (run-with-timer 3 nil (lambda () (epa-file-enable))))
 
@@ -2071,6 +2207,7 @@ Used to see multiline flymake errors"
   :commands tab-bar-mode
   :bind (:map tab-prefix-map
 	      ("P" . my/rename-tab-to-project))
+  :hook (exwm-init . tab-bar-mode)
   :config
   (defun my/rename-tab-to-project ()
     (interactive)
@@ -2107,7 +2244,7 @@ Used to see multiline flymake errors"
                          tab-bar-separator
                          tab-bar-format-add-tab
                          tab-bar-format-align-right
-                         my/fake-modeline
+                         ;; my/fake-modeline
                          tab-bar-separator
                          tab-bar-separator
                          tab-bar-org-clock
@@ -2169,9 +2306,15 @@ Used to see multiline flymake errors"
 (use-package winner
   :ensure nil
   :bind (("s-/" . winner-undo)
-         ("s-?" . winner-redo))
+         ("s-?" . winner-redo)
+         ("C-x 1" . my/delete-other-windows))
   :config
-  :init (winner-mode 1)) ; Window Managment Undo
+  :init (winner-mode 1)
+  (defun my/delete-other-windows (&optional window interactive)
+    (interactive "i\np")
+    (if (one-window-p)
+        (winner-undo)
+      (delete-other-windows window interactive)))) ; Window Managment Undo
 
 (use-package sqlite-mode-extras
   :ensure t
@@ -2221,7 +2364,10 @@ Used to see multiline flymake errors"
 ;;; IDE
 (use-package xref
   :ensure nil
-  :bind ("M-," . xref-go-back-forward)
+  :bind (("M-," . xref-go-back-forward)
+         :repeat-map xref-go-back-forward
+         ("," . xref-go-back)
+         ("." . xref-go-forward))
   :config
   (defun xref-go-back-forward (&optional arg)
     "Navigate the xref stack based on ARG.
@@ -2347,44 +2493,54 @@ current workspace."
      '(eglot-booster :url "https://github.com/jdtsmith/eglot-booster")))
   :config
   ;; tricks for improving performance
-  (setopt eglot-events-buffer-config '(:size nil :format full)
+  (setopt eglot-events-buffer-config '(:size 1000 :format full)
           eglot-autoshutdown t
           jsonrpc-event-hook nil
           ;; (list #'jsonrpc--log-event)
           )
 
-  ;; Install and setup lsp booster
-  (let ((emacs-lsp-booster-repo "https://github.com/blahgeek/emacs-lsp-booster")
-        (emacs-lsp-booster-dir (file-name-concat
-                                (expand-file-name user-emacs-directory)
-                                "emacs-lsp-booster")))
-    (if (file-directory-p emacs-lsp-booster-dir)
-        (push (file-name-concat emacs-lsp-booster-dir
-                                "target/release/")
-	      exec-path)
-      (progn
-        (require 'vc)
-        (vc-clone emacs-lsp-booster-repo 'Git emacs-lsp-booster-dir)
-        (let ((default-directory emacs-lsp-booster-dir))
-          (message "Building emacs-lsp-booster")
-          (make-process
-           :name "Building emacs-lsp-booster"
-           :buffer "*EMACS-LSP-BOOSTER-BUILD*"
-           :command (list "cargo" "build" "--release")
-           :sentinel
-           (lambda (process event)
-             ;; TODO switch to using `process-status' instead of `event'
-             (with-current-buffer (process-buffer process)
-	       (ansi-color-apply-on-region (point-min) (point-max)))
-             (pcase event
-	       ("finished\n"
-                (message "Installed emacs-lsp-booster")
-                (push (file-name-concat emacs-lsp-booster-dir "target/release/")
-		      exec-path))
 
-	       ((or "open from host-name\n" "open\n" "run\n"))
-	       (_ (error "Unhandled case %s for event from Building emacs-lsp-booster" event)))
-             ))))))
+  (defconst my/emacs-lsp-booster-repo "https://github.com/blahgeek/emacs-lsp-booster")
+  (defconst my/emacs-lsp-booster-dir (file-name-concat
+                                      (expand-file-name user-emacs-directory)
+                                      "emacs-lsp-booster"))
+
+  (defun my/setup-eglot-booster-path (&rest _args)
+    "setup paths for eglot-booster"
+    (let ((booster-bin-dir (file-name-concat my/emacs-lsp-booster-dir "target/release/")))
+      (add-to-list 'exec-path booster-bin-dir)
+      (setenv "PATH" (concat booster-bin-dir path-separator (getenv "PATH")))))
+
+  (with-eval-after-load 'mise
+    (advice-add 'mise--update :after #'my/setup-eglot-booster-path))
+
+  ;; Install and setup lsp booster
+  (if (file-directory-p my/emacs-lsp-booster-dir)
+      (my/setup-eglot-booster-path)
+    (progn
+      (require 'vc)
+      (vc-clone my/emacs-lsp-booster-repo 'Git my/emacs-lsp-booster-dir)
+      (let ((default-directory my/emacs-lsp-booster-dir))
+        (message "Building emacs-lsp-booster")
+        (make-process
+         :name "Building emacs-lsp-booster"
+         :buffer "*EMACS-LSP-BOOSTER-BUILD*"
+         :command (list "cargo" "build" "--release")
+         :sentinel
+         (lambda (process event)
+           ;; TODO switch to using `process-status' instead of `event'
+           (with-current-buffer (process-buffer process)
+	     (ansi-color-apply-on-region (point-min) (point-max)))
+           (pcase event
+	     ("finished\n"
+              (message "Installed emacs-lsp-booster")
+              (let ((booster-bin-dir (file-name-concat my/emacs-lsp-booster-dir "target/release/")))
+                (add-to-list 'exec-path booster-bin-dir)
+                (setenv "PATH" (concat booster-bin-dir path-separator (getenv "PATH")))))
+
+	     ((or "open from host-name\n" "open\n" "run\n"))
+	     (_ (error "Unhandled case %s for event from Building emacs-lsp-booster" event)))
+           )))))
   (eglot-booster-mode))
 
 (use-package eglot-codelens
@@ -2402,9 +2558,6 @@ current workspace."
   ;; Add inline variable hints, this feature is highly experimental
   (setopt dape-inline-variables t))
 
-;; (load (locate-user-emacs-file
-;;        "lisp/exwm-config.el"))
-
 (use-package eww
   :defer t
   :custom (eww-retrieve-command nil)
@@ -2418,6 +2571,7 @@ current workspace."
     (interactive)
     (let ((eww-retrieve-command '("rdrview" "-H")))
       (eww-reload nil nil))))
+
 (use-package ntfy :no-require t
   :commands (ntfy-send-notification ntfy-me-at)
   :requires plz
@@ -2425,10 +2579,10 @@ current workspace."
   (defun ntfy-send-notification (string)
     (interactive (list (read-string "What should we send?:")))
     (plz 'post "https://ntfy.sh/gavin-emacs-notifications"
-      :headers '(("Title"  . "Sent From Emacs")
-                 ("Tags" . "computer")
-                 ("Markdown" . "yes"))
-      :body string))
+         :headers '(("Title"  . "Sent From Emacs")
+                    ("Tags" . "computer")
+                    ("Markdown" . "yes"))
+         :body string))
   (defun ntfy-me-at (time string)
     "Send me a notification at this time with this string"
     (interactive (list
@@ -2450,36 +2604,9 @@ current workspace."
   :config
   (add-hook 'claude-code-process-environment-functions #'monet-start-server-function)
   (monet-mode 1)
-  (claude-code-mode)
-  )
+  (claude-code-mode))
 (use-package monet
   :vc (:url "https://github.com/stevemolitor/monet" :rev :newest))
-(use-package agent-shell
-  :ensure t
-  :bind ( :map help-map
-          ("s" . agent-shell))
-  :config
-  (require 'gptel)
-  (setopt agent-shell-new-shell-config (agent-shell-anthropic-make-claude-code-config))
-  (setopt agent-shell-file-completion-enabled t)
-  (setopt agent-shell-mcp-servers (list
-                                   `((name . "github")
-                                     (command . "docker")
-                                     (args . (
-                                              "run"
-                                              "-i"
-                                              "--rm"
-                                              "-e"
-                                              ,(concat "GITHUB_PERSONAL_ACCESS_TOKEN="
-                                                       (gptel-api-key-from-auth-source "api.github.com" "Gavinok^forge"))
-                                              "ghcr.io/github/github-mcp-server"
-                                              ))
-                                     (env . (((name . "GITHUB_PERSONAL_ACCESS_TOKEN") (value . ,(gptel-api-key-from-auth-source "api.github.com" "Gavinok^forge")))))))))
-
-(use-package gptel-agent
-  :vc ( :url "https://github.com/karthink/gptel-agent"
-        :rev :newest)
-  :config (gptel-agent-update))
 
 (use-package gptel
   :ensure t
@@ -2496,22 +2623,409 @@ current workspace."
           ("g"   . chatgpt-grammar-correct))
   :config
   (setq gptel-default-mode #'org-mode)
-  (setq gptel-model 'mistralai/devstral-small:free)
+  (setq gptel-model 'gpt-4o)
   (setq gptel-backend gptel--openai)
-  (load (locate-user-emacs-file "lisp/chatgpt.el"))
-  (load (locate-user-emacs-file "lisp/gptel-settings.el")))
-(use-package gptel-fn-complete :ensure t :after gptel)
+  ;; (load (locate-user-emacs-file "lisp/chatgpt.el"))
+  ;; (load (locate-user-emacs-file "lisp/gptel-settings.el"))
+  )
 
-(defun gptel-get-cursorrules ()
+
+(use-package agent-shell
+  :vc (:url "https://github.com/xenodium/agent-shell.git")
+  :ensure nil
+  :bind ( :map help-map
+          ("s" . agent-shell)
+          ("R" . my/agent-shell-review)
+          ("I" . my/agent-shell-implement-plan)
+          :map agent-shell-ui-mode-map
+          ("C-c C-l" . nil)
+          ("C-c q" . agent-shell-queue-request)
+          ;; :map magit-mode-map
+          ;; ("C-h TAB"    . my/agent-shell-magit-generate-commit)
+          ;; ("C-h R"    . my/agent-shell-review-magit-commit)
+          )
+  :config
+  (require 'gptel)
+  (setopt agent-shell-new-shell-config (agent-shell-anthropic-make-claude-code-config)
+          agent-shell-header-style nil
+          agent-shell-show-welcome-message nil
+          agent-shell-file-completion-enabled t
+          agent-shell-session-strategy 'prompt
+          agent-shell-prefer-session-resume t)
+  (setopt agent-shell-goose-environment (agent-shell-make-environment-variables
+                                         "OPENAI_MODEL" "deepseek/deepseek-v4-pro"
+                                         "OPENAI_BASE_URL" "https://openrouter.ai/api/v1"
+                                         "OPENAI_API_KEY" (password-store-get "openrouter")))
+  (setopt agent-shell-goose-authentication
+          (agent-shell-make-goose-authentication :openai-api-key (nth 0 (process-lines "pass" "show" "openrouter"))))
+
+  (setopt agent-shell-mcp-servers ;; nil
+          (list
+           (lambda (&rest _args)
+             `((name . "github")
+               (command . "docker")
+               (args . ("run"
+                        "-i"
+                        "--rm"
+                        "-e"
+                        ,(concat "GITHUB_PERSONAL_ACCESS_TOKEN="
+                                 (encode-coding-string (funcall (plist-get (car (auth-source-search
+                                                                                 :host "api.github.com"
+                                                                                 :user "Gavinok^forge"
+                                                                                 :require '(:secret)))
+                                                                           :secret))
+                                                       'utf-8))
+                        "ghcr.io/github/github-mcp-server"
+                        ))
+               (env . ())))
+           (lambda (&rest _args)
+             `((name . "emacs")
+               (command . "socat")
+               (args . ("-" "UNIX-CONNECT:/home/gavinok/.emacs.d/emacs-mcp-server.sock"))
+               (env . ())))
+           (lambda (&rest _args)
+             `((name . "context-mode")
+               (command . "context-mode")
+               (args . ())
+               (env . ())))
+           ))
+  ;; (use-package mcp-server
+  ;;   :ensure nil
+  ;;   :hook (emacs-startup . mcp-server-start-unix)
+  ;;   :init
+  ;;   (unless (package-installed-p 'emacs-mcp-server)
+  ;;     (package-vc-install
+  ;;      '(mcp-server :url "https://github.com/rpeck/emacs-mcp-server"
+  ;;                   :branch "fix/strip-release-please-version-marker")))
+  ;;   :config
+  ;;   (defun my/mcp-org-search-handler (args)
+  ;;     "Handle search_org_agenda MCP tool call with ARGS."
+  ;;     (let* ((text-query (or (alist-get 'text_query args) ""))
+  ;;            (match (let ((m (alist-get 'match args)))
+  ;;                     (and m (not (string= m "")) m)))
+  ;;            (max-results (or (alist-get 'max_results args) 8))
+  ;;            (query-re (and (not (string-empty-p text-query))
+  ;;                           (regexp-quote text-query)))
+  ;;            (results '())
+  ;;            (total 0))
+  ;;       (unless org-agenda-files
+  ;;         (error "No org-agenda-files configured"))
+  ;;       (catch 'done
+  ;;         (dolist (file (org-agenda-files))
+  ;;           (when (file-exists-p file)
+  ;;             (with-current-buffer (or (find-buffer-visiting file)
+  ;;                                      (find-file-noselect file t))
+  ;;               (org-map-entries
+  ;;                (lambda ()
+  ;;                  (let* ((heading (org-get-heading t t t t))
+  ;;                         (todo (org-get-todo-state))
+  ;;                         (tags (org-get-tags))
+  ;;                         (line (line-number-at-pos)))
+  ;;                    (when (or (null query-re)
+  ;;                              (string-match-p query-re heading))
+  ;;                      (cl-incf total)
+  ;;                      (when (<= total max-results)
+  ;;                        (push (format "- [[file:%s::%s][%s]] (line %d%s%s)"
+  ;;                                      file heading heading line
+  ;;                                      (if todo (format ", %s" todo) "")
+  ;;                                      (if tags (format ", :%s:" (string-join tags ":")) ""))
+  ;;                              results)))))
+  ;;                match
+  ;;                (list file))))))
+  ;;       (if results
+  ;;           (concat (if (> total max-results)
+  ;;                       (format "Found %d matches (showing first %d — use match= to narrow):\n" total max-results)
+  ;;                     (format "Found %d org headings:\n" total))
+  ;;                   (string-join (nreverse results) "\n"))
+  ;;         "No matching org headings found")))
+  ;;   (mcp-server-register-tool
+  ;;    (make-mcp-server-tool
+  ;;     :name "search_org_agenda"
+  ;;     :title "Search Org Agenda"
+  ;;     :description (concat "Search org-mode agenda files for headings. "
+  ;;                          "text_query does substring match on heading titles (empty = all). "
+  ;;                          "match is optional org match string for todo/tag/property filtering "
+  ;;                          "(e.g. \"+TODO=\\\"TODO\\\"\" for todos, \"+work\" for work tag). "
+  ;;                          "max_results caps output (default 8). "
+  ;;                          "Returns org file links with line numbers, todo state, and tags.")
+  ;;     :input-schema '((type . "object")
+  ;;                     (properties
+  ;;                      . ((text_query . ((type . "string")
+  ;;                                        (description . "Substring to match in heading titles. Empty = all headings.")))
+  ;;                         (match . ((type . "string")
+  ;;                                   (description . "Optional org match string (e.g. '+TODO=\"TODO\"', '+work'). Empty = no filter.")))
+  ;;                         (max_results . ((type . "integer")
+  ;;                                         (description . "Max headings to return. Default 8.")))))
+  ;;                     (required . ["text_query"]))
+  ;;     :function #'my/mcp-org-search-handler
+  ;;     :annotations '((readOnlyHint . t)
+  ;;                    (destructiveHint . :false)
+  ;;                    (idempotentHint . t)
+  ;;                    (openWorldHint . :false)))))
+  (defun my/agent-shell-review ()
+    "Review all current changes"
+    (interactive)
+    (agent-shell-insert
+     :submit t
+     :text
+     (concat "Review the current changes as a Senior Engineer with a focus on security performance and long term support and specialization in "
+             (completing-read "Senior Engineer's Specialization: " '("React Native, "
+                                                                     "Hyperledger Aries, "
+                                                                     "Typescript "
+                                                                     "Python "
+                                                                     "Common Lisp "
+                                                                     "Emacs Lisp "
+                                                                     "Haskell "
+                                                                     "Purescript "
+                                                                     "Vue "
+                                                                     "Javascript "
+                                                                     "Java "
+                                                                     "Security and Reliability "
+                                                                     "Horizontal Scalability "
+                                                                     "Performance "
+                                                                     "Functional Programming"))
+             ".\n"
+             " Ensure that we conform to high level software standards such as minimizing mutating state and ensure pure functions are used as much as possible.\n"
+             " Ensure that our changes match the same format and coding style of the rest of the project."
+             " Don't make any assumptions."
+             " If you are unsure of anything ask me for clarification."
+             " List all possible improvements indicating how large the change will be and how important it is.")))
+  
+  (defun my/agent-shell-implement-plan ()
+    "Implement the current plan"
+    (interactive)
+    (agent-shell-insert
+     :submit t
+     :text
+     (concat "Implement the current plan as a Senior Engineer with a focus on security performance and long term support and specialization in "
+             (completing-read "Senior Engineer's Specialization: " '("React Native, "
+                                                                     "Hyperledger Aries, "
+                                                                     "Typescript "
+                                                                     "Python "
+                                                                     "Common Lisp "
+                                                                     "Emacs Lisp "
+                                                                     "Haskell "
+                                                                     "Purescript "
+                                                                     "Vue "
+                                                                     "Javascript "
+                                                                     "Java "
+                                                                     "Security and Reliability "
+                                                                     "Horizontal Scalability "
+                                                                     "Performance "
+                                                                     "Functional Programming"))
+             "."
+             " Ensure that we conform to high level software standards such as minimizing mutating state and ensure pure functions are used as much as possible."
+             " Ensure that our changes match the same format and coding style of the rest of the project."
+             " Ensure all edgecases are handled e.g. are exceptions possible? If so how are they handled? Does this conform with the rest of the project?"
+             " Don't make any assumptions."
+             " If you are unsure of anything ask me for clarification.")))
+  (defun my/agent-shell-clear-context ()
+    (interactive)
+    (agent-shell-restart))
+  (setopt agent-shell-transcript-file-path-function
+          (lambda ()
+            (let* ((dir (agent-shell--dot-subdir "transcripts"))
+                   (filename (format-time-string "%F-%H-%M-%S.md"))
+                   (filepath (expand-file-name filename dir)))
+              (make-directory dir t)
+              filepath)))
+  (with-eval-after-load 'magit
+    (defun my/agent-shell-magit-review-changes ()
+      "Generate conventional message and commit stage changes in magit."
+      (interactive)
+      (if (magit-staged-files)
+          (agent-shell-insert
+           :submit t
+           :text "Commit changes with conventional message")
+        (user-error "No staged changes")))
+    (defun my/agent-shell-review-magit-commit ()
+      "Send the commit from magit to agent-shell for reviews."
+      (interactive)
+      (if-let ((commit (magit-commit-p (magit-thing-at-point 'git-revision t))))
+          (agent-shell-insert
+           :submit t
+           :text (format "Review commit: %s" commit))
+        (user-error "No magit commit at point"))))
+  (define-advice agent-shell-project-buffers (:around (orig-fn &rest _args) find-ancestor)
+    "Find a shell buffer in an ancestor directory of the current project root.
+Walks up from the current project root toward $HOME, returning the first
+shell buffer whose CWD matches an ancestor directory."
+    (or (funcall orig-fn)
+        (list
+         (let* ((project-root (agent-shell-cwd))
+                (home (file-name-as-directory (expand-file-name "~")))
+                (all-buffers (agent-shell-buffers))
+                (dir (file-name-directory (directory-file-name project-root)))
+                result)
+           (while (and (not result)
+                       dir
+                       (string-prefix-p home dir))
+             (let ((current-dir dir))
+               (setq result (seq-first
+                             (seq-filter (lambda (buffer)
+                                           (equal current-dir
+                                                  (with-current-buffer buffer
+                                                    (agent-shell-cwd))))
+                                         all-buffers)))
+               (if (string= current-dir home)
+                   (setq dir nil)
+                 (setq dir (file-name-directory (directory-file-name current-dir))))))
+           result))))
+  (define-advice agent-shell--make-tool-call-permission-text (:around (orig-fn &rest args) show-raw-input)
+    (let* ((acp-request (plist-get args :acp-request))
+           (kind (map-nested-elt acp-request '(params toolCall kind)))
+           (raw-input (map-nested-elt acp-request '(params toolCall rawInput)))
+           (result (apply orig-fn args)))
+      (if (and raw-input (equal kind "other")
+               (string-prefix-p "mcp__" (or (map-nested-elt acp-request '(params toolCall title)) "")))
+          (let ((raw-text (concat "\n\n    ```\n    "
+                                  (mapconcat (lambda (pair)
+                                               (format "%s  %s" (car pair) (cdr pair)))
+                                             raw-input "\n    ")
+                                  "\n    ```")))
+            (replace-regexp-in-string "\n\n\n╰─" (concat raw-text "\n\n\n╰─") result t t))
+        result)))
+  (define-advice agent-shell--make-diff-info (:around (orig-fn &rest args) make-diff-info-goose)
+    "Handle Goose-style before/after rawInput in diff info construction.
+
+Goose sends edits as `before'/`after' text fields in rawInput rather than
+the standard ACP `content' diff format.  When detected, maps them directly
+to :old/:new/:file without further parsing.  Falls through to ORIG-FN for
+all other formats."
+    (let* ((acp-tool-call (plist-get args :acp-tool-call))
+           (raw-input (map-elt acp-tool-call 'rawInput)))
+      (if (and raw-input (map-elt raw-input 'after))
+          (let ((old-text (or (map-elt raw-input 'before) ""))
+                (new-text (map-elt raw-input 'after))
+                (path (map-elt raw-input 'path)))
+            (append (list (cons :old old-text)
+                          (cons :new new-text))
+                    (when path (list (cons :file path)))))
+        (apply orig-fn args))))
+  (use-package agent-shell-attention
+    :ensure nil
+    :vc (:url "https://github.com/ultronozm/agent-shell-attention.el")
+    :init (agent-shell-attention-mode 1))
+  (use-package agent-shell-bookmark
+    :after agent-shell
+    :vc (:url "https://github.com/dcluna/agent-shell-bookmark.git"))
+  (use-package agent-shell-ol
+    :after (agent-shell-bookmark ol)
+    :ensure nil
+    :vc (:url "https://github.com/dcluna/agent-shell-bookmark.git"))
+  (use-package agent-review
+    :after agent-shell
+    :vc ( :url "https://github.com/nineluj/agent-review.git"
+          :rev :newest)
+    :commands (agent-review))
+  (use-package agent-shell-tramp
+    :ensure t
+    :after (tramp agent-shell)
+    :vc (:url "https://github.com/junyi-hou/agent-shell-tramp.git")
+    :config
+    (agent-shell-tramp-mode 1))
+  (use-package ob-agent-shell
+    :after (agent-shell org)
+    :vc (:url "https://github.com/eddof13/ob-agent-shell.git")
+    :config
+    (add-to-list 'org-babel-load-languages '(agent-shell . t)))
+  )
+(defun my/agent-shell--set-model (model &optional on-success)
+  "Set session model.
+
+Optionally, get notified of completion with ON-SUCCESS function."
+  (interactive (list (completing-read "Model: " '("deepseek/deepseek-v4-pro"
+                                                  haiku
+                                                  sonnet))))
+  (declare (modes agent-shell-mode))
   (interactive)
-  (let ((default-directory (project-root (project-current)))
-        (f ".cursorrules"))
-    (when (file-exists-p f)
-      (setq-local gptel--system-message (concat
-                                         (with-temp-buffer
-                                           (insert-file-contents f)
-                                           (buffer-string))
-                                         gptel--system-message)))))
+  (unless (derived-mode-p 'agent-shell-mode)
+    (user-error "Not in an agent-shell buffer"))
+  (unless (map-nested-elt (agent-shell--state) '(:session :id))
+    (user-error "No active session"))
+  (unless (map-nested-elt (agent-shell--state) '(:session :models))
+    (user-error "No session models available"))
+  (let* ((current-model-id (map-nested-elt (agent-shell--state) '(:session :model-id)))
+         (available-models (map-nested-elt (agent-shell--state) '(:session :models)))
+         (default-model-name (and current-model-id
+                                  (map-elt (seq-find (lambda (model)
+                                                       (string= (map-elt model :model-id) current-model-id))
+                                                     available-models)
+                                           :name)))
+         (model-choices (seq-mapn (lambda (title model)
+                                    (cons title (map-elt model :model-id)))
+                                  (agent-shell--align-alist
+                                   :data available-models
+                                   :columns (list
+                                             (lambda (model)
+                                               (map-elt model :name))
+                                             (lambda (model)
+                                               (format "(%s)" (map-elt model :model-id)))))
+                                  available-models))
+         (selected-model-id model))
+    (agent-shell--send-request
+     :state (agent-shell--state)
+     :client (map-elt (agent-shell--state) :client)
+     :request (acp-make-session-set-model-request
+               :session-id (map-nested-elt (agent-shell--state) '(:session :id))
+               :model-id selected-model-id)
+     :on-success (lambda (_acp-response)
+                   (let ((updated-session (map-elt (agent-shell--state) :session)))
+                     (map-put! updated-session :model-id selected-model-id)
+                     (map-put! (agent-shell--state) :session updated-session)
+                     (message "Model: %s"
+                              (map-elt (seq-find (lambda (model)
+                                                   (string= (map-elt model :model-id) selected-model-id))
+                                                 (map-nested-elt (agent-shell--state) '(:session :models)))
+                                       :name)))
+                   (agent-shell--update-header-and-mode-line)
+                   (when on-success
+                     (funcall on-success)))
+     :on-failure (lambda (acp-error _raw-message)
+                   (message "Failed to change model: %s" acp-error)))))
+(defun trans-wenyan-region (beg end &optional cur-buf)
+  (interactive (list (mark) (point)
+                     (current-buffer)))
+  (cursor-sensor-mode t)
+  (let ((command `("trans" "-brief"
+                   "-no-ansi"
+                   ;; "-indent" "0"
+                   ;; "-show-original" "n"
+                   ;; "-show-languages" "n"
+                   ;; "-e" "yandex"
+                   ;; "-s"
+                   ;; "lzh"
+                   "-t"
+                   "en" ))
+        (buf-name "*Trans*"))
+    (make-process :name "Translation"
+                  :buffer buf-name
+                  :command (append command
+                                   (list (buffer-substring beg end)))
+                  :sentinel (lambda (process event)
+                              "Listens for process finish and prints the translated text"
+                              (unless (process-live-p process )
+                                (if  (string-match "finis.*" event)
+                                    (let* ((select-enable-clipboard t)
+                                           (trans (string-trim (with-current-buffer (process-buffer process)
+                                                                 (buffer-string))))
+                                           (ol (make-overlay beg end cur-buf)))
+                                      (overlay-put ol 'display
+                                                   trans)
+                                      ;; 2. Define the sensor function
+                                      ;; The function signature is (window last-pos state)
+                                      ;; state is 'entered or 'left
+                                      (overlay-put ol 'cursor-sensor-functions
+                                                   (list (lambda (window _last-pos state)
+                                                           (with-selected-window window
+                                                             (if (eq state 'entered)
+                                                                 (overlay-put ol 'display nil)       ; Reveal original
+                                                               (overlay-put ol 'display trans)))))) ; Hide original
+                                      (add-to-list 'my/trans-ol ol)
+                                      (kill-buffer buf-name))
+                                  (message "Failed to translate")))))))
+(setq my/trans-ol '())
+
 (use-package pomm
   :defer t
   :custom ((pomm-audio-enabled t))
@@ -2529,109 +3043,6 @@ current workspace."
   (typst-ts-mode-grammar-location (expand-file-name "tree-sitter/libtree-sitter-typst.so" user-emacs-directory)))
 
 (use-package journalctl-mode :ensure t :commands (journalctl))
-(use-package prodigy
-  :ensure t
-  :bind ("C-x P" . prodigy)
-  :config
-  (prodigy-define-tag
-    :name 'nextjs
-    :ready-message " ✓ Ready in [0-9]+ms")
-  (prodigy-define-service
-    :name "proxima landing_page"
-    :command "npm"
-    :args '("run" "dev")
-    :cwd "/home/gavinok/code/sideprojects/landing_page"
-    :port 3000
-    :tags '(proxima nextjs)
-    :stop-signal 'kill)
-
-  (setq prodigy-vc-authn-project "/home/gavinok/code/work/vc-authn-oidc")
-  (prodigy-define-service
-    :name "build vc-authn"
-    :command (concat prodigy-vc-authn-project
-                     "/docker/manage")
-    :args '("build")
-    :cwd (concat prodigy-vc-authn-project "/docker/")
-    :tags '(build work vc-authn))
-  (prodigy-define-service
-    :name "vc-authn"
-    :command (concat prodigy-vc-authn-project
-                     "/docker/manage")
-    :args '("start")
-    :cwd (concat prodigy-vc-authn-project "/docker/")
-    :tags '(work vc-authn)
-    :ready-message "controller-1     | [-0-9:_TZ\.]+ \\[info     \\] Application startup complete.  \\[uvicorn.error\\]"
-    :env `(("DEBUGGER" "false")
-           ("ACAPY_ENDPOINT" "http://host.docker.internal:8050")
-           ("LOG_WITH_JSON" "FALSE")
-           ("NGROK_AUTH" ,(password-store-get "NGROK_AUTH")))
-    :stop-signal 'kill)
-  (prodigy-define-service
-    :name "vc-authn demo"
-    :command "docker"
-    :args '("compose" "up")
-    :cwd (concat prodigy-vc-authn-project "/demo/vue")
-    :port 8080
-    :tags '(work vc-authn)
-    :ready-message "controller-1     | [-0-9:_TZ\.]+ \\[info     \\] Application startup complete.  \\[uvicorn.error\\]"
-    :stop-signal 'kill)
-
-  (setq prodigy-endorser-project "/home/gavinok/code/work/aries-endorser-service/")
-  (prodigy-define-service
-    :name "build endorser"
-    :command (concat prodigy-endorser-project
-                     "/docker/manage")
-    :args '("build")
-    :cwd (concat prodigy-endorser-project "/docker/")
-    :tags '(build work endorser)
-    :env `(("DEBUGGER" "false")
-           ("ENDORSER_ENV" "testing")
-           ("ACAPY_ENDPOINT" "http://host.docker.internal:8050")
-           ("NGROK_AUTH" ,(password-store-get "NGROK_AUTH")))
-    :stop-signal 'kill)
-  (prodigy-define-service
-    :name "endorser"
-    :command (concat prodigy-endorser-project
-                     "/docker/manage")
-    :args '("start-bdd" "--logs")
-    :cwd (concat prodigy-endorser-project "/docker/")
-    :url "http://localhost:5050/endorser/docs"
-    :tags '(work endorser)
-    :env `(("DEBUGGER" "false")
-           ("ENDORSER_ENV" "testing")
-           ("ACAPY_ENDPOINT" "http://host.docker.internal:8050")
-           ("NGROK_AUTH" ,(password-store-get "NGROK_AUTH"))
-           ("LEDGER_URL" "http://test.bcovrin.vonx.io")
-           ("TAILS_SERVER_URL" "https://tails-test.vonx.io"))
-    :stop-signal 'kill)
-  (prodigy-define-service
-    :name "test endorser"
-    :command (concat prodigy-endorser-project
-                     "/docker/manage")
-    :args '("run-bdd-docker")
-    :cwd (concat prodigy-endorser-project "/docker/")
-    :url "http://localhost:5050/endorser/docs"
-    :tags '(test work endorser)
-    :env `(("DEBUGGER" "false")
-           ("ENDORSER_ENV" "testing")
-           ("ACAPY_ENDPOINT" "http://host.docker.internal:8050")
-           ("NGROK_AUTH" ,(password-store-get "NGROK_AUTH"))
-           ("LEDGER_URL" "http://test.bcovrin.vonx.io")
-           ("TAILS_SERVER_URL" "https://tails-test.vonx.io"))
-    :stop-signal 'kill)
-  (prodigy-define-service
-    :name "von"
-    :command (concat prodigy-endorser-project
-                     "/docker/manage")
-    :args '("start")
-    :cwd (concat prodigy-endorser-project "/docker/")
-    :url "http://localhost:5050/endorser/docs"
-    :tags '(work)
-    :env `(("DEBUGGER" "false")
-           ("ENDORSER_ENV" "testing")
-           ("ACAPY_ENDPOINT" "http://host.docker.internal:8050")
-           ("NGROK_AUTH" ,(password-store-get "NGROK_AUTH")))
-    :stop-signal 'kill))
 
 (use-package ts-query-highlight
   :vc (:url "https://git.sr.ht/~meow_king/ts-query-highlight")
@@ -2647,8 +3058,78 @@ current workspace."
                            @dec)
                          (point)))
 
-(use-package claude-code-ide
-  :vc (:url "https://github.com/manzaltu/claude-code-ide.el" :rev :newest)
-  :bind ("C-'" . claude-code-ide-menu) ; Set your favorite keybinding
+(use-package elfeed
+  :ensure t
+  :commands (elfeed)
   :config
-  (claude-code-ide-emacs-tools-setup)) ; Optionally enable Emacs MCP tools
+  ;; Somewhere in your .emacs file
+  (setopt newsticker-url-list
+          '(("Weekly Planet" "https://feeds.acast.com/public/shows/theweeklyplanet" nil 86400))))
+
+(defun shell-maker-last-output-or-fail ()
+  "Get the last command output from the shell."
+  (let ((proc (get-buffer-process (current-buffer))))
+    (save-excursion
+      (let* ((pmark (progn (goto-char (process-mark proc))
+                           (forward-line 0)
+                           (point-marker)))
+             (output (buffer-substring-no-properties comint-last-input-end pmark))
+             (items (flatten-tree (mapcar (lambda (a) (split-string a "<shell-maker-failed-command>"))
+                                          (split-string output "<shell-maker-end-of-prompt>")))))
+        (if (> (length items) 1)
+            (nth 1 items)
+          (nth 0 items))))))
+
+(defun my/agent-shell-delegate-to-worker (task file)
+  "Send TASK to a new worker agent, FILE being the file that response is written to.
+
+Example called like so
+(my/agent-shell-delegate-to-worker \"tell me about the C programming language\" \"/path/to/file.txt\")"
+  (let ((agent-shell-show-welcome-message nil)
+        (agent-shell-session-strategy 'new))
+    (let* ((worker-buffer
+            (agent-shell--start :config (agent-shell-goose-make-agent-config)
+                                :new-session t
+                                :no-focus t
+                                :session-strategy 'new)))
+
+      (agent-shell-subscribe-to
+       :shell-buffer worker-buffer
+       :event 'init-finished
+       :on-event (lambda (_event)
+                   (with-current-buffer worker-buffer
+                     (agent-shell--send-command :prompt task
+                                                :shell-buffer worker-buffer))))
+
+      (agent-shell-subscribe-to
+       :shell-buffer worker-buffer
+       :event 'turn-complete
+       :on-event (lambda (_event)
+                   (with-temp-file file
+                     (insert (with-current-buffer worker-buffer
+                               (shell-maker-last-output-or-fail))))
+                   (kill-buffer worker-buffer))))))
+
+(use-package kotlin-ts-mode
+  :ensure t
+  :hook (kotlin-ts-mode . (lambda () (setq-local eglot-connect-timeout nil)))
+  :init
+  (add-to-list 'treesit-language-source-alist '(kotlin . ("https://github.com/fwcd/tree-sitter-kotlin")))
+  (with-eval-after-load 'eglot
+    (add-to-list 'eglot-server-programs '((kotlin-ts-mode kotlin-mode) . ("mise" "exec" "--" "kotlin-lsp" "--stdio")))))
+
+;; (load (locate-user-emacs-file
+;;        "lisp/exwm-config.el"))
+(use-package desktop
+  :ensure nil
+  :config
+  (desktop-save-mode 1))
+
+(use-package spacious-padding
+  :ensure t
+  :hook (exwm-init . spacious-padding-mode)
+  :custom
+  ;; make the modeline look minimal
+  (spacious-padding-subtle-mode-line '( :mode-line-active default
+                                        :mode-line-inactive vertical-border))
+  )

@@ -11,58 +11,59 @@
   (alist-get (md5 msg) my/notifications nil nil 'equal))
 (defun store-last-note (replace-id msg)
   (setf (alist-get (md5 msg) my/notifications nil nil 'equal) replace-id))
-(use-package appt
-  :demand t
-  :unless *android*
-  :defer 20
-  :custom
-  ((appt-announce-method 'appt-persistant-message-announce)
-   (appt-message-warning-time 15)
-   (appt-display-duration 360)
-   (appt-disp-window-function #'my/appt-display)
-   (appt-delete-window-function #'ignore))
-  :init
-  (defun my/appt-display (min-to-app _new-time appt-msg)
-    (require 'notifications)
-    ;; Close the last iteration of this notification
-    (when-let ((repid (get-last-note appt-msg)))
-      (notifications-close-notification repid))
-    (let ((title  (pcase min-to-app
-                    ("0" "Appointment Is Starting")
-                    ("1" "Appointment in 1 Minute")
-                    (min (concat " Appointment in " min " Minutes"))))
-          (body appt-msg)
-          (urgency (if (< (string-to-number min-to-app) 3)
-                       'critical
-                     'normal)))
-      (store-last-note
-       (funcall (if  *android*
-                    ;; support for android notifications
-                    'android-notifications-notify
-                  'notifications-notify)
-                :title title
-                :body body
-                :urgency urgency
-                :actions '("Open" "Open this appointment")
-                :on-action (lambda (_id _key) (org-agenda 'd)))
-       appt-msg)
-      ;; Notify me on my phone
-      (require 'plz)
-      (plz 'post "https://ntfy.sh/gavin-emacs-notifications"
-        :headers `(("Title"  . ,title)
-                   ("Priority" . ,(if (eql urgency 'critical)
-                                      "high"
-                                    "default"))
-                   ("Tags" . "calendar")
-                   ("Markdown" . "yes"))
-        :body body)))
-  (appt-activate +1)
-  (org-agenda-to-appt)
-  (defvar appt-update-org-timer
-    ;; wait till emacs is idle for 1 minute before processing org appointments
-    (run-with-idle-timer 60 t #'org-agenda-to-appt)
-    "Timer used to update appt to the current org events")
-  )
+;; (use-package appt
+;;   :demand t
+;;   :unless *android*
+;;   :defer 20
+;;   :custom
+;;   ((appt-announce-method 'appt-persistant-message-announce)
+;;    (appt-message-warning-time 15)
+;;    (appt-display-duration 360)
+;;    (appt-disp-window-function #'my/appt-display)
+;;    (appt-delete-window-function #'ignore))
+;;   :init
+;;   (defun my/appt-display (min-to-app _new-time appt-msg)
+;;     (require 'notifications)
+;;     ;; Close the last iteration of this notification
+;;     (when-let ((repid (get-last-note appt-msg)))
+;;       (notifications-close-notification repid))
+;;     (let ((title  (pcase min-to-app
+;;                     ("0" "Appointment Is Starting")
+;;                     ("1" "Appointment in 1 Minute")
+;;                     (min (concat " Appointment in " min " Minutes"))))
+;;           (body appt-msg)
+;;           (urgency (if (< (string-to-number min-to-app) 3)
+;;                        'critical
+;;                      'normal)))
+;;       (store-last-note
+;;        (funcall (if  *android*
+;;                     ;; support for android notifications
+;;                     'android-notifications-notify
+;;                   'notifications-notify)
+;;                 :title title
+;;                 :body body
+;;                 :urgency urgency
+;;                 :actions '("Open" "Open this appointment")
+;;                 :on-action (lambda (_id _key) (org-agenda 'd)))
+;;        appt-msg)
+;;       ;; Notify me on my phone
+;;       (require 'plz)
+;;       (plz 'post "https://ntfy.sh/gavin-emacs-notifications"
+;;         :headers `(("Title"  . ,title)
+;;                    ("Priority" . ,(if (eql urgency 'critical)
+;;                                       "high"
+;;                                     "default"))
+;;                    ("Tags" . "calendar")
+;;                    ("Markdown" . "yes"))
+;;         :body body)))
+;;   (appt-activate +1)
+;;   (org-agenda-to-appt)
+;;   (defvar appt-update-org-timer
+;;     ;; wait till emacs is idle for 1 minute before processing org appointments
+;;     (run-with-idle-timer 60 t #'org-agenda-to-appt)
+;;     "Timer used to update appt to the current org events")
+;; (set-face-attribute 'appt-notification nil :foreground "#fff" :background "#333")
+;;   )
 
 ;;; ORG
 (use-package org
@@ -76,7 +77,9 @@
          ;;                              (,electric-pair-inhibit-predicate c))))))
          )
   :bind (("C-c i" . org-insert-link-global)
+         ("C-c y" . org-insert-link-global)
          ("C-c o" . org-open-at-point-global)
+         ("C-c l" . org-store-link)
          ("C-c l" . org-store-link)
          :map org-mode-map
          ("C-M-i" . completion-at-point)
@@ -198,8 +201,17 @@
   (setopt org-refile-use-outline-path 'file) ; Let me refile to file as well as a heading
   (setq org-outline-path-complete-in-steps nil) ; give me all completions at once
   (setq org-refile-allow-creating-parent-nodes 'confirm)
-  (advice-add 'org-refile :after 'org-save-all-org-buffers))
+  (add-hook 'org-after-refile-insert-hook 'org-save-all-org-buffers)
+  (add-hook 'org-after-refile-insert-hook 'org-save-all-org-buffers)
+  (add-hook 'org-agenda-after-show-hook 'my/org-pull-and-pushorg-agenda-redo-all))
 
+(defun my/org-pull-and-push (&optional message)
+  (interactive "sCommit message: ")
+  (let ((default-directory org-directory))
+    (vc-git-command nil 0 nil "add" "-A")
+    (vc-git-command nil 0 nil "commit" "-m" message)
+    (message "Committed: %s" message)
+    (vc-pull-and-push)))
 (use-package org-agenda
   :bind (("C-c a" . org-agenda)
          ("<f12>" . my/quick-agenda))
@@ -348,6 +360,8 @@
   :custom
   (org-ics-import-calendars-alist `((,(password-store-get "seren-cal") . ,(concat org-directory "/seren-cal.org"))
                                     (,(password-store-get "shared-cal") . ,(concat org-directory "/shared-cal.org"))
+                                    (,(password-store-get "gavin-cal") . ,(concat org-directory "/gavin-cal.org"))
+                                    (,(password-store-get "intervals.icu/ical") . ,(concat org-directory "/intervals-icu.org"))
                                     (,(password-store-get "recycling-cal") . ,(concat org-directory "/recycling.org"))))
   (org-ics-import-exclude-strings '("Cancelled"))
   (org-ics-import-exclude-passed-events t))
@@ -364,7 +378,12 @@
   :config
   ;; For exporting to markdown
   (require 'ox-md)
-  (require 'ox-org))
+  (require 'ox-org)
+  (require 'ox-beamer))
+
+(use-package ox-typst
+  :ensure t
+  :after ox)
 ;; Make sure we get syntax highlighting in for pdf's
 (use-package engrave-faces
   :ensure t
@@ -462,6 +481,11 @@
             ("p" "Thing I Learned" entry
              (file+olp (lambda () (concat org-directory "/archive.org")) "Knowledge")
              "* %^{Title}")
+
+            ("w" "Work Task" entry
+             (file+headline (lambda () (concat org-directory "/Work.org")) "Tasks")
+             "* TODO %a"
+             :clock-in t)
 
             ;; Email Stuff
             ("e" "Email Workflow")
@@ -633,23 +657,23 @@
     (switch-to-buffer-other-window "*Org Mark Ring*")))
 
 ;; For creating svg art in org files
-(use-package edraw
-  :defer t
-  :ensure nil
-  :after org
-  :init
-  ;; (unless (package-installed-p 'edraw)
-  ;;   (package-vc-install "https://github.com/misohena/el-easydraw"))
-  :init
-  (require 'edraw-org)
-  (edraw-org-setup-default)
-  ;; When using the org-export-in-background option (when using the
-  ;; asynchronous export function), the following settings are
-  ;; required. This is because Emacs started in a separate process does
-  ;; not load org.el but only ox.el.
-  (with-eval-after-load "ox"
-    (require 'edraw-org)
-    (edraw-org-setup-exporter)))
+;; (use-package edraw
+;;   :defer t
+;;   :ensure nil
+;;   :after org
+;;   :init
+;;   ;; (unless (package-installed-p 'edraw)
+;;   ;;   (package-vc-install "https://github.com/misohena/el-easydraw"))
+;;   :init
+;;   (require 'edraw-org)
+;;   (edraw-org-setup-default)
+;;   ;; When using the org-export-in-background option (when using the
+;;   ;; asynchronous export function), the following settings are
+;;   ;; required. This is because Emacs started in a separate process does
+;;   ;; not load org.el but only ox.el.
+;;   (with-eval-after-load "ox"
+;;     (require 'edraw-org)
+;;     (edraw-org-setup-exporter)))
 ;;; Org Present
 (use-package org-present
   :ensure t
